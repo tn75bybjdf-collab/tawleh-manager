@@ -7,7 +7,7 @@
 
 
 import { createClient } from "@supabase/supabase-js";
-import { ChangeEvent, FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 type Profile = {
   businessId: string;
@@ -728,12 +728,17 @@ async function joinTableGuestInSupabase(businessId: string, tableNumber: number,
   return uniqueGuestNames(rows.map((row) => rowToGuestName(row)));
 }
 
-async function fetchTableOrdersFromSupabase(businessId: string, tableNumber: number, username = "") {
+async function fetchTableOrdersFromSupabase(businessId: string, tableNumber: number | null, username = "") {
   const params = new URLSearchParams({
     businessId,
     username,
-    table: String(tableNumber),
   });
+
+  if (tableNumber) {
+    params.set("table", String(tableNumber));
+  } else {
+    params.set("all", "1");
+  }
 
   const response = await fetch(`/api/table-orders?${params.toString()}`, {
     method: "GET",
@@ -879,6 +884,9 @@ export default function Page() {
   const [orderCart, setOrderCart] = useState<Record<string, number>>({});
   const [orderReviewOpen, setOrderReviewOpen] = useState(false);
   const [orderSendBusy, setOrderSendBusy] = useState(false);
+  const [kitchenBellEnabled, setKitchenBellEnabled] = useState(false);
+  const kitchenBellPrimedRef = useRef(false);
+  const lastKitchenNewOrderIdsRef = useRef<Set<string>>(new Set());
   const [signupProfile, setSignupProfile] = useState<Profile>(defaultState.profile);
   const [activeLocationTab, setActiveLocationTab] = useState(0);
   const [authBusy, setAuthBusy] = useState(false);
@@ -1029,6 +1037,10 @@ export default function Page() {
   }, [toast]);
 
   useEffect(() => {
+    setKitchenBellEnabled(window.localStorage.getItem("tawleh-kitchen-bell-enabled") === "true");
+  }, []);
+
+  useEffect(() => {
     if (!publicCustomerMode || !state.profile.businessId) return;
 
     let cancelled = false;
@@ -1073,7 +1085,7 @@ export default function Page() {
       try {
         const savedOrders = await fetchTableOrdersFromSupabase(
           state.profile.businessId,
-          activeTable,
+          publicCustomerMode ? activeTable : null,
           state.profile.username
         );
 
@@ -1098,7 +1110,35 @@ export default function Page() {
       cancelled = true;
       window.clearInterval(interval);
     };
-  }, [state.profile.businessId, state.profile.username, activeTable]);
+  }, [state.profile.businessId, state.profile.username, activeTable, publicCustomerMode]);
+
+
+  useEffect(() => {
+    if (publicCustomerMode) return;
+
+    const currentNewIds = new Set(
+      state.orders
+        .filter((order) => order.status === "New")
+        .map((order) => order.id)
+    );
+
+    if (!kitchenBellPrimedRef.current) {
+      lastKitchenNewOrderIdsRef.current = currentNewIds;
+      kitchenBellPrimedRef.current = true;
+      return;
+    }
+
+    const hasFreshNewOrder = Array.from(currentNewIds).some(
+      (orderId) => !lastKitchenNewOrderIdsRef.current.has(orderId)
+    );
+
+    lastKitchenNewOrderIdsRef.current = currentNewIds;
+
+    if (hasFreshNewOrder && kitchenBellEnabled) {
+      playDeliBellSound();
+      show("New kitchen order");
+    }
+  }, [state.orders, kitchenBellEnabled, publicCustomerMode]);
 
   const businessName = state.profile.restaurantName || "Restaurant";
   const branchName = state.profile.branchName || "Branch";
@@ -1231,9 +1271,11 @@ export default function Page() {
   const selectedQrUrl = buildQrUrl(selectedQrTable, selectedQrToken);
   const selectedQrImage = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&margin=18&ecc=H&data=${encodeURIComponent(selectedQrUrl)}`;
 
-  const ordersByGuest = activeOrders.reduce<Record<string, Order[]>>((acc, order) => {
-    acc[order.guest] = acc[order.guest] || [];
-    acc[order.guest].push(order);
+  const ordersByTable = activeOrders.reduce<Record<string, Record<string, Order[]>>>((acc, order) => {
+    const tableKey = String(order.table || activeTable);
+    acc[tableKey] = acc[tableKey] || {};
+    acc[tableKey][order.guest] = acc[tableKey][order.guest] || [];
+    acc[tableKey][order.guest].push(order);
     return acc;
   }, {});
 
@@ -1249,6 +1291,76 @@ export default function Page() {
 
   function show(message: string) {
     setToast(message);
+  }
+
+  function playDeliBellSound() {
+    try {
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+
+      if (!AudioContextClass) return;
+
+      const context = new AudioContextClass();
+      const now = context.currentTime;
+      const master = context.createGain();
+
+      master.gain.setValueAtTime(0.001, now);
+      master.gain.exponentialRampToValueAtTime(0.82, now + 0.012);
+      master.gain.exponentialRampToValueAtTime(0.001, now + 0.95);
+      master.connect(context.destination);
+
+      const frequencies = [1760, 2349, 3136];
+
+      frequencies.forEach((frequency, index) => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+
+        oscillator.type = index === 0 ? "triangle" : "sine";
+        oscillator.frequency.setValueAtTime(frequency, now);
+        oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.985, now + 0.38);
+
+        gain.gain.setValueAtTime(index === 0 ? 0.55 : 0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.72 + index * 0.08);
+
+        oscillator.connect(gain);
+        gain.connect(master);
+
+        oscillator.start(now);
+        oscillator.stop(now + 0.92);
+      });
+
+      const clickOscillator = context.createOscillator();
+      const clickGain = context.createGain();
+
+      clickOscillator.type = "square";
+      clickOscillator.frequency.setValueAtTime(920, now);
+      clickGain.gain.setValueAtTime(0.18, now);
+      clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+
+      clickOscillator.connect(clickGain);
+      clickGain.connect(master);
+      clickOscillator.start(now);
+      clickOscillator.stop(now + 0.08);
+
+      window.setTimeout(() => {
+        void context.close();
+      }, 1100);
+    } catch (error) {
+      console.error("Kitchen bell failed", error);
+    }
+  }
+
+  function enableKitchenBell() {
+    setKitchenBellEnabled(true);
+    window.localStorage.setItem("tawleh-kitchen-bell-enabled", "true");
+    playDeliBellSound();
+    show("Kitchen deli bell enabled");
+  }
+
+  function testKitchenBell() {
+    playDeliBellSound();
+    show("Deli bell test");
   }
 
   async function restoreSessionAndLoadMenu(loadedState: AppState) {
@@ -2969,33 +3081,58 @@ export default function Page() {
                 {managerTab === "kitchen" && (
                   <div className="two-col">
                     <div className="manager-card">
-                      <h3>Live Kitchen Orders</h3>
-                      <p className="sub">Grouped by table, then guest name. This is the "no more who ordered this?" screen.</p>
+                      <div className="kitchen-screen-header">
+                        <div>
+                          <h3>Live Kitchen Orders</h3>
+                          <p className="sub">Orders sent by customers appear here live. New orders ring one deli bell.</p>
+                        </div>
+
+                        <div className="kitchen-bell-actions">
+                          <button
+                            className={`btn small ${kitchenBellEnabled ? "success" : "secondary"}`}
+                            type="button"
+                            onClick={enableKitchenBell}
+                          >
+                            {kitchenBellEnabled ? "Bell on" : "Enable deli bell"}
+                          </button>
+                          <button className="btn small ghost" type="button" onClick={testKitchenBell}>
+                            Test bell
+                          </button>
+                        </div>
+                      </div>
 
                       {!activeOrders.length ? (
                         <Empty text="No active kitchen orders yet. Add an item from the customer phone." />
                       ) : (
                         <div className="order-group">
-                          <div className="order-group-header">
-                            <span>Table {activeTable}</span>
-                            <span>{activeOrders.length} active item{activeOrders.length === 1 ? "" : "s"}</span>
-                          </div>
+                          {Object.entries(ordersByTable).map(([tableNumber, guestGroups]) => {
+                            const tableOrders = Object.values(guestGroups).flat();
 
-                          {Object.entries(ordersByGuest).map(([guest, orders]) => (
-                            <div key={guest}>
-                              <div className="order-row guest-row">
-                                <div>
-                                  <h4>{guest}</h4>
-                                  <p>Guest order group</p>
+                            return (
+                              <div className="kitchen-table-group" key={tableNumber}>
+                                <div className="order-group-header">
+                                  <span>Table {tableNumber}</span>
+                                  <span>{tableOrders.length} active item{tableOrders.length === 1 ? "" : "s"}</span>
                                 </div>
-                                <span className="status">{orders.length} item{orders.length === 1 ? "" : "s"}</span>
-                              </div>
 
-                              {orders.map((order) => (
-                                <OrderRow key={order.id} order={order} onStatus={setOrderStatus} />
-                              ))}
-                            </div>
-                          ))}
+                                {Object.entries(guestGroups).map(([guest, orders]) => (
+                                  <div key={`${tableNumber}-${guest}`}>
+                                    <div className="order-row guest-row">
+                                      <div>
+                                        <h4>{guest}</h4>
+                                        <p>Guest order group</p>
+                                      </div>
+                                      <span className="status">{orders.length} item{orders.length === 1 ? "" : "s"}</span>
+                                    </div>
+
+                                    {orders.map((order) => (
+                                      <OrderRow key={order.id} order={order} onStatus={setOrderStatus} />
+                                    ))}
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
