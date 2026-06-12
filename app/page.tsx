@@ -414,18 +414,24 @@ export default function Page() {
 
     async function boot() {
       const params = new URLSearchParams(window.location.search);
-      const qrMode = params.get("mode") === "table" || params.has("table");
+      const qrMode = params.get("mode") === "table" || params.has("table") || params.has("token") || params.has("businessId") || params.has("username");
       const businessId = params.get("businessId") || params.get("business") || "";
+      const username = params.get("username") || "";
       const tableNumber = Math.max(1, Math.min(999, Number(params.get("table") || DEMO_TABLE)));
       const token = params.get("token") || "";
 
-      if (qrMode && businessId) {
+      if (qrMode) {
         setPublicTableMode(true);
         setActiveTable(tableNumber);
         setPhoneTab("menu");
 
         try {
-          const query = new URLSearchParams({ businessId, table: String(tableNumber), token });
+          const query = new URLSearchParams({
+            businessId,
+            username,
+            table: String(tableNumber),
+            token,
+          });
           const response = await fetch(`/api/public-table?${query.toString()}`, { cache: "no-store" });
           const result = await response.json();
 
@@ -637,6 +643,7 @@ export default function Page() {
     const params = new URLSearchParams({
       mode: "table",
       businessId: state.profile.businessId || "",
+      username: state.profile.username || "",
       restaurant: `${slugify(businessName)}-${slugify(branchName)}`,
       table: String(tableNumber),
       token,
@@ -1193,7 +1200,7 @@ export default function Page() {
   }
 
   function createQr() {
-    if (!state.profile.businessId) {
+    if (!state.profile.businessId && !state.profile.username) {
       show("Login first, then create QR codes");
       return;
     }
