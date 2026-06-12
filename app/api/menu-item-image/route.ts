@@ -32,8 +32,15 @@ function cleanText(value: unknown, fallback = "") {
   return String(value ?? fallback).trim();
 }
 
+/**
+ * Correct UUID pattern is:
+ * 8-4-4-4-12
+ *
+ * Previous route had the last part wrong and rejected real Supabase UUIDs,
+ * which caused "Invalid business account" during image upload.
+ */
 function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{12}$/i.test(value);
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
 function normalizeUsername(value: string) {
@@ -60,18 +67,34 @@ function getBearerToken(request: NextRequest) {
   return match?.[1] || "";
 }
 
-async function findBusiness(admin: SupabaseClient, businessId: string, username = "") {
+async function findBusiness(
+  admin: SupabaseClient,
+  args: {
+    businessId: string;
+    username: string;
+    authUserId: string;
+  }
+) {
+  const businessId = cleanText(args.businessId);
+  const username = normalizeUsername(args.username);
+  const authUserId = cleanText(args.authUserId);
+
   let query = admin
     .from("business_accounts")
     .select("id, auth_user_id, username");
 
-  if (businessId) {
-    if (!isUuid(businessId)) throw new Error("Invalid business account");
+  if (businessId && isUuid(businessId)) {
     query = query.eq("id", businessId);
   } else if (username) {
-    query = query.eq("username", normalizeUsername(username));
+    // Fallback protects old browser/localStorage state if businessId is stale.
+    query = query.eq("username", username);
+  } else if (authUserId && isUuid(authUserId)) {
+    // Last safe fallback: logged-in Supabase user owns one restaurant account.
+    query = query.eq("auth_user_id", authUserId);
+  } else if (businessId) {
+    throw new Error("Invalid business account. Login again, then upload the image.");
   } else {
-    throw new Error("Missing business account");
+    throw new Error("Missing business account. Login again, then upload the image.");
   }
 
   const { data, error } = await query.maybeSingle();
@@ -101,7 +124,11 @@ async function requireBusinessAccess(request: NextRequest, admin: SupabaseClient
     };
   }
 
-  const business = await findBusiness(admin, businessId, username);
+  const business = await findBusiness(admin, {
+    businessId,
+    username,
+    authUserId: userData.user.id,
+  });
 
   if (userData.user.id !== business.auth_user_id) {
     return {
