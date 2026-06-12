@@ -2884,17 +2884,6 @@ export default function Page() {
                               )}
                             </div>
 
-                              {orderCartItemCount > 0 ? (
-                                <div className="send-order-sticky">
-                                  <div>
-                                    <strong>{orderCartItemCount} item{orderCartItemCount === 1 ? "" : "s"}</strong>
-                                    <span>{money(orderCartTotal)}</span>
-                                  </div>
-                                  <button className="btn" type="button" onClick={beginOrderReview}>
-                                    Send order
-                                  </button>
-                                </div>
-                              ) : null}
                             </>
                           )}
 
@@ -3567,6 +3556,18 @@ export default function Page() {
           </section>
         </>
       )}
+
+      {publicCustomerMode && state.currentGuest && !orderReviewOpen && orderCartItemCount > 0 ? (
+        <div className="fixed-send-order-bar">
+          <div className="fixed-send-order-summary">
+            <strong>{orderCartItemCount} item{orderCartItemCount === 1 ? "" : "s"}</strong>
+            <span>{money(orderCartTotal)}</span>
+          </div>
+          <button className="fixed-send-order-button" type="button" onClick={beginOrderReview}>
+            Send order
+          </button>
+        </div>
+      ) : null}
 
       {selectedMenuImage?.imageFullUrl && (
         <div className="image-modal" onClick={() => setSelectedMenuImage(null)}>
