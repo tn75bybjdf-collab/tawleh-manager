@@ -1867,3 +1867,30 @@ img {
   font-weight: 850;
   letter-spacing: 0;
 }
+
+
+/* Public QR customer website mode */
+.public-qr-grid {
+  grid-template-columns: minmax(340px, 560px);
+  justify-content: center;
+  max-width: 760px;
+}
+
+.public-qr-grid .customer-panel {
+  width: 100%;
+}
+
+.public-qr-grid .customer-phone {
+  max-width: 460px;
+}
+
+.inline-error {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(181, 50, 50, 0.2);
+  background: rgba(181, 50, 50, 0.08);
+  color: #8a2b21;
+  font-size: 13px;
+  font-weight: 850;
+}

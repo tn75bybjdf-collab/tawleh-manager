@@ -116,6 +116,7 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const supabase = SUPABASE_URL && SUPABASE_ANON_KEY ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 const DEMO_TABLE = 5;
 const APP_LOGO_SRC = "/tawleh_logo.png";
+const PUBLIC_CUSTOMER_SITE_URL = (process.env.NEXT_PUBLIC_TAWLEH_CUSTOMER_URL || "https://tawleh.getdarik.com").replace(/\/+$/, "");
 
 const starterMenu: MenuItem[] = [];
 
@@ -404,25 +405,117 @@ export default function Page() {
   const [menuBusy, setMenuBusy] = useState(false);
   const [selectedMenuImage, setSelectedMenuImage] = useState<MenuItem | null>(null);
   const [toast, setToast] = useState("");
+  const [publicTableMode, setPublicTableMode] = useState(false);
+  const [publicTableError, setPublicTableError] = useState("");
+  const [activeTable, setActiveTable] = useState(DEMO_TABLE);
 
   useEffect(() => {
-    const loadedState = safeLoadState();
-    setState(loadedState);
-    setSignupProfile(loadedState.profile);
-    setQrInput(String(loadedState.lastQrTable || DEMO_TABLE));
-    document.documentElement.style.setProperty("--brand", loadedState.profile.brandColor || "#c8613f");
-    setLoaded(true);
+    let mounted = true;
 
-    if (loadedState.profileComplete) {
-      void restoreSessionAndLoadMenu(loadedState);
+    async function boot() {
+      const params = new URLSearchParams(window.location.search);
+      const qrMode = params.get("mode") === "table" || params.has("table");
+      const businessId = params.get("businessId") || params.get("business") || "";
+      const tableNumber = Math.max(1, Math.min(999, Number(params.get("table") || DEMO_TABLE)));
+      const token = params.get("token") || "";
+
+      if (qrMode && businessId) {
+        setPublicTableMode(true);
+        setActiveTable(tableNumber);
+        setPhoneTab("menu");
+
+        try {
+          const query = new URLSearchParams({ businessId, table: String(tableNumber), token });
+          const response = await fetch(`/api/public-table?${query.toString()}`, { cache: "no-store" });
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result?.error || "Could not load this table QR");
+          }
+
+          const business = result.business || {};
+          const menuRows = (result.menu || []) as MenuRow[];
+
+          const nextProfile: Profile = {
+            businessId: business.id || businessId,
+            authUserId: business.auth_user_id || "",
+            restaurantName: business.restaurant_name || "Restaurant",
+            branchName: business.branch_name || "Main Branch",
+            businessType: business.business_type || "Cafe",
+            tableCount: business.table_count || 1,
+            locationCount: business.location_count || 1,
+            businessEmail: "",
+            username: business.username || "",
+            businessPhone: "",
+            location: business.location || "",
+            locations: business.locations || [business.location || ""],
+            signupIp: "",
+            welcomeMessage: business.welcome_message || defaultState.profile.welcomeMessage,
+            brandColor: business.brand_color || defaultState.profile.brandColor,
+            logoDataUrl: business.logo_data_url || "",
+          };
+
+          if (!mounted) return;
+
+          setState({
+            ...defaultState,
+            profileComplete: true,
+            profile: nextProfile,
+            menu: menuRows.map((row) => rowToMenuItem(row)),
+            qrTokens: token ? { [String(tableNumber)]: token } : {},
+            lastQrTable: tableNumber,
+          });
+          setSignupProfile(nextProfile);
+          document.documentElement.style.setProperty("--brand", nextProfile.brandColor || "#c8613f");
+          setLoaded(true);
+          return;
+        } catch (error) {
+          if (!mounted) return;
+
+          setPublicTableError(getErrorMessage(error));
+          setState({
+            ...defaultState,
+            profileComplete: true,
+            profile: {
+              ...defaultState.profile,
+              restaurantName: "Tawleh",
+              branchName: `Table ${tableNumber}`,
+            },
+            lastQrTable: tableNumber,
+          });
+          setLoaded(true);
+          return;
+        }
+      }
+
+      const loadedState = safeLoadState();
+
+      if (!mounted) return;
+
+      setState(loadedState);
+      setSignupProfile(loadedState.profile);
+      setQrInput(String(loadedState.lastQrTable || DEMO_TABLE));
+      setActiveTable(DEMO_TABLE);
+      document.documentElement.style.setProperty("--brand", loadedState.profile.brandColor || "#c8613f");
+      setLoaded(true);
+
+      if (loadedState.profileComplete) {
+        void restoreSessionAndLoadMenu(loadedState);
+      }
     }
+
+    void boot();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded || publicTableMode) return;
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     document.documentElement.style.setProperty("--brand", state.profile.brandColor || "#c8613f");
-  }, [state, loaded]);
+  }, [state, loaded, publicTableMode]);
 
   useEffect(() => {
     if (!toast) return;
@@ -433,6 +526,7 @@ export default function Page() {
   const businessName = state.profile.restaurantName || "Restaurant";
   const branchName = state.profile.branchName || "Branch";
   const logoFallback = initials(businessName);
+  const publicCustomerMode = publicTableMode;
 
   const cleanSignupUsername = normalizeUsername(signupProfile.username);
   const usernameIsLongEnough = cleanSignupUsername.length >= 4;
@@ -540,8 +634,15 @@ export default function Page() {
   }
 
   function buildQrUrl(tableNumber: number, token: string) {
-    const businessSlug = `${slugify(businessName)}-${slugify(branchName)}`;
-    return `https://tawleh.app/${businessSlug}/table-${tableNumber}/session?token=${token}`;
+    const params = new URLSearchParams({
+      mode: "table",
+      businessId: state.profile.businessId || "",
+      restaurant: `${slugify(businessName)}-${slugify(branchName)}`,
+      table: String(tableNumber),
+      token,
+    });
+
+    return `${PUBLIC_CUSTOMER_SITE_URL}/?${params.toString()}`;
   }
 
   function handleLogoUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -845,7 +946,7 @@ export default function Page() {
     }));
 
     setGuestName("");
-    show(`${clean} joined Table ${DEMO_TABLE}`);
+    show(`${clean} joined Table ${activeTable}`);
   }
 
   function addOrder(menuId: string) {
@@ -865,7 +966,7 @@ export default function Page() {
       orders: [
         {
           id: makeId("order"),
-          table: DEMO_TABLE,
+          table: activeTable,
           guest: current.currentGuest,
           itemId: item.id,
           itemName: item.name,
@@ -899,7 +1000,7 @@ export default function Page() {
       requests: [
         {
           id: makeId("request"),
-          table: DEMO_TABLE,
+          table: activeTable,
           guest: current.currentGuest,
           type,
           status: "Waiting",
@@ -1065,7 +1166,7 @@ export default function Page() {
   }
 
   function closeTable() {
-    const ok = window.confirm(`Close Table ${DEMO_TABLE} session and clear all guests, orders, and requests?`);
+    const ok = window.confirm(`Close Table ${activeTable} session and clear all guests, orders, and requests?`);
     if (!ok) return;
 
     updateState((current) => ({
@@ -1076,7 +1177,7 @@ export default function Page() {
       requests: [],
     }));
 
-    show(`Table ${DEMO_TABLE} session closed`);
+    show(`Table ${activeTable} session closed`);
   }
 
   function loadDemoTable() {
@@ -1092,6 +1193,11 @@ export default function Page() {
   }
 
   function createQr() {
+    if (!state.profile.businessId) {
+      show("Login first, then create QR codes");
+      return;
+    }
+
     const tableNumber = Math.max(1, Math.min(999, Number(qrInput || DEMO_TABLE)));
     const token = makeQrToken(businessName, branchName, tableNumber);
 
@@ -1130,7 +1236,7 @@ export default function Page() {
 
   return (
     <main className="app-shell">
-      {!state.profileComplete ? (
+      {!state.profileComplete && !publicTableMode ? (
         <section className="auth-page">
           <div className="auth-logo-wrap">
             <img className="main-auth-logo" src={APP_LOGO_SRC} alt="Tawleh Manager logo" />
@@ -1418,30 +1524,37 @@ export default function Page() {
             <div className="brand">
               <img className="topbar-logo-img" src={APP_LOGO_SRC} alt="Tawleh Manager" />
               <div>
-                <h1>Tawleh Manager</h1>
-                <p>@{state.profile.username || "username"}  {businessName}  {branchName}</p>
+                <h1>{publicCustomerMode ? businessName : "Tawleh Manager"}</h1>
+                <p>{publicCustomerMode ? `Table ${activeTable} customer menu` : `@${state.profile.username || "username"}  ${businessName}  ${branchName}`}</p>
               </div>
             </div>
 
             <div className="top-actions">
-              <span className="pill"><span className="dot" />{businessName} live</span>
-              <button className="btn secondary small" onClick={loadDemoTable}>Load demo table</button>
-              <button className="btn ghost small" onClick={openMenuBuilder}>Edit menu</button>
-              <button className="btn danger small" onClick={resetAll}>Reset</button>
+              {publicCustomerMode ? (
+                <span className="pill"><span className="dot" />Table {activeTable} live menu</span>
+              ) : (
+                <>
+                  <span className="pill"><span className="dot" />{businessName} live</span>
+                  <button className="btn secondary small" onClick={loadDemoTable}>Load demo table</button>
+                  <button className="btn ghost small" onClick={openMenuBuilder}>Edit menu</button>
+                  <button className="btn danger small" onClick={resetAll}>Reset</button>
+                </>
+              )}
             </div>
           </header>
 
-          <section className="grid">
+          <section className={publicCustomerMode ? "grid public-qr-grid" : "grid"}>
             <section className="panel customer-panel">
               <div className="panel-header">
                 <div>
-                  <h2>Customer QR table flow</h2>
-                  <p>What the guest sees after scanning a table QR code.</p>
+                  <h2>{publicCustomerMode ? "Welcome" : "Customer QR table flow"}</h2>
+                  <p>{publicCustomerMode ? "Enter your name, order from your table, and your items stay under your name." : "What the guest sees after scanning a table QR code."}</p>
                 </div>
-                <span className="pill">QR: Table {DEMO_TABLE}</span>
+                <span className="pill">Table {activeTable}</span>
               </div>
 
               <div className="panel-body">
+                {publicTableError ? <div className="inline-error">{publicTableError}</div> : null}
                 <div className="customer-phone">
                   <div className="phone-screen">
                     <div className="phone-status">9:41 &nbsp; Tawleh</div>
@@ -1455,7 +1568,7 @@ export default function Page() {
                         </div>
                       </div>
                       <p>{state.profile.welcomeMessage}</p>
-                      <div className="table-chip">Table {DEMO_TABLE}  {branchName}</div>
+                      <div className="table-chip">Table {activeTable}  {branchName}</div>
                     </div>
 
                     <div className="phone-content">
@@ -1575,6 +1688,7 @@ export default function Page() {
               </div>
             </section>
 
+            {!publicCustomerMode && (
             <section className="panel">
               <div className="panel-header">
                 <div>
@@ -1613,7 +1727,7 @@ export default function Page() {
                       ) : (
                         <div className="order-group">
                           <div className="order-group-header">
-                            <span>Table {DEMO_TABLE}</span>
+                            <span>Table {activeTable}</span>
                             <span>{activeOrders.length} active item{activeOrders.length === 1 ? "" : "s"}</span>
                           </div>
 
@@ -1647,7 +1761,7 @@ export default function Page() {
                           <div className="request-row" key={order.id}>
                             <div>
                               <strong>{order.itemName} for {order.guest}</strong>
-                              <span>Table {DEMO_TABLE}  "{order.itemName} for {order.guest}?"</span>
+                              <span>Table {activeTable}  "{order.itemName} for {order.guest}?"</span>
                             </div>
                             <button className="btn small ghost" onClick={() => setOrderStatus(order.id, "Served")}>Served</button>
                           </div>
@@ -1694,7 +1808,7 @@ export default function Page() {
                       <div className="table-map">
                         {Array.from({ length: state.profile.tableCount }, (_, index) => {
                           const tableNumber = index + 1;
-                          const isDemo = tableNumber === DEMO_TABLE;
+                          const isDemo = tableNumber === activeTable;
                           const active = isDemo && state.guests.length > 0;
                           const needsHelp = isDemo && waitingRequests.length > 0;
                           return (
@@ -1711,7 +1825,7 @@ export default function Page() {
                     </div>
 
                     <div className="manager-card">
-                      <h3>Table {DEMO_TABLE} Bill</h3>
+                      <h3>Table {activeTable} Bill</h3>
                       <p className="sub">Grouped by guest, but can also be paid together.</p>
                       <GuestBillRows billByGuest={billByGuest} />
                       <div className="bill-total"><span>Total</span><span>{money(tableTotal)}</span></div>
@@ -1995,6 +2109,7 @@ export default function Page() {
                 )}
               </div>
             </section>
+            )}
           </section>
 
           <section className="print-sheet">
