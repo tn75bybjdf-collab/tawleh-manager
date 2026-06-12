@@ -126,8 +126,30 @@ type Order = {
   itemId: string;
   itemName: string;
   price: number;
+  quantity: number;
   status: "New" | "Preparing" | "Ready" | "Served";
   createdAt: string;
+};
+
+type CartLine = {
+  item: MenuItem;
+  quantity: number;
+  lineTotal: number;
+};
+
+type TableOrderRow = {
+  id: string;
+  business_account_id: string;
+  auth_user_id: string;
+  table_number: number;
+  guest_name: string;
+  item_id: string;
+  item_name: string;
+  quantity: number | null;
+  price_jod: number | string;
+  line_total_jod: number | string | null;
+  status: Order["status"];
+  created_at: string | null;
 };
 
 type ServiceRequest = {
@@ -263,6 +285,10 @@ function safeLoadState(): AppState {
         availableTo: item.availableTo || "23:00",
       })) : starterMenu,
       categories: parsed.categories || [],
+      orders: (parsed.orders || []).map((order) => ({
+        ...order,
+        quantity: Math.max(1, Number(order.quantity || 1)),
+      })),
       qrTokens: parsed.qrTokens || {},
     };
   } catch {
@@ -381,6 +407,27 @@ function uniqueGuestNames(names: string[]) {
   }
 
   return cleanNames;
+}
+
+function rowToOrder(row: TableOrderRow): Order {
+  const quantity = Math.max(1, Number(row.quantity || 1));
+  const unitPrice = Number(row.price_jod || 0);
+
+  return {
+    id: row.id,
+    table: Number(row.table_number || DEMO_TABLE),
+    guest: row.guest_name || "Guest",
+    itemId: row.item_id || "",
+    itemName: row.item_name || "Menu item",
+    price: unitPrice,
+    quantity,
+    status: row.status || "New",
+    createdAt: row.created_at || new Date().toISOString(),
+  };
+}
+
+function orderLineTotal(order: Order) {
+  return Number(order.price || 0) * Math.max(1, Number(order.quantity || 1));
 }
 function timeToMinutes(value: string) {
   const [hourRaw, minuteRaw] = String(value || "").split(":");
@@ -681,6 +728,79 @@ async function joinTableGuestInSupabase(businessId: string, tableNumber: number,
   return uniqueGuestNames(rows.map((row) => rowToGuestName(row)));
 }
 
+async function fetchTableOrdersFromSupabase(businessId: string, tableNumber: number, username = "") {
+  const params = new URLSearchParams({
+    businessId,
+    username,
+    table: String(tableNumber),
+  });
+
+  const response = await fetch(`/api/table-orders?${params.toString()}`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  const rows = (result.orders || []) as TableOrderRow[];
+
+  return rows.map((row) => rowToOrder(row));
+}
+
+async function sendCartOrderToSupabase(
+  businessId: string,
+  tableNumber: number,
+  guestName: string,
+  cartLines: CartLine[],
+  username = ""
+) {
+  const response = await fetch("/api/table-orders", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      businessId,
+      username,
+      table: tableNumber,
+      guestName,
+      items: cartLines.map((line) => ({
+        itemId: line.item.id,
+        itemName: line.item.name,
+        price: line.item.price,
+        quantity: line.quantity,
+      })),
+    }),
+  });
+
+  const result = await readApiJson(response);
+  const rows = (result.orders || []) as TableOrderRow[];
+
+  return rows.map((row) => rowToOrder(row));
+}
+
+async function updateTableOrderStatusInSupabase(
+  businessId: string,
+  orderId: string,
+  status: Order["status"],
+  username = ""
+) {
+  const response = await fetch("/api/table-orders", {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      businessId,
+      username,
+      orderId,
+      status,
+    }),
+  });
+
+  const result = await readApiJson(response);
+  return rowToOrder(result.order as TableOrderRow);
+}
+
 async function insertMenuItemIntoSupabase(businessId: string, item: MenuItem) {
   const headers = await getManagerAuthHeaders();
 
@@ -756,6 +876,9 @@ export default function Page() {
   const [managerTab, setManagerTab] = useState<"kitchen" | "waiter" | "tables" | "menu" | "menuBuilder" | "qr" | "profile">("kitchen");
   const [authTab, setAuthTab] = useState<"login" | "signup">("signup");
   const [guestName, setGuestName] = useState("");
+  const [orderCart, setOrderCart] = useState<Record<string, number>>({});
+  const [orderReviewOpen, setOrderReviewOpen] = useState(false);
+  const [orderSendBusy, setOrderSendBusy] = useState(false);
   const [signupProfile, setSignupProfile] = useState<Profile>(defaultState.profile);
   const [activeLocationTab, setActiveLocationTab] = useState(0);
   const [authBusy, setAuthBusy] = useState(false);
@@ -813,6 +936,7 @@ export default function Page() {
           const menuRows = (result.menu || []) as MenuRow[];
           const categoryRows = (result.categories || []) as CategoryRow[];
           const guestRows = (result.guests || []) as TableGuestRow[];
+          const orderRows = (result.orders || []) as TableOrderRow[];
 
           const nextProfile: Profile = {
             businessId: business.id || businessId,
@@ -842,6 +966,7 @@ export default function Page() {
             menu: menuRows.map((row) => rowToMenuItem(row)),
             categories: categoryRows.map((row) => rowToMenuCategory(row)),
             guests: uniqueGuestNames(guestRows.map((row) => rowToGuestName(row))),
+            orders: orderRows.map((row) => rowToOrder(row)),
             qrTokens: token ? { [String(tableNumber)]: token } : {},
             lastQrTable: tableNumber,
           });
@@ -939,6 +1064,42 @@ export default function Page() {
     };
   }, [publicCustomerMode, state.profile.businessId, state.profile.username, activeTable]);
 
+  useEffect(() => {
+    if (!state.profile.businessId) return;
+
+    let cancelled = false;
+
+    async function refreshTableOrders() {
+      try {
+        const savedOrders = await fetchTableOrdersFromSupabase(
+          state.profile.businessId,
+          activeTable,
+          state.profile.username
+        );
+
+        if (cancelled) return;
+
+        updateState((current) => ({
+          ...current,
+          orders: savedOrders,
+        }));
+      } catch (error) {
+        console.error("Table order refresh failed", error);
+      }
+    }
+
+    void refreshTableOrders();
+
+    const interval = window.setInterval(() => {
+      void refreshTableOrders();
+    }, 7000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [state.profile.businessId, state.profile.username, activeTable]);
+
   const businessName = state.profile.restaurantName || "Restaurant";
   const branchName = state.profile.branchName || "Branch";
   const logoFallback = initials(businessName);
@@ -949,13 +1110,13 @@ export default function Page() {
   const completedLocationCount = signupLocations.filter((location) => location.trim()).length;
 
   const tableTotal = useMemo(() => {
-    return state.orders.reduce((sum, order) => sum + order.price, 0);
+    return state.orders.reduce((sum, order) => sum + orderLineTotal(order), 0);
   }, [state.orders]);
 
   const myTotal = useMemo(() => {
     return state.orders
       .filter((order) => order.guest === state.currentGuest)
-      .reduce((sum, order) => sum + order.price, 0);
+      .reduce((sum, order) => sum + orderLineTotal(order), 0);
   }, [state.orders, state.currentGuest]);
 
   const menuCategoriesWithItems = useMemo(() => {
@@ -972,6 +1133,26 @@ export default function Page() {
     : activeMenuCategory === "uncategorized"
       ? state.menu.filter((item) => !item.categoryId)
       : state.menu.filter((item) => item.categoryId === activeMenuCategory);
+
+  const orderCartLines = useMemo<CartLine[]>(() => {
+    return Object.entries(orderCart)
+      .map(([itemId, quantity]) => {
+        const item = state.menu.find((menuItem) => menuItem.id === itemId);
+        const cleanQuantity = Math.max(0, Number(quantity || 0));
+
+        if (!item || cleanQuantity < 1) return null;
+
+        return {
+          item,
+          quantity: cleanQuantity,
+          lineTotal: item.price * cleanQuantity,
+        };
+      })
+      .filter((line): line is CartLine => Boolean(line));
+  }, [orderCart, state.menu]);
+
+  const orderCartItemCount = orderCartLines.reduce((sum, line) => sum + line.quantity, 0);
+  const orderCartTotal = orderCartLines.reduce((sum, line) => sum + line.lineTotal, 0);
 
   const menuBuilderGroups = useMemo(() => {
     const search = menuBuilderSearch.trim().toLowerCase();
@@ -1461,6 +1642,8 @@ export default function Page() {
     }));
 
     setGuestName("");
+    setOrderCart({});
+    setOrderReviewOpen(false);
 
     if (publicCustomerMode && state.profile.businessId) {
       try {
@@ -1495,46 +1678,166 @@ export default function Page() {
       guests: uniqueGuestNames([...current.guests, clean]),
     }));
 
+    setOrderCart({});
+    setOrderReviewOpen(false);
     show(`Welcome back, ${clean}`);
   }
 
-  function addOrder(menuId: string) {
+  function changeCartQuantity(menuId: string, nextQuantity: number) {
+    const item = state.menu.find((menuItem) => menuItem.id === menuId);
+
+    if (!item || !isMenuItemCurrentlyAvailable(item)) {
+      show("This item is not available right now");
+      return;
+    }
+
+    const quantity = Math.max(0, Math.min(99, Math.floor(Number(nextQuantity || 0))));
+
+    setOrderCart((current) => {
+      const next = { ...current };
+
+      if (quantity <= 0) {
+        delete next[menuId];
+      } else {
+        next[menuId] = quantity;
+      }
+
+      return next;
+    });
+  }
+
+  function addCartItem(menuId: string) {
     if (!state.currentGuest) {
       show("Have a seat first");
       return;
     }
 
     const item = state.menu.find((menuItem) => menuItem.id === menuId);
+
     if (!item || !isMenuItemCurrentlyAvailable(item)) {
       show("This item is not available right now");
       return;
     }
 
-    updateState((current) => ({
+    setOrderCart((current) => ({
       ...current,
-      orders: [
-        {
-          id: makeId("order"),
-          table: activeTable,
-          guest: current.currentGuest,
-          itemId: item.id,
-          itemName: item.name,
-          price: item.price,
-          status: "New",
-          createdAt: new Date().toISOString(),
-        },
-        ...current.orders,
-      ],
+      [menuId]: Math.min(99, Number(current[menuId] || 0) + 1),
     }));
-
-    show(`${item.name} ordered for ${state.currentGuest}`);
   }
 
-  function setOrderStatus(orderId: string, status: Order["status"]) {
+  function removeCartItem(menuId: string) {
+    setOrderCart((current) => {
+      const next = { ...current };
+      delete next[menuId];
+      return next;
+    });
+  }
+
+  function beginOrderReview() {
+    if (!state.currentGuest) {
+      show("Have a seat first");
+      return;
+    }
+
+    if (!orderCartLines.length) {
+      show("Add at least one item first");
+      return;
+    }
+
+    setOrderReviewOpen(true);
+  }
+
+  async function confirmOrderToKitchen() {
+    if (!state.currentGuest) {
+      show("Have a seat first");
+      return;
+    }
+
+    if (!orderCartLines.length) {
+      show("Add at least one item first");
+      return;
+    }
+
+    setOrderSendBusy(true);
+
+    const localOrders: Order[] = orderCartLines.map((line) => ({
+      id: makeId("order"),
+      table: activeTable,
+      guest: state.currentGuest,
+      itemId: line.item.id,
+      itemName: line.item.name,
+      price: line.item.price,
+      quantity: line.quantity,
+      status: "New",
+      createdAt: new Date().toISOString(),
+    }));
+
+    try {
+      const savedOrders = state.profile.businessId
+        ? await sendCartOrderToSupabase(
+            state.profile.businessId,
+            activeTable,
+            state.currentGuest,
+            orderCartLines,
+            state.profile.username
+          )
+        : localOrders;
+
+      updateState((current) => {
+        const existingIds = new Set(current.orders.map((order) => order.id));
+        const nextOrders = savedOrders.filter((order) => !existingIds.has(order.id));
+
+        return {
+          ...current,
+          orders: [...nextOrders, ...current.orders],
+        };
+      });
+
+      setOrderCart({});
+      setOrderReviewOpen(false);
+      setPhoneTab("bill");
+      show("Order sent to kitchen");
+    } catch (error) {
+      console.error("Order send failed", error);
+
+      updateState((current) => ({
+        ...current,
+        orders: [...localOrders, ...current.orders],
+      }));
+
+      setOrderCart({});
+      setOrderReviewOpen(false);
+      setPhoneTab("bill");
+      show("Order saved on this screen");
+    } finally {
+      setOrderSendBusy(false);
+    }
+  }
+
+  async function setOrderStatus(orderId: string, status: Order["status"]) {
     updateState((current) => ({
       ...current,
       orders: current.orders.map((order) => (order.id === orderId ? { ...order, status } : order)),
     }));
+
+    if (state.profile.businessId) {
+      try {
+        const savedOrder = await updateTableOrderStatusInSupabase(
+          state.profile.businessId,
+          orderId,
+          status,
+          state.profile.username
+        );
+
+        updateState((current) => ({
+          ...current,
+          orders: current.orders.map((order) => (order.id === savedOrder.id ? savedOrder : order)),
+        }));
+      } catch (error) {
+        console.error("Order status update failed", error);
+      }
+    }
+
     show(`Order marked ${status}`);
   }
 
@@ -2382,6 +2685,51 @@ export default function Page() {
                           </div>
                         )
                       ) : (
+                        orderReviewOpen ? (
+                          <div className="order-review-page">
+                            <button className="review-back-button" type="button" onClick={() => setOrderReviewOpen(false)}>
+                              Back to menu
+                            </button>
+
+                            <div className="seat-card order-review-card">
+                              <div className="review-title-row">
+                                <div>
+                                  <h4>Review your order</h4>
+                                  <p>Table {activeTable} - {state.currentGuest}</p>
+                                </div>
+                                <strong>{money(orderCartTotal)}</strong>
+                              </div>
+
+                              <div className="review-line-list">
+                                {orderCartLines.map((line) => (
+                                  <div className="review-line" key={line.item.id}>
+                                    <div>
+                                      <strong>{line.item.name}</strong>
+                                      {line.item.nameAr ? <span dir="rtl">{line.item.nameAr}</span> : null}
+                                      <em>{money(line.item.price)} each</em>
+                                    </div>
+
+                                    <div className="review-line-controls">
+                                      <button type="button" onClick={() => changeCartQuantity(line.item.id, line.quantity - 1)}>-</button>
+                                      <b>{line.quantity}</b>
+                                      <button type="button" onClick={() => changeCartQuantity(line.item.id, line.quantity + 1)}>+</button>
+                                      <button className="remove-line" type="button" onClick={() => removeCartItem(line.item.id)}>Delete</button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="review-total-row">
+                                <span>Total</span>
+                                <strong>{money(orderCartTotal)}</strong>
+                              </div>
+
+                              <button className="btn full" type="button" onClick={confirmOrderToKitchen} disabled={orderSendBusy || !orderCartLines.length}>
+                                {orderSendBusy ? "Sending..." : "Looks good - send to kitchen"}
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
                         <>
                           <div className="mini-card">
                             <p>You are seated as</p>
@@ -2461,9 +2809,17 @@ export default function Page() {
                                       <p className="availability-line">{formatItemAvailability(item)}</p>
                                       <div className="price">{money(item.price)}</div>
                                     </div>
-                                    <button className="btn small" disabled={!isMenuItemCurrentlyAvailable(item)} onClick={() => addOrder(item.id)}>
-                                      {unavailableButtonText(item)}
-                                    </button>
+                                    {Number(orderCart[item.id] || 0) > 0 ? (
+                                      <div className="cart-quantity-control">
+                                        <button type="button" onClick={() => changeCartQuantity(item.id, Number(orderCart[item.id] || 0) - 1)}>-</button>
+                                        <strong>{Number(orderCart[item.id] || 0)}</strong>
+                                        <button type="button" onClick={() => changeCartQuantity(item.id, Number(orderCart[item.id] || 0) + 1)}>+</button>
+                                      </div>
+                                    ) : (
+                                      <button className="btn small" disabled={!isMenuItemCurrentlyAvailable(item)} onClick={() => addCartItem(item.id)}>
+                                        {isMenuItemCurrentlyAvailable(item) ? "Add" : unavailableButtonText(item)}
+                                      </button>
+                                    )}
                                   </div>
                                 ))
                               ) : (
@@ -2473,6 +2829,18 @@ export default function Page() {
                                 </div>
                               )}
                             </div>
+
+                              {orderCartItemCount > 0 ? (
+                                <div className="send-order-sticky">
+                                  <div>
+                                    <strong>{orderCartItemCount} item{orderCartItemCount === 1 ? "" : "s"}</strong>
+                                    <span>{money(orderCartTotal)}</span>
+                                  </div>
+                                  <button className="btn" type="button" onClick={beginOrderReview}>
+                                    Send order
+                                  </button>
+                                </div>
+                              ) : null}
                             </>
                           )}
 
@@ -2511,10 +2879,15 @@ export default function Page() {
                                   </button>
                                 ))}
                               </div>
-                              <button className="btn ghost full" onClick={() => updateState((current) => ({ ...current, currentGuest: "" }))}>Switch customer</button>
+                              <button className="btn ghost full" onClick={() => {
+                                setOrderCart({});
+                                setOrderReviewOpen(false);
+                                updateState((current) => ({ ...current, currentGuest: "" }));
+                              }}>Switch customer</button>
                             </div>
                           )}
                         </>
+                        )
                       )}
                     </div>
                   </div>
@@ -2594,7 +2967,7 @@ export default function Page() {
                         readyOrders.map((order) => (
                           <div className="request-row" key={order.id}>
                             <div>
-                              <strong>{order.itemName} for {order.guest}</strong>
+                              <strong>{order.itemName} {Math.max(1, Number(order.quantity || 1)) > 1 ? `x${order.quantity}` : ""} for {order.guest}</strong>
                               <span>Table {activeTable}  "{order.itemName} for {order.guest}?"</span>
                             </div>
                             <button className="btn small ghost" onClick={() => setOrderStatus(order.id, "Served")}>Served</button>
@@ -3259,8 +3632,8 @@ function BillRows({ orders }: { orders: Order[] }) {
     <div className="bill-list">
       {orders.map((order) => (
         <div className="bill-row" key={order.id}>
-          <span>{order.itemName} <small> {order.status}</small></span>
-          <strong>{money(order.price)}</strong>
+          <span>{order.itemName} {Math.max(1, Number(order.quantity || 1)) > 1 ? `x${order.quantity}` : ""} <small> {order.status}</small></span>
+          <strong>{money(orderLineTotal(order))}</strong>
         </div>
       ))}
     </div>
@@ -3274,7 +3647,7 @@ function GuestBillRows({ billByGuest }: { billByGuest: Record<string, Order[]> }
   return (
     <div className="bill-list">
       {entries.map(([guest, orders]) => {
-        const total = orders.reduce((sum, order) => sum + order.price, 0);
+        const total = orders.reduce((sum, order) => sum + orderLineTotal(order), 0);
         return (
           <div className="bill-row" key={guest}>
             <span>{guest}  {orders.length} item{orders.length === 1 ? "" : "s"}</span>
@@ -3290,7 +3663,7 @@ function OrderRow({ order, onStatus }: { order: Order; onStatus: (id: string, st
   return (
     <div className="order-row">
       <div>
-        <h4>{order.itemName} for {order.guest}</h4>
+        <h4>{order.itemName} {Math.max(1, Number(order.quantity || 1)) > 1 ? `x${order.quantity}` : ""} for {order.guest}</h4>
         <p>Table {order.table}  {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
       </div>
 
