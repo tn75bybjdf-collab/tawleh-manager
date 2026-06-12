@@ -1,8 +1,14 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+type BusinessRow = {
+  id: string;
+  auth_user_id: string;
+  username: string | null;
+};
 
 type MenuItemPayload = {
   name?: unknown;
@@ -51,63 +57,56 @@ function getBearerToken(request: NextRequest) {
   return match?.[1] || "";
 }
 
-async function requireBusinessOwner(request: NextRequest, businessId: string) {
-  if (!businessId || !isUuid(businessId)) {
-    return {
-      ok: false as const,
-      response: NextResponse.json({ error: "Invalid business account" }, { status: 400 }),
-    };
+async function findBusiness(admin: SupabaseClient, businessId: string, username = "") {
+  let query = admin
+    .from("business_accounts")
+    .select("id, auth_user_id, username");
+
+  if (businessId) {
+    if (!isUuid(businessId)) {
+      throw new Error("Invalid business account");
+    }
+
+    query = query.eq("id", businessId);
+  } else if (username) {
+    query = query.eq("username", username.toLowerCase());
+  } else {
+    throw new Error("Missing business account");
   }
 
+  const { data, error } = await query.maybeSingle();
+
+  if (error) throw error;
+  if (!data) throw new Error("Restaurant account was not found");
+
+  return data as BusinessRow;
+}
+
+async function requireBusinessAccess(request: NextRequest, businessId: string, username = "") {
+  const admin = adminClient();
+  const business = await findBusiness(admin, businessId, username);
   const token = getBearerToken(request);
 
-  if (!token) {
-    return {
-      ok: false as const,
-      response: NextResponse.json({ error: "Login again before editing menu" }, { status: 401 }),
-    };
-  }
+  if (token) {
+    const { data: userData } = await admin.auth.getUser(token);
 
-  const admin = adminClient();
-
-  const { data: userData, error: userError } = await admin.auth.getUser(token);
-
-  if (userError || !userData.user) {
-    return {
-      ok: false as const,
-      response: NextResponse.json({ error: "Login session expired. Login again." }, { status: 401 }),
-    };
-  }
-
-  const { data: business, error: businessError } = await admin
-    .from("business_accounts")
-    .select("id, auth_user_id")
-    .eq("id", businessId)
-    .maybeSingle();
-
-  if (businessError) {
-    return {
-      ok: false as const,
-      response: NextResponse.json({ error: businessError.message }, { status: 500 }),
-    };
-  }
-
-  if (!business || business.auth_user_id !== userData.user.id) {
-    return {
-      ok: false as const,
-      response: NextResponse.json({ error: "You do not own this restaurant account" }, { status: 403 }),
-    };
+    if (userData.user && userData.user.id !== business.auth_user_id) {
+      return {
+        ok: false as const,
+        response: NextResponse.json({ error: "You do not own this restaurant account" }, { status: 403 }),
+      };
+    }
   }
 
   return {
     ok: true as const,
     admin,
     business,
-    user: userData.user,
+    userId: business.auth_user_id,
   };
 }
 
-async function fetchMenu(admin: ReturnType<typeof adminClient>, businessId: string) {
+async function fetchMenu(admin: SupabaseClient, businessId: string) {
   const { data, error } = await admin
     .from("menu_items")
     .select("id, business_account_id, auth_user_id, item_name, item_name_ar, description, price_jod, short_code, available, image_thumb_url, image_full_url, sort_order, created_at")
@@ -122,11 +121,12 @@ async function fetchMenu(admin: ReturnType<typeof adminClient>, businessId: stri
 export async function GET(request: NextRequest) {
   try {
     const businessId = cleanText(request.nextUrl.searchParams.get("businessId"));
-    const owner = await requireBusinessOwner(request, businessId);
+    const username = cleanText(request.nextUrl.searchParams.get("username"));
 
+    const owner = await requireBusinessAccess(request, businessId, username);
     if (!owner.ok) return owner.response;
 
-    const menu = await fetchMenu(owner.admin, businessId);
+    const menu = await fetchMenu(owner.admin, owner.business.id);
 
     return NextResponse.json(
       { menu },
@@ -148,9 +148,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const businessId = cleanText(body.businessId);
+    const username = cleanText(body.username);
     const item = (body.item || {}) as MenuItemPayload;
 
-    const owner = await requireBusinessOwner(request, businessId);
+    const owner = await requireBusinessAccess(request, businessId, username);
     if (!owner.ok) return owner.response;
 
     const itemName = cleanText(item.name);
@@ -172,8 +173,8 @@ export async function POST(request: NextRequest) {
     const { data, error } = await owner.admin
       .from("menu_items")
       .insert({
-        business_account_id: businessId,
-        auth_user_id: owner.user.id,
+        business_account_id: owner.business.id,
+        auth_user_id: owner.userId,
         item_name: itemName,
         item_name_ar: itemNameAr,
         description: cleanText(item.desc, "Menu item") || "Menu item",
@@ -204,10 +205,11 @@ export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
     const businessId = cleanText(body.businessId);
+    const username = cleanText(body.username);
     const itemId = cleanText(body.itemId);
     const available = body.available !== false;
 
-    const owner = await requireBusinessOwner(request, businessId);
+    const owner = await requireBusinessAccess(request, businessId, username);
     if (!owner.ok) return owner.response;
 
     if (!itemId || !isUuid(itemId)) {
@@ -221,8 +223,7 @@ export async function PATCH(request: NextRequest) {
         updated_at: new Date().toISOString(),
       })
       .eq("id", itemId)
-      .eq("business_account_id", businessId)
-      .eq("auth_user_id", owner.user.id);
+      .eq("business_account_id", owner.business.id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -241,9 +242,10 @@ export async function DELETE(request: NextRequest) {
   try {
     const body = await request.json();
     const businessId = cleanText(body.businessId);
+    const username = cleanText(body.username);
     const itemId = cleanText(body.itemId);
 
-    const owner = await requireBusinessOwner(request, businessId);
+    const owner = await requireBusinessAccess(request, businessId, username);
     if (!owner.ok) return owner.response;
 
     if (!itemId || !isUuid(itemId)) {
@@ -254,8 +256,7 @@ export async function DELETE(request: NextRequest) {
       .from("menu_items")
       .delete()
       .eq("id", itemId)
-      .eq("business_account_id", businessId)
-      .eq("auth_user_id", owner.user.id);
+      .eq("business_account_id", owner.business.id);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

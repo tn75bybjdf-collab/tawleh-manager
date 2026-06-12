@@ -359,7 +359,11 @@ function clearManagerAuthSession() {
 }
 
 async function getManagerAuthHeaders() {
-  if (!supabase) throw new Error("Missing Supabase client");
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (!supabase) return headers;
 
   const { data } = await supabase.auth.getSession();
   let token = data.session?.access_token || "";
@@ -379,14 +383,11 @@ async function getManagerAuthHeaders() {
     }
   }
 
-  if (!token) {
-    throw new Error("Login session was not saved. Log out and log back in, then add the item.");
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
   }
 
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
+  return headers;
 }
 
 async function readApiJson(response: Response) {
@@ -398,6 +399,65 @@ async function readApiJson(response: Response) {
   }
 
   return result;
+}
+
+type BusinessProfileRow = {
+  id: string;
+  auth_user_id: string;
+  email: string | null;
+  username: string | null;
+  restaurant_name: string | null;
+  branch_name: string | null;
+  business_type: string | null;
+  business_phone: string | null;
+  table_count: number | null;
+  location_count: number | null;
+  location: string | null;
+  locations: string[] | null;
+  signup_ip: string | null;
+  welcome_message: string | null;
+  brand_color: string | null;
+  logo_data_url: string | null;
+};
+
+function businessRowToProfile(row: BusinessProfileRow, fallback: Profile): Profile {
+  return {
+    businessId: row.id || fallback.businessId,
+    authUserId: row.auth_user_id || fallback.authUserId,
+    restaurantName: row.restaurant_name || fallback.restaurantName || "Restaurant",
+    branchName: row.branch_name || fallback.branchName || "Main Branch",
+    businessType: row.business_type || fallback.businessType || "Cafe",
+    tableCount: row.table_count || fallback.tableCount || 1,
+    locationCount: row.location_count || fallback.locationCount || 1,
+    businessEmail: row.email || fallback.businessEmail || "",
+    username: row.username || fallback.username || "",
+    businessPhone: row.business_phone || fallback.businessPhone || "",
+    location: row.location || fallback.location || "",
+    locations: row.locations || fallback.locations || [row.location || fallback.location || ""],
+    signupIp: row.signup_ip || fallback.signupIp || "",
+    welcomeMessage: row.welcome_message || fallback.welcomeMessage || defaultState.profile.welcomeMessage,
+    brandColor: row.brand_color || fallback.brandColor || defaultState.profile.brandColor,
+    logoDataUrl: row.logo_data_url || fallback.logoDataUrl || "",
+  };
+}
+
+async function fetchBusinessProfileFromServer(profile: Profile) {
+  const params = new URLSearchParams();
+
+  if (profile.businessId) params.set("businessId", profile.businessId);
+  if (profile.username) params.set("username", profile.username);
+
+  if (!params.toString()) {
+    throw new Error("Login again before editing menu");
+  }
+
+  const response = await fetch(`/api/business-profile?${params.toString()}`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  return businessRowToProfile(result.business as BusinessProfileRow, profile);
 }
 
 async function fetchMenuItemsFromSupabase(businessId: string) {
@@ -658,16 +718,21 @@ export default function Page() {
   }
 
   async function restoreSessionAndLoadMenu(loadedState: AppState) {
-    if (!supabase || !loadedState.profile.businessId) return;
+    if (!loadedState.profile.businessId && !loadedState.profile.username) return;
 
     try {
-      await getManagerAuthHeaders();
+      const repairedProfile = loadedState.profile.businessId
+        ? loadedState.profile
+        : await fetchBusinessProfileFromServer(loadedState.profile);
 
-      const savedMenu = await fetchMenuItemsFromSupabase(loadedState.profile.businessId);
+      const savedMenu = repairedProfile.businessId
+        ? await fetchMenuItemsFromSupabase(repairedProfile.businessId)
+        : [];
 
       if (savedMenu.length > 0) {
         updateState((current) => ({
           ...current,
+          profile: repairedProfile,
           menu: savedMenu,
         }));
         return;
@@ -675,16 +740,17 @@ export default function Page() {
 
       const localOnlyItems = loadedState.menu.filter((item) => !isUuid(item.id));
 
-      if (localOnlyItems.length > 0) {
+      if (localOnlyItems.length > 0 && repairedProfile.businessId) {
         const syncedItems: MenuItem[] = [];
 
         for (const item of localOnlyItems) {
-          const savedItem = await insertMenuItemIntoSupabase(loadedState.profile.businessId, item);
+          const savedItem = await insertMenuItemIntoSupabase(repairedProfile.businessId, item);
           syncedItems.push(savedItem);
         }
 
         updateState((current) => ({
           ...current,
+          profile: repairedProfile,
           menu: syncedItems,
         }));
       }
@@ -694,7 +760,18 @@ export default function Page() {
   }
 
   async function refreshMenuFromSupabase() {
-    if (!state.profile.businessId) {
+    let managerProfile = state.profile;
+
+    if (!managerProfile.businessId) {
+      try {
+        managerProfile = await ensureManagerBusinessProfile();
+      } catch {
+        show("Login first, then refresh menu");
+        return;
+      }
+    }
+
+    if (!managerProfile.businessId) {
       show("Login first, then refresh menu");
       return;
     }
@@ -702,7 +779,7 @@ export default function Page() {
     setMenuBusy(true);
 
     try {
-      const savedMenu = await fetchMenuItemsFromSupabase(state.profile.businessId);
+      const savedMenu = await fetchMenuItemsFromSupabase(managerProfile.businessId);
       updateState((current) => ({
         ...current,
         menu: savedMenu,
@@ -1146,6 +1223,21 @@ export default function Page() {
     show("Menu availability saved");
   }
 
+  async function ensureManagerBusinessProfile() {
+    if (state.profile.businessId) {
+      return state.profile;
+    }
+
+    const repairedProfile = await fetchBusinessProfileFromServer(state.profile);
+
+    updateState((current) => ({
+      ...current,
+      profile: repairedProfile,
+    }));
+
+    return repairedProfile;
+  }
+
   async function handleMenuImageUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -1194,8 +1286,19 @@ export default function Page() {
       return;
     }
 
-    if (!state.profile.businessId) {
-      show("Login again before adding menu items");
+    let managerProfile = state.profile;
+
+    if (!managerProfile.businessId) {
+      try {
+        managerProfile = await ensureManagerBusinessProfile();
+      } catch {
+        show("Login again, then add menu items");
+        return;
+      }
+    }
+
+    if (!managerProfile.businessId) {
+      show("Login again, then add menu items");
       return;
     }
 
@@ -1216,7 +1319,7 @@ export default function Page() {
     setMenuBusy(true);
 
     try {
-      const savedItem = await insertMenuItemIntoSupabase(state.profile.businessId, nextItem);
+      const savedItem = await insertMenuItemIntoSupabase(managerProfile.businessId, nextItem);
 
       updateState((current) => ({
         ...current,
