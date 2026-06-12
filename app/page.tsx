@@ -1547,8 +1547,8 @@ export default function Page() {
             <section className="panel customer-panel">
               <div className="panel-header">
                 <div>
-                  <h2>{publicCustomerMode ? "Welcome" : "Customer QR table flow"}</h2>
-                  <p>{publicCustomerMode ? "Enter your name, order from your table, and your items stay under your name." : "What the guest sees after scanning a table QR code."}</p>
+                  <h2>{publicCustomerMode ? `Welcome to ${businessName}` : "Customer QR table flow"}</h2>
+                  <p>{publicCustomerMode ? "Enter your name to begin ordering from your table." : "What the guest sees after scanning a table QR code."}</p>
                 </div>
                 <span className="pill">Table {activeTable}</span>
               </div>
@@ -1573,26 +1573,46 @@ export default function Page() {
 
                     <div className="phone-content">
                       {!state.currentGuest ? (
-                        <div className="seat-card">
-                          <h4>Have a Seat</h4>
-                          <p>Everyone at this table joins separately. The kitchen sees who ordered each item.</p>
-                          <div className="input-row">
-                            <input
-                              value={guestName}
-                              onChange={(e) => setGuestName(e.target.value)}
-                              onKeyDown={(e) => e.key === "Enter" && joinGuest(guestName)}
-                              placeholder="Enter your name"
-                              maxLength={24}
-                            />
-                            <button className="btn" onClick={() => joinGuest(guestName)}>Join</button>
-                          </div>
+                        publicCustomerMode ? (
+                          <div className="qr-welcome-card">
+                            <div className="qr-welcome-badge">Table {activeTable}</div>
+                            <h4>Welcome to {businessName}</h4>
+                            <p>Enter your name to begin ordering. Your items will show under your name for the waiter and kitchen.</p>
 
-                          <div className="guest-chips">
-                            {["Sarah", "Fatima", "Hakim", "Noor"].map((name) => (
-                              <button key={name} className="guest-chip" onClick={() => joinGuest(name)}>{name}</button>
-                            ))}
+                            <div className="qr-name-form">
+                              <input
+                                value={guestName}
+                                onChange={(e) => setGuestName(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && joinGuest(guestName)}
+                                placeholder="Your name"
+                                maxLength={24}
+                                autoFocus
+                              />
+                              <button className="btn full" onClick={() => joinGuest(guestName)}>Begin ordering</button>
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <div className="seat-card">
+                            <h4>Have a Seat</h4>
+                            <p>Everyone at this table joins separately. The kitchen sees who ordered each item.</p>
+                            <div className="input-row">
+                              <input
+                                value={guestName}
+                                onChange={(e) => setGuestName(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && joinGuest(guestName)}
+                                placeholder="Enter your name"
+                                maxLength={24}
+                              />
+                              <button className="btn" onClick={() => joinGuest(guestName)}>Join</button>
+                            </div>
+
+                            <div className="guest-chips">
+                              {["Sarah", "Fatima", "Hakim", "Noor"].map((name) => (
+                                <button key={name} className="guest-chip" onClick={() => joinGuest(name)}>{name}</button>
+                              ))}
+                            </div>
+                          </div>
+                        )
                       ) : (
                         <>
                           <div className="mini-card">
