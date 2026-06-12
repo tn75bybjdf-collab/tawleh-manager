@@ -699,6 +699,8 @@ export default function Page() {
   const [editingMenuItemId, setEditingMenuItemId] = useState("");
   const [categoryDraft, setCategoryDraft] = useState({ name: "", nameAr: "" });
   const [activeMenuCategory, setActiveMenuCategory] = useState("all");
+  const [menuBuilderSearch, setMenuBuilderSearch] = useState("");
+  const [expandedMenuCategories, setExpandedMenuCategories] = useState<Record<string, boolean>>({});
   const [imageBusy, setImageBusy] = useState(false);
   const [menuBusy, setMenuBusy] = useState(false);
   const [selectedMenuImage, setSelectedMenuImage] = useState<MenuItem | null>(null);
@@ -862,6 +864,73 @@ export default function Page() {
     : activeMenuCategory === "uncategorized"
       ? state.menu.filter((item) => !item.categoryId)
       : state.menu.filter((item) => item.categoryId === activeMenuCategory);
+
+  const menuBuilderGroups = useMemo(() => {
+    const search = menuBuilderSearch.trim().toLowerCase();
+
+    function itemMatchesSearch(item: MenuItem) {
+      if (!search) return true;
+
+      const searchable = [
+        item.name,
+        item.nameAr,
+        item.desc,
+        item.categoryName,
+        money(item.price),
+        formatItemAvailability(item),
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return searchable.includes(search);
+    }
+
+    const groups = new Map<string, {
+      id: string;
+      name: string;
+      nameAr: string;
+      items: MenuItem[];
+      totalCount: number;
+    }>();
+
+    for (const category of state.categories) {
+      groups.set(category.id, {
+        id: category.id,
+        name: category.name,
+        nameAr: category.nameAr,
+        items: [],
+        totalCount: 0,
+      });
+    }
+
+    for (const item of state.menu) {
+      const id = item.categoryId || "uncategorized";
+      const name = item.categoryName || "Uncategorized";
+
+      if (!groups.has(id)) {
+        groups.set(id, {
+          id,
+          name,
+          nameAr: "",
+          items: [],
+          totalCount: 0,
+        });
+      }
+
+      const group = groups.get(id);
+      if (!group) continue;
+
+      group.totalCount += 1;
+
+      if (itemMatchesSearch(item)) {
+        group.items.push(item);
+      }
+    }
+
+    return Array.from(groups.values()).filter((group) =>
+      search ? group.items.length > 0 : group.totalCount > 0
+    );
+  }, [state.categories, state.menu, menuBuilderSearch]);
 
   const openOrderCount = state.orders.filter((order) => order.status !== "Served").length;
   const waitingRequests = state.requests.filter((request) => request.status === "Waiting");
@@ -1574,6 +1643,27 @@ export default function Page() {
     } finally {
       setMenuBusy(false);
     }
+  }
+
+  function toggleMenuBuilderCategory(categoryId: string) {
+    setExpandedMenuCategories((current) => ({
+      ...current,
+      [categoryId]: !current[categoryId],
+    }));
+  }
+
+  function expandAllMenuBuilderCategories() {
+    const next: Record<string, boolean> = {};
+
+    for (const group of menuBuilderGroups) {
+      next[group.id] = true;
+    }
+
+    setExpandedMenuCategories(next);
+  }
+
+  function collapseAllMenuBuilderCategories() {
+    setExpandedMenuCategories({});
   }
 
   function startEditingMenuItem(item: MenuItem) {
@@ -2657,44 +2747,99 @@ export default function Page() {
 
                     <div className="manager-card">
                       <h3>Current Menu Items</h3>
-                      <p className="sub">Click a photo to open the larger compressed preview.</p>
-                      <button className="btn ghost small" type="button" onClick={refreshMenuFromSupabase} disabled={menuBusy}>
-                        Refresh saved menu
-                      </button>
+                      <p className="sub">Search items, then open each category tab to edit price, picture, stock, and serving hours.</p>
 
-                      <div className="menu-builder-list">
-                        {state.menu.map((item) => (
-                          <div className="menu-builder-item" key={item.id}>
-                            {item.imageThumbUrl ? (
-                              <button className="menu-builder-photo" type="button" onClick={() => setSelectedMenuImage(item)}>
-                                <img src={item.imageThumbUrl} alt={item.name} />
+                      <div className="current-menu-toolbar">
+                        <div className="current-menu-search">
+                          <span>Search</span>
+                          <input
+                            value={menuBuilderSearch}
+                            onChange={(e) => setMenuBuilderSearch(e.target.value)}
+                            placeholder="Search by item, Arabic name, category, price..."
+                          />
+                        </div>
+
+                        <div className="current-menu-actions">
+                          <button className="btn ghost small" type="button" onClick={refreshMenuFromSupabase} disabled={menuBusy}>
+                            Refresh
+                          </button>
+                          <button className="btn ghost small" type="button" onClick={expandAllMenuBuilderCategories}>
+                            Expand all
+                          </button>
+                          <button className="btn ghost small" type="button" onClick={collapseAllMenuBuilderCategories}>
+                            Collapse
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="category-accordion-list">
+                        {menuBuilderGroups.length ? menuBuilderGroups.map((group) => {
+                          const isExpanded = menuBuilderSearch.trim()
+                            ? true
+                            : expandedMenuCategories[group.id] === true;
+
+                          return (
+                            <div className="category-accordion" key={group.id}>
+                              <button
+                                className={`category-accordion-header ${isExpanded ? "expanded" : ""}`}
+                                type="button"
+                                onClick={() => toggleMenuBuilderCategory(group.id)}
+                              >
+                                <div>
+                                  <strong>{group.name}</strong>
+                                  {group.nameAr ? <span dir="rtl">{group.nameAr}</span> : null}
+                                </div>
+
+                                <div className="category-accordion-meta">
+                                  <span>{group.items.length}{menuBuilderSearch.trim() ? ` match${group.items.length === 1 ? "" : "es"}` : ` item${group.items.length === 1 ? "" : "s"}`}</span>
+                                  <b>{isExpanded ? "Hide" : "Open"}</b>
+                                </div>
                               </button>
-                            ) : (
-                              <div className="menu-builder-photo fallback">{item.icon}</div>
-                            )}
 
-                            <div className="menu-builder-main">
-                              <strong>{item.name}</strong>
-                              {item.nameAr ? <span className="arabic-item-name" dir="rtl">{item.nameAr}</span> : null}
-                              <span className="category-line">{item.categoryName || "Uncategorized"}</span>
-                              <span>{item.desc}</span>
-                              <span className="availability-line">{formatItemAvailability(item)}</span>
-                              <em>{money(item.price)}</em>
+                              {isExpanded ? (
+                                <div className="menu-builder-list">
+                                  {group.items.map((item) => (
+                                    <div className="menu-builder-item" key={item.id}>
+                                      {item.imageThumbUrl ? (
+                                        <button className="menu-builder-photo" type="button" onClick={() => setSelectedMenuImage(item)}>
+                                          <img src={item.imageThumbUrl} alt={item.name} />
+                                        </button>
+                                      ) : (
+                                        <div className="menu-builder-photo fallback">{item.icon}</div>
+                                      )}
+
+                                      <div className="menu-builder-main">
+                                        <strong>{item.name}</strong>
+                                        {item.nameAr ? <span className="arabic-item-name" dir="rtl">{item.nameAr}</span> : null}
+                                        <span className="category-line">{item.categoryName || "Uncategorized"}</span>
+                                        <span>{item.desc}</span>
+                                        <span className="availability-line">{formatItemAvailability(item)}</span>
+                                        <em>{money(item.price)}</em>
+                                      </div>
+
+                                      <div className="menu-builder-actions">
+                                        <button className="btn small secondary" type="button" onClick={() => startEditingMenuItem(item)} disabled={menuBusy}>
+                                          Edit
+                                        </button>
+                                        <button className={`btn small ${item.available ? "success" : "danger"}`} type="button" onClick={() => toggleItem(item.id)} disabled={menuBusy}>
+                                          {item.available ? "In stock" : "Out"}
+                                        </button>
+                                        <button className="btn small danger" type="button" onClick={() => removeMenuItem(item.id)} disabled={menuBusy}>
+                                          Remove
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : null}
                             </div>
-
-                            <div className="menu-builder-actions">
-                              <button className="btn small secondary" type="button" onClick={() => startEditingMenuItem(item)} disabled={menuBusy}>
-                                Edit
-                              </button>
-                              <button className={`btn small ${item.available ? "success" : "danger"}`} type="button" onClick={() => toggleItem(item.id)} disabled={menuBusy}>
-                                {item.available ? "In stock" : "Out"}
-                              </button>
-                              <button className="btn small danger" type="button" onClick={() => removeMenuItem(item.id)} disabled={menuBusy}>
-                                Remove
-                              </button>
-                            </div>
+                          );
+                        }) : (
+                          <div className="menu-empty-card">
+                            <h4>No items found</h4>
+                            <p>{menuBuilderSearch.trim() ? "Try a different search." : "Add items from the Menu Builder form."}</p>
                           </div>
-                        ))}
+                        )}
                       </div>
                     </div>
                   </div>
