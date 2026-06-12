@@ -94,6 +94,16 @@ type CategoryRow = {
   created_at: string | null;
 };
 
+type TableGuestRow = {
+  id: string;
+  business_account_id: string;
+  table_number: number;
+  guest_name: string;
+  active: boolean | null;
+  created_at: string | null;
+  last_seen_at: string | null;
+};
+
 type MenuDraft = {
   name: string;
   nameAr: string;
@@ -350,6 +360,27 @@ function rowToMenuCategory(row: CategoryRow): MenuCategory {
     name: row.name || "Category",
     nameAr: row.name_ar || "",
   };
+}
+
+function rowToGuestName(row: TableGuestRow) {
+  return (row.guest_name || "").trim();
+}
+
+function uniqueGuestNames(names: string[]) {
+  const seen = new Set<string>();
+  const cleanNames: string[] = [];
+
+  for (const name of names) {
+    const clean = name.trim().replace(/\s+/g, " ");
+    const key = clean.toLowerCase();
+
+    if (!clean || seen.has(key)) continue;
+
+    seen.add(key);
+    cleanNames.push(clean);
+  }
+
+  return cleanNames;
 }
 function timeToMinutes(value: string) {
   const [hourRaw, minuteRaw] = String(value || "").split(":");
@@ -612,6 +643,44 @@ async function insertMenuCategoryIntoSupabase(businessId: string, name: string, 
   return rowToMenuCategory(result.category as CategoryRow);
 }
 
+async function fetchTableGuestsFromSupabase(businessId: string, tableNumber: number, username = "") {
+  const params = new URLSearchParams({
+    businessId,
+    username,
+    table: String(tableNumber),
+  });
+
+  const response = await fetch(`/api/table-guests?${params.toString()}`, {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  const rows = (result.guests || []) as TableGuestRow[];
+
+  return uniqueGuestNames(rows.map((row) => rowToGuestName(row)));
+}
+
+async function joinTableGuestInSupabase(businessId: string, tableNumber: number, guestName: string, username = "") {
+  const response = await fetch("/api/table-guests", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      businessId,
+      username,
+      table: tableNumber,
+      guestName,
+    }),
+  });
+
+  const result = await readApiJson(response);
+  const rows = (result.guests || []) as TableGuestRow[];
+
+  return uniqueGuestNames(rows.map((row) => rowToGuestName(row)));
+}
+
 async function insertMenuItemIntoSupabase(businessId: string, item: MenuItem) {
   const headers = await getManagerAuthHeaders();
 
@@ -706,6 +775,7 @@ export default function Page() {
   const [selectedMenuImage, setSelectedMenuImage] = useState<MenuItem | null>(null);
   const [toast, setToast] = useState("");
   const [publicTableMode, setPublicTableMode] = useState(false);
+  const publicCustomerMode = publicTableMode;
   const [publicTableError, setPublicTableError] = useState("");
   const [activeTable, setActiveTable] = useState(DEMO_TABLE);
 
@@ -742,6 +812,7 @@ export default function Page() {
           const business = result.business || {};
           const menuRows = (result.menu || []) as MenuRow[];
           const categoryRows = (result.categories || []) as CategoryRow[];
+          const guestRows = (result.guests || []) as TableGuestRow[];
 
           const nextProfile: Profile = {
             businessId: business.id || businessId,
@@ -770,6 +841,7 @@ export default function Page() {
             profile: nextProfile,
             menu: menuRows.map((row) => rowToMenuItem(row)),
             categories: categoryRows.map((row) => rowToMenuCategory(row)),
+            guests: uniqueGuestNames(guestRows.map((row) => rowToGuestName(row))),
             qrTokens: token ? { [String(tableNumber)]: token } : {},
             lastQrTable: tableNumber,
           });
@@ -831,11 +903,45 @@ export default function Page() {
     return () => window.clearTimeout(timer);
   }, [toast]);
 
+  useEffect(() => {
+    if (!publicCustomerMode || !state.profile.businessId) return;
+
+    let cancelled = false;
+
+    async function refreshSeatedGuests() {
+      try {
+        const savedGuests = await fetchTableGuestsFromSupabase(
+          state.profile.businessId,
+          activeTable,
+          state.profile.username
+        );
+
+        if (cancelled) return;
+
+        updateState((current) => ({
+          ...current,
+          guests: savedGuests.length ? savedGuests : current.guests,
+        }));
+      } catch (error) {
+        console.error("Table guest refresh failed", error);
+      }
+    }
+
+    void refreshSeatedGuests();
+
+    const interval = window.setInterval(() => {
+      void refreshSeatedGuests();
+    }, 12000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [publicCustomerMode, state.profile.businessId, state.profile.username, activeTable]);
+
   const businessName = state.profile.restaurantName || "Restaurant";
   const branchName = state.profile.branchName || "Branch";
   const logoFallback = initials(businessName);
-  const publicCustomerMode = publicTableMode;
-
   const cleanSignupUsername = normalizeUsername(signupProfile.username);
   const usernameIsLongEnough = cleanSignupUsername.length >= 4;
 
@@ -857,6 +963,8 @@ export default function Page() {
       state.menu.some((item) => item.categoryId === category.id)
     );
   }, [state.categories, state.menu]);
+
+  const seatedGuests = uniqueGuestNames(state.guests);
 
   const hasUncategorizedItems = state.menu.some((item) => !item.categoryId);
   const visibleCustomerMenu = activeMenuCategory === "all"
@@ -1338,8 +1446,9 @@ export default function Page() {
     setAuthTab("signup");
   }
 
-  function joinGuest(name: string) {
+  async function joinGuest(name: string) {
     const clean = name.trim().replace(/\s+/g, " ");
+
     if (!clean) {
       show("Enter a customer name first");
       return;
@@ -1348,11 +1457,45 @@ export default function Page() {
     updateState((current) => ({
       ...current,
       currentGuest: clean,
-      guests: current.guests.includes(clean) ? current.guests : [...current.guests, clean],
+      guests: uniqueGuestNames([...current.guests, clean]),
     }));
 
     setGuestName("");
+
+    if (publicCustomerMode && state.profile.businessId) {
+      try {
+        const savedGuests = await joinTableGuestInSupabase(
+          state.profile.businessId,
+          activeTable,
+          clean,
+          state.profile.username
+        );
+
+        updateState((current) => ({
+          ...current,
+          currentGuest: clean,
+          guests: savedGuests.length ? savedGuests : uniqueGuestNames([...current.guests, clean]),
+        }));
+      } catch (error) {
+        console.error("Table guest save failed", error);
+      }
+    }
+
     show(`${clean} joined Table ${activeTable}`);
+  }
+
+  function chooseSeatedGuest(name: string) {
+    const clean = name.trim();
+
+    if (!clean) return;
+
+    updateState((current) => ({
+      ...current,
+      currentGuest: clean,
+      guests: uniqueGuestNames([...current.guests, clean]),
+    }));
+
+    show(`Welcome back, ${clean}`);
   }
 
   function addOrder(menuId: string) {
@@ -2179,16 +2322,39 @@ export default function Page() {
                           <div className="qr-welcome-card">
                             <div className="qr-welcome-badge">Table {activeTable}</div>
                             <h4>Welcome to {businessName}</h4>
-                            <p>Enter your name to begin ordering. Your items will show under your name for the waiter and kitchen.</p>
+                            <p>
+                              {seatedGuests.length
+                                ? "Choose your name if you already sat down, or enter a new name."
+                                : "Enter your name to begin ordering. Your items will show under your name for the waiter and kitchen."}
+                            </p>
+
+                            {seatedGuests.length ? (
+                              <div className="seated-guest-card">
+                                <span>Already seated at this table</span>
+                                <div className="guest-chips seated-guest-chips">
+                                  {seatedGuests.map((guest) => (
+                                    <button
+                                      key={guest}
+                                      className="guest-chip active"
+                                      type="button"
+                                      onClick={() => chooseSeatedGuest(guest)}
+                                    >
+                                      {guest}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            ) : null}
 
                             <div className="qr-name-form">
+                              <label>{seatedGuests.length ? "Not listed? Add your name" : "Your name"}</label>
                               <input
                                 value={guestName}
                                 onChange={(e) => setGuestName(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && joinGuest(guestName)}
                                 placeholder="Your name"
                                 maxLength={24}
-                                autoFocus
+                                autoFocus={!seatedGuests.length}
                               />
                               <button className="btn full" onClick={() => joinGuest(guestName)}>Begin ordering</button>
                             </div>
