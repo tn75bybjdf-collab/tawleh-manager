@@ -1242,7 +1242,7 @@ export default function Page() {
   }
 
   return (
-    <main className="app-shell">
+    <main className={publicCustomerMode ? "app-shell customer-only-shell" : "app-shell"}>
       {!state.profileComplete && !publicTableMode ? (
         <section className="auth-page">
           <div className="auth-logo-wrap">

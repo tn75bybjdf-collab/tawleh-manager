@@ -1960,3 +1960,143 @@ img {
   border-color: rgba(200, 97, 63, 0.6);
   box-shadow: 0 0 0 4px rgba(200, 97, 63, 0.12);
 }
+
+
+/* Customer QR pages must be the real full-page customer app, not the manager preview phone */
+.customer-only-shell {
+  min-height: 100dvh;
+  padding: 0;
+  background: #fffaf4;
+}
+
+.customer-only-shell .topbar {
+  display: none;
+}
+
+.customer-only-shell .public-qr-grid {
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  margin: 0;
+  display: block;
+}
+
+.customer-only-shell .customer-panel {
+  width: 100%;
+  min-height: 100dvh;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: #fffaf4;
+  overflow: visible;
+}
+
+.customer-only-shell .panel-header {
+  display: none;
+}
+
+.customer-only-shell .panel-body {
+  min-height: 100dvh;
+  padding: 0;
+}
+
+.customer-only-shell .customer-phone {
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.customer-only-shell .phone-screen {
+  width: 100%;
+  min-height: 100dvh;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  background:
+    radial-gradient(circle at top left, rgba(200, 97, 63, 0.10), transparent 22rem),
+    #fffaf4;
+}
+
+.customer-only-shell .phone-status {
+  display: none;
+}
+
+.customer-only-shell .hero-card {
+  max-width: 760px;
+  margin: 0 auto;
+  border-radius: 0 0 34px 34px;
+  padding: calc(22px + env(safe-area-inset-top)) 22px 24px;
+}
+
+.customer-only-shell .phone-content {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 18px 16px calc(24px + env(safe-area-inset-bottom));
+}
+
+.customer-only-shell .qr-welcome-card,
+.customer-only-shell .mini-card,
+.customer-only-shell .seat-card {
+  border-radius: 24px;
+}
+
+.customer-only-shell .phone-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 12px 0;
+  background: rgba(255, 250, 244, 0.88);
+  backdrop-filter: blur(14px);
+}
+
+.customer-only-shell .phone-tab {
+  min-height: 58px;
+  font-size: 15px;
+}
+
+.customer-only-shell .menu-item {
+  grid-template-columns: 72px 1fr auto;
+  border-radius: 22px;
+  padding: 14px;
+}
+
+.customer-only-shell .item-photo-button,
+.customer-only-shell .item-icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+}
+
+@media (max-width: 700px) {
+  .customer-only-shell .hero-card {
+    max-width: none;
+    margin: 0;
+    border-radius: 0 0 30px 30px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .customer-only-shell .phone-content {
+    max-width: none;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .customer-only-shell .hero-card h3 {
+    font-size: 36px;
+  }
+
+  .customer-only-shell .hero-card p {
+    font-size: 17px;
+  }
+
+  .customer-only-shell .table-chip {
+    font-size: 15px;
+    padding: 12px 16px;
+  }
+}
