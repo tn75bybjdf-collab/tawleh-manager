@@ -97,7 +97,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const supabase = SUPABASE_URL && SUPABASE_ANON_KEY ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 const DEMO_TABLE = 5;
-const APP_LOGO_SRC = "/Tawleh_logo.png";
+const APP_LOGO_SRC = "/tawleh_manager.png";
 
 const starterMenu: MenuItem[] = [];
 
