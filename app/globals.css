@@ -3211,3 +3211,28 @@ img {
   line-height: 1.4;
   font-weight: 850;
 }
+
+
+/* Seated guests reload card */
+.seated-guest-card {
+  border: 1px solid rgba(200, 97, 63, 0.16);
+  background: rgba(255, 248, 240, 0.92);
+  box-shadow: 0 14px 30px rgba(42, 30, 24, 0.08);
+}
+
+.seated-guest-card > span {
+  display: block;
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.seated-guest-chips .guest-chip {
+  border-color: rgba(200, 97, 63, 0.24);
+  background: #fff;
+  color: #2f211b;
+  box-shadow: 0 8px 18px rgba(42, 30, 24, 0.06);
+}

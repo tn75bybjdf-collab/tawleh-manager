@@ -12,7 +12,8 @@ function clean(value: string | null) {
   return String(value || "").trim();
 }
 
-const MENU_SELECT = "id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, available_all_day, available_from, available_to, image_thumb_url, image_full_url, sort_order, created_at";
+const MENU_SELECT =
+  "id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, available_all_day, available_from, available_to, image_thumb_url, image_full_url, sort_order, created_at";
 
 export async function GET(request: NextRequest) {
   if (!supabaseUrl || !serviceRoleKey) {
@@ -89,11 +90,36 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: menuError.message }, { status: 500 });
   }
 
+  const { data: guests, error: guestError } = await admin
+    .from("table_guests")
+    .select("id, business_account_id, auth_user_id, table_number, guest_name, active, created_at, last_seen_at")
+    .eq("business_account_id", business.id)
+    .eq("table_number", table)
+    .eq("active", true)
+    .order("created_at", { ascending: true });
+
+  if (guestError) {
+    return NextResponse.json({ error: guestError.message }, { status: 500 });
+  }
+
+  const { data: orders, error: orderError } = await admin
+    .from("table_orders")
+    .select("id, business_account_id, auth_user_id, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, status, created_at")
+    .eq("business_account_id", business.id)
+    .eq("table_number", table)
+    .order("created_at", { ascending: false });
+
+  if (orderError) {
+    return NextResponse.json({ error: orderError.message }, { status: 500 });
+  }
+
   return NextResponse.json(
     {
       business,
       categories: categories || [],
       menu: menu || [],
+      guests: guests || [],
+      orders: orders || [],
       table,
       token,
     },

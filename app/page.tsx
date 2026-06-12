@@ -409,6 +409,34 @@ function uniqueGuestNames(names: string[]) {
   return cleanNames;
 }
 
+function tableGuestsStorageKey(businessId: string, tableNumber: number) {
+  return `tawleh-table-guests:${businessId || "unknown"}:${tableNumber}`;
+}
+
+function readCachedTableGuests(businessId: string, tableNumber: number) {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.localStorage.getItem(tableGuestsStorageKey(businessId, tableNumber));
+    const parsed = raw ? JSON.parse(raw) : [];
+
+    return uniqueGuestNames(Array.isArray(parsed) ? parsed.map((name) => String(name || "")) : []);
+  } catch {
+    return [];
+  }
+}
+
+function writeCachedTableGuests(businessId: string, tableNumber: number, guests: string[]) {
+  if (typeof window === "undefined" || !businessId) return;
+
+  const cleanGuests = uniqueGuestNames(guests).slice(0, 25);
+  window.localStorage.setItem(tableGuestsStorageKey(businessId, tableNumber), JSON.stringify(cleanGuests));
+}
+
+function mergeGuestLists(...lists: string[][]) {
+  return uniqueGuestNames(lists.flat());
+}
+
 function rowToOrder(row: TableOrderRow): Order {
   const quantity = Math.max(1, Number(row.quantity || 1));
   const unitPrice = Number(row.price_jod || 0);
@@ -690,9 +718,15 @@ async function insertMenuCategoryIntoSupabase(businessId: string, name: string, 
   return rowToMenuCategory(result.category as CategoryRow);
 }
 
-async function fetchTableGuestsFromSupabase(businessId: string, tableNumber: number, username = "") {
+async function fetchTableGuestsFromSupabase(
+  businessId: string,
+  authUserId: string,
+  tableNumber: number,
+  username = ""
+) {
   const params = new URLSearchParams({
     businessId,
+    authUserId,
     username,
     table: String(tableNumber),
   });
@@ -708,7 +742,13 @@ async function fetchTableGuestsFromSupabase(businessId: string, tableNumber: num
   return uniqueGuestNames(rows.map((row) => rowToGuestName(row)));
 }
 
-async function joinTableGuestInSupabase(businessId: string, tableNumber: number, guestName: string, username = "") {
+async function joinTableGuestInSupabase(
+  businessId: string,
+  authUserId: string,
+  tableNumber: number,
+  guestName: string,
+  username = ""
+) {
   const response = await fetch("/api/table-guests", {
     method: "POST",
     headers: {
@@ -716,6 +756,7 @@ async function joinTableGuestInSupabase(businessId: string, tableNumber: number,
     },
     body: JSON.stringify({
       businessId,
+      authUserId,
       username,
       table: tableNumber,
       guestName,
@@ -984,11 +1025,22 @@ export default function Page() {
             profile: nextProfile,
             menu: menuRows.map((row) => rowToMenuItem(row)),
             categories: categoryRows.map((row) => rowToMenuCategory(row)),
-            guests: uniqueGuestNames(guestRows.map((row) => rowToGuestName(row))),
+            guests: mergeGuestLists(
+              uniqueGuestNames(guestRows.map((row) => rowToGuestName(row))),
+              readCachedTableGuests(nextProfile.businessId, tableNumber)
+            ),
             orders: orderRows.map((row) => rowToOrder(row)),
             qrTokens: token ? { [String(tableNumber)]: token } : {},
             lastQrTable: tableNumber,
           });
+          writeCachedTableGuests(
+            nextProfile.businessId,
+            tableNumber,
+            mergeGuestLists(
+              uniqueGuestNames(guestRows.map((row) => rowToGuestName(row))),
+              readCachedTableGuests(nextProfile.businessId, tableNumber)
+            )
+          );
           setSignupProfile(nextProfile);
           document.documentElement.style.setProperty("--brand", nextProfile.brandColor || "#c8613f");
           setLoaded(true);
@@ -1060,15 +1112,23 @@ export default function Page() {
       try {
         const savedGuests = await fetchTableGuestsFromSupabase(
           state.profile.businessId,
+          state.profile.authUserId,
           activeTable,
           state.profile.username
         );
 
         if (cancelled) return;
 
+        const cachedGuests = readCachedTableGuests(state.profile.businessId, activeTable);
+        const mergedGuests = mergeGuestLists(savedGuests, cachedGuests);
+
+        if (mergedGuests.length) {
+          writeCachedTableGuests(state.profile.businessId, activeTable, mergedGuests);
+        }
+
         updateState((current) => ({
           ...current,
-          guests: savedGuests.length ? savedGuests : current.guests,
+          guests: mergedGuests.length ? mergedGuests : current.guests,
         }));
       } catch (error) {
         console.error("Table guest refresh failed", error);
@@ -1759,11 +1819,17 @@ export default function Page() {
       return;
     }
 
+    const immediateGuests = uniqueGuestNames([...state.guests, clean]);
+
     updateState((current) => ({
       ...current,
       currentGuest: clean,
       guests: uniqueGuestNames([...current.guests, clean]),
     }));
+
+    if (state.profile.businessId) {
+      writeCachedTableGuests(state.profile.businessId, activeTable, immediateGuests);
+    }
 
     setGuestName("");
     setOrderCart({});
@@ -1773,18 +1839,24 @@ export default function Page() {
       try {
         const savedGuests = await joinTableGuestInSupabase(
           state.profile.businessId,
+          state.profile.authUserId,
           activeTable,
           clean,
           state.profile.username
         );
 
+        const mergedGuests = mergeGuestLists(savedGuests, readCachedTableGuests(state.profile.businessId, activeTable), [clean]);
+        writeCachedTableGuests(state.profile.businessId, activeTable, mergedGuests);
+
         updateState((current) => ({
           ...current,
           currentGuest: clean,
-          guests: savedGuests.length ? savedGuests : uniqueGuestNames([...current.guests, clean]),
+          guests: mergedGuests.length ? mergedGuests : uniqueGuestNames([...current.guests, clean]),
         }));
       } catch (error) {
         console.error("Table guest save failed", error);
+        show(`Seat saved on this phone. Server save failed: ${getErrorMessage(error)}`);
+        return;
       }
     }
 
@@ -1801,6 +1873,10 @@ export default function Page() {
       currentGuest: clean,
       guests: uniqueGuestNames([...current.guests, clean]),
     }));
+
+    if (state.profile.businessId) {
+      writeCachedTableGuests(state.profile.businessId, activeTable, uniqueGuestNames([...state.guests, clean]));
+    }
 
     setOrderCart({});
     setOrderReviewOpen(false);
@@ -2755,12 +2831,12 @@ export default function Page() {
                             <p>
                               {seatedGuests.length
                                 ? "Choose your name if you already sat down, or enter a new name."
-                                : "Enter your name to begin ordering. Your items will show under your name for the waiter and kitchen."}
+                                : "If you already sat here, tap your name. If not, enter your name once and it will stay on this table."}
                             </p>
 
                             {seatedGuests.length ? (
                               <div className="seated-guest-card">
-                                <span>Already seated at this table</span>
+                                <span>Already seated at this table — tap your name</span>
                                 <div className="guest-chips seated-guest-chips">
                                   {seatedGuests.map((guest) => (
                                     <button
