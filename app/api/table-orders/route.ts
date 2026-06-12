@@ -18,6 +18,23 @@ type OrderItemPayload = {
   quantity?: unknown;
 };
 
+type TableOrderInsertRow = {
+  business_account_id: string;
+  auth_user_id: string;
+  table_number: number;
+  guest_name: string;
+  item_id: string;
+  item_name: string;
+  quantity: number;
+  price_jod: number;
+  line_total_jod: number;
+  status: "New";
+};
+
+function isTableOrderInsertRow(row: TableOrderInsertRow | null): row is TableOrderInsertRow {
+  return row !== null;
+}
+
 const allowedStatuses = new Set(["New", "Preparing", "Ready", "Served"]);
 
 function serverClient() {
@@ -202,8 +219,8 @@ export async function POST(request: NextRequest) {
       return jsonError("Missing auth_user_id for restaurant. Refresh the QR page.", 400);
     }
 
-    const rows = items
-      .map((item) => {
+    const rows: TableOrderInsertRow[] = items
+      .map((item): TableOrderInsertRow | null => {
         const itemId = cleanText(item.itemId);
         const itemName = cleanText(item.itemName, "Menu item");
         const quantity = cleanQuantity(item.quantity);
@@ -224,7 +241,7 @@ export async function POST(request: NextRequest) {
           status: "New",
         };
       })
-      .filter(Boolean);
+      .filter(isTableOrderInsertRow);
 
     if (!rows.length) {
       return jsonError("No valid items to send", 400);
