@@ -56,6 +56,9 @@ type MenuItem = {
   available: boolean;
   categoryId: string;
   categoryName: string;
+  availableAllDay: boolean;
+  availableFrom: string;
+  availableTo: string;
   imageThumbUrl?: string;
   imageFullUrl?: string;
 };
@@ -72,6 +75,9 @@ type MenuRow = {
   price_jod: number | string;
   short_code: string | null;
   available: boolean | null;
+  available_all_day: boolean | null;
+  available_from: string | null;
+  available_to: string | null;
   image_thumb_url: string | null;
   image_full_url: string | null;
   sort_order: number | null;
@@ -95,6 +101,10 @@ type MenuDraft = {
   price: string;
   icon: string;
   categoryId: string;
+  available: boolean;
+  availableAllDay: boolean;
+  availableFrom: string;
+  availableTo: string;
   imageThumbUrl: string;
   imageFullUrl: string;
 };
@@ -150,6 +160,10 @@ const emptyMenuDraft: MenuDraft = {
   price: "",
   icon: "",
   categoryId: "",
+  available: true,
+  availableAllDay: true,
+  availableFrom: "09:00",
+  availableTo: "23:00",
   imageThumbUrl: "",
   imageFullUrl: "",
 };
@@ -234,6 +248,9 @@ function safeLoadState(): AppState {
         ...item,
         categoryId: item.categoryId || "",
         categoryName: item.categoryName || "Uncategorized",
+        availableAllDay: item.availableAllDay !== false,
+        availableFrom: item.availableFrom || "09:00",
+        availableTo: item.availableTo || "23:00",
       })) : starterMenu,
       categories: parsed.categories || [],
       qrTokens: parsed.qrTokens || {},
@@ -319,6 +336,9 @@ function rowToMenuItem(row: MenuRow): MenuItem {
     available: row.available !== false,
     categoryId: row.category_id || "",
     categoryName: row.category_name || "Uncategorized",
+    availableAllDay: row.available_all_day !== false,
+    availableFrom: row.available_from || "09:00",
+    availableTo: row.available_to || "23:00",
     imageThumbUrl: row.image_thumb_url || "",
     imageFullUrl: row.image_full_url || "",
   };
@@ -331,6 +351,52 @@ function rowToMenuCategory(row: CategoryRow): MenuCategory {
     nameAr: row.name_ar || "",
   };
 }
+function timeToMinutes(value: string) {
+  const [hourRaw, minuteRaw] = String(value || "").split(":");
+  const hour = Number(hourRaw);
+  const minute = Number(minuteRaw);
+
+  if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+
+  return Math.max(0, Math.min(1439, hour * 60 + minute));
+}
+
+function isWithinDailyWindow(nowMinutes: number, fromValue: string, toValue: string) {
+  const from = timeToMinutes(fromValue);
+  const to = timeToMinutes(toValue);
+
+  if (from === null || to === null) return true;
+  if (from === to) return true;
+
+  if (from < to) {
+    return nowMinutes >= from && nowMinutes <= to;
+  }
+
+  return nowMinutes >= from || nowMinutes <= to;
+}
+
+function isMenuItemCurrentlyAvailable(item: MenuItem) {
+  if (!item.available) return false;
+  if (item.availableAllDay) return true;
+
+  const now = new Date();
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  return isWithinDailyWindow(nowMinutes, item.availableFrom, item.availableTo);
+}
+
+function formatItemAvailability(item: MenuItem) {
+  if (!item.available) return "Out of stock";
+  if (item.availableAllDay) return "Available all day";
+  return `Available daily ${item.availableFrom || "09:00"} - ${item.availableTo || "23:00"}`;
+}
+
+function unavailableButtonText(item: MenuItem) {
+  if (!item.available) return "Out";
+  if (!isMenuItemCurrentlyAvailable(item)) return "Not now";
+  return "Add";
+}
+
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -580,6 +646,24 @@ async function updateMenuItemAvailabilityInSupabase(businessId: string, itemId: 
   await readApiJson(response);
 }
 
+async function updateMenuItemInSupabase(businessId: string, itemId: string, item: MenuItem) {
+  const headers = await getManagerAuthHeaders();
+
+  const response = await fetch("/api/menu-items", {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({
+      businessId,
+      username: safeLoadState().profile.username || "",
+      itemId,
+      item,
+    }),
+  });
+
+  const result = await readApiJson(response);
+  return rowToMenuItem(result.item as MenuRow);
+}
+
 async function deleteMenuItemFromSupabase(businessId: string, itemId: string) {
   const headers = await getManagerAuthHeaders();
 
@@ -612,6 +696,7 @@ export default function Page() {
   const [loginPassword, setLoginPassword] = useState("");
   const [qrInput, setQrInput] = useState(String(DEMO_TABLE));
   const [menuDraft, setMenuDraft] = useState<MenuDraft>(emptyMenuDraft);
+  const [editingMenuItemId, setEditingMenuItemId] = useState("");
   const [categoryDraft, setCategoryDraft] = useState({ name: "", nameAr: "" });
   const [activeMenuCategory, setActiveMenuCategory] = useState("all");
   const [imageBusy, setImageBusy] = useState(false);
@@ -1208,8 +1293,8 @@ export default function Page() {
     }
 
     const item = state.menu.find((menuItem) => menuItem.id === menuId);
-    if (!item || !item.available) {
-      show("This item is unavailable");
+    if (!item || !isMenuItemCurrentlyAvailable(item)) {
+      show("This item is not available right now");
       return;
     }
 
@@ -1396,7 +1481,29 @@ export default function Page() {
     }
   }
 
-  async function addMenuItemFromBuilder() {
+  function buildMenuItemFromDraft(cleanName: string, cleanNameAr: string, cleanDesc: string, cleanPrice: number): MenuItem {
+    const icon = (menuDraft.icon.trim() || menuIconFromName(cleanName)).slice(0, 3).toUpperCase();
+    const selectedCategory = state.categories.find((category) => category.id === menuDraft.categoryId);
+
+    return {
+      id: editingMenuItemId || makeId("menu"),
+      name: cleanName,
+      nameAr: cleanNameAr,
+      desc: cleanDesc || "Menu item",
+      price: Math.round(cleanPrice * 1000) / 1000,
+      icon,
+      available: menuDraft.available,
+      categoryId: selectedCategory?.id || "",
+      categoryName: selectedCategory?.name || "Uncategorized",
+      availableAllDay: menuDraft.availableAllDay,
+      availableFrom: menuDraft.availableFrom || "09:00",
+      availableTo: menuDraft.availableTo || "23:00",
+      imageThumbUrl: menuDraft.imageThumbUrl,
+      imageFullUrl: menuDraft.imageFullUrl,
+    };
+  }
+
+  function validateMenuDraft() {
     const cleanName = menuDraft.name.trim();
     const cleanNameAr = menuDraft.nameAr.trim();
     const cleanDesc = menuDraft.desc.trim();
@@ -1404,18 +1511,32 @@ export default function Page() {
 
     if (!cleanName) {
       show("English item name is required");
-      return;
+      return null;
     }
 
     if (!cleanNameAr) {
       show("Arabic item name is required");
-      return;
+      return null;
     }
 
     if (!Number.isFinite(cleanPrice) || cleanPrice <= 0) {
       show("Valid item price is required");
-      return;
+      return null;
     }
+
+    if (!menuDraft.availableAllDay) {
+      if (!menuDraft.availableFrom || !menuDraft.availableTo) {
+        show("Enter the daily available times");
+        return null;
+      }
+    }
+
+    return { cleanName, cleanNameAr, cleanDesc, cleanPrice };
+  }
+
+  async function addMenuItemFromBuilder() {
+    const valid = validateMenuDraft();
+    if (!valid) return;
 
     let managerProfile = state.profile;
 
@@ -1433,22 +1554,7 @@ export default function Page() {
       return;
     }
 
-    const icon = (menuDraft.icon.trim() || menuIconFromName(cleanName)).slice(0, 3).toUpperCase();
-    const selectedCategory = state.categories.find((category) => category.id === menuDraft.categoryId);
-
-    const nextItem: MenuItem = {
-      id: makeId("menu"),
-      name: cleanName,
-      nameAr: cleanNameAr,
-      desc: cleanDesc || "Menu item",
-      price: Math.round(cleanPrice * 1000) / 1000,
-      icon,
-      available: true,
-      categoryId: selectedCategory?.id || "",
-      categoryName: selectedCategory?.name || "Uncategorized",
-      imageThumbUrl: menuDraft.imageThumbUrl,
-      imageFullUrl: menuDraft.imageFullUrl,
-    };
+    const nextItem = buildMenuItemFromDraft(valid.cleanName, valid.cleanNameAr, valid.cleanDesc, valid.cleanPrice);
 
     setMenuBusy(true);
 
@@ -1461,7 +1567,80 @@ export default function Page() {
       }));
 
       setMenuDraft(emptyMenuDraft);
-      show(`${cleanName} saved to menu`);
+      setEditingMenuItemId("");
+      show(`${valid.cleanName} saved to menu`);
+    } catch (error) {
+      show(formatMenuDbError(error));
+    } finally {
+      setMenuBusy(false);
+    }
+  }
+
+  function startEditingMenuItem(item: MenuItem) {
+    setEditingMenuItemId(item.id);
+    setMenuDraft({
+      name: item.name,
+      nameAr: item.nameAr,
+      desc: item.desc,
+      price: String(item.price),
+      icon: item.icon,
+      categoryId: item.categoryId,
+      available: item.available,
+      availableAllDay: item.availableAllDay,
+      availableFrom: item.availableFrom || "09:00",
+      availableTo: item.availableTo || "23:00",
+      imageThumbUrl: item.imageThumbUrl || "",
+      imageFullUrl: item.imageFullUrl || "",
+    });
+    show(`Editing ${item.name}`);
+  }
+
+  function cancelEditingMenuItem() {
+    setEditingMenuItemId("");
+    setMenuDraft(emptyMenuDraft);
+    show("Edit cancelled");
+  }
+
+  async function saveEditedMenuItemFromBuilder() {
+    if (!editingMenuItemId) {
+      await addMenuItemFromBuilder();
+      return;
+    }
+
+    const valid = validateMenuDraft();
+    if (!valid) return;
+
+    let managerProfile = state.profile;
+
+    if (!managerProfile.businessId) {
+      try {
+        managerProfile = await ensureManagerBusinessProfile();
+      } catch {
+        show("Login again, then edit menu items");
+        return;
+      }
+    }
+
+    if (!managerProfile.businessId) {
+      show("Login again, then edit menu items");
+      return;
+    }
+
+    const nextItem = buildMenuItemFromDraft(valid.cleanName, valid.cleanNameAr, valid.cleanDesc, valid.cleanPrice);
+
+    setMenuBusy(true);
+
+    try {
+      const savedItem = await updateMenuItemInSupabase(managerProfile.businessId, editingMenuItemId, nextItem);
+
+      updateState((current) => ({
+        ...current,
+        menu: current.menu.map((item) => (item.id === savedItem.id ? savedItem : item)),
+      }));
+
+      setEditingMenuItemId("");
+      setMenuDraft(emptyMenuDraft);
+      show(`${valid.cleanName} updated`);
     } catch (error) {
       show(formatMenuDbError(error));
     } finally {
@@ -2011,7 +2190,7 @@ export default function Page() {
                                 </div>
                               ) : visibleCustomerMenu.length ? (
                                 visibleCustomerMenu.map((item) => (
-                                  <div key={item.id} className={`menu-item ${item.available ? "" : "unavailable"}`}>
+                                  <div key={item.id} className={`menu-item ${isMenuItemCurrentlyAvailable(item) ? "" : "unavailable"}`}>
                                     {item.imageThumbUrl ? (
                                       <button className="item-photo-button" type="button" onClick={() => setSelectedMenuImage(item)}>
                                         <img src={item.imageThumbUrl} alt={item.name} />
@@ -2023,10 +2202,11 @@ export default function Page() {
                                       <h5>{item.name}</h5>
                                       {item.nameAr ? <p className="arabic-item-name" dir="rtl">{item.nameAr}</p> : null}
                                       <p>{item.desc}</p>
+                                      <p className="availability-line">{formatItemAvailability(item)}</p>
                                       <div className="price">{money(item.price)}</div>
                                     </div>
-                                    <button className="btn small" disabled={!item.available} onClick={() => addOrder(item.id)}>
-                                      {item.available ? "Add" : "Off"}
+                                    <button className="btn small" disabled={!isMenuItemCurrentlyAvailable(item)} onClick={() => addOrder(item.id)}>
+                                      {unavailableButtonText(item)}
                                     </button>
                                   </div>
                                 ))
@@ -2312,6 +2492,11 @@ export default function Page() {
                       </div>
 
                       <div className="menu-builder-form">
+                        {editingMenuItemId ? (
+                          <div className="edit-banner">
+                            Editing item. Change price, picture, stock, category, or daily serving hours, then save.
+                          </div>
+                        ) : null}
                         <div className="menu-builder-row">
                           <Field label="English item name">
                             <input
@@ -2354,6 +2539,48 @@ export default function Page() {
                         </Field>
 
                         <div className="menu-builder-row">
+                          <Field label="Stock status">
+                            <select
+                              value={menuDraft.available ? "yes" : "no"}
+                              onChange={(e) => setMenuDraft({ ...menuDraft, available: e.target.value === "yes" })}
+                            >
+                              <option value="yes">In stock</option>
+                              <option value="no">Out of stock</option>
+                            </select>
+                          </Field>
+
+                          <Field label="Available all day?">
+                            <select
+                              value={menuDraft.availableAllDay ? "yes" : "no"}
+                              onChange={(e) => setMenuDraft({ ...menuDraft, availableAllDay: e.target.value === "yes" })}
+                            >
+                              <option value="yes">Yes</option>
+                              <option value="no">No, only certain hours</option>
+                            </select>
+                          </Field>
+                        </div>
+
+                        {!menuDraft.availableAllDay ? (
+                          <div className="menu-builder-row">
+                            <Field label="Available from">
+                              <input
+                                type="time"
+                                value={menuDraft.availableFrom}
+                                onChange={(e) => setMenuDraft({ ...menuDraft, availableFrom: e.target.value })}
+                              />
+                            </Field>
+
+                            <Field label="Available until">
+                              <input
+                                type="time"
+                                value={menuDraft.availableTo}
+                                onChange={(e) => setMenuDraft({ ...menuDraft, availableTo: e.target.value })}
+                              />
+                            </Field>
+                          </div>
+                        ) : null}
+
+                        <div className="menu-builder-row">
                           <Field label="Price JOD">
                             <input
                               type="number"
@@ -2386,7 +2613,10 @@ export default function Page() {
                                   desc: menuDraft.desc || "Preview",
                                   price: Number(menuDraft.price || 0),
                                   icon: menuDraft.icon || "IT",
-                                  available: true,
+                                  available: menuDraft.available,
+                                  availableAllDay: menuDraft.availableAllDay,
+                                  availableFrom: menuDraft.availableFrom,
+                                  availableTo: menuDraft.availableTo,
                                   categoryId: menuDraft.categoryId,
                                   categoryName: state.categories.find((category) => category.id === menuDraft.categoryId)?.name || "Uncategorized",
                                   imageThumbUrl: menuDraft.imageThumbUrl,
@@ -2415,11 +2645,11 @@ export default function Page() {
                         </Field>
 
                         <div className="row-actions">
-                          <button className="btn" type="button" onClick={addMenuItemFromBuilder} disabled={imageBusy || menuBusy}>
-                            Add item
+                          <button className="btn" type="button" onClick={editingMenuItemId ? saveEditedMenuItemFromBuilder : addMenuItemFromBuilder} disabled={imageBusy || menuBusy}>
+                            {editingMenuItemId ? "Save changes" : "Add item"}
                           </button>
-                          <button className="btn ghost" type="button" onClick={() => setMenuDraft(emptyMenuDraft)}>
-                            Clear
+                          <button className="btn ghost" type="button" onClick={editingMenuItemId ? cancelEditingMenuItem : () => setMenuDraft(emptyMenuDraft)}>
+                            {editingMenuItemId ? "Cancel edit" : "Clear"}
                           </button>
                         </div>
                       </div>
@@ -2448,12 +2678,16 @@ export default function Page() {
                               {item.nameAr ? <span className="arabic-item-name" dir="rtl">{item.nameAr}</span> : null}
                               <span className="category-line">{item.categoryName || "Uncategorized"}</span>
                               <span>{item.desc}</span>
+                              <span className="availability-line">{formatItemAvailability(item)}</span>
                               <em>{money(item.price)}</em>
                             </div>
 
                             <div className="menu-builder-actions">
+                              <button className="btn small secondary" type="button" onClick={() => startEditingMenuItem(item)} disabled={menuBusy}>
+                                Edit
+                              </button>
                               <button className={`btn small ${item.available ? "success" : "danger"}`} type="button" onClick={() => toggleItem(item.id)} disabled={menuBusy}>
-                                {item.available ? "On" : "Off"}
+                                {item.available ? "In stock" : "Out"}
                               </button>
                               <button className="btn small danger" type="button" onClick={() => removeMenuItem(item.id)} disabled={menuBusy}>
                                 Remove

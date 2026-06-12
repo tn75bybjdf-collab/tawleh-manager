@@ -2192,3 +2192,36 @@ img {
   font-weight: 850;
   outline: none;
 }
+
+
+/* Item editing, stock, and daily serving hours */
+.edit-banner {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(200, 97, 63, 0.10);
+  border: 1px solid rgba(200, 97, 63, 0.18);
+  color: #8b3d25;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.availability-line {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: rgba(25, 33, 48, 0.07);
+  color: #66574f;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  padding: 5px 9px;
+}
+
+.menu-item.unavailable {
+  opacity: 0.62;
+}
+
+.menu-item.unavailable .btn {
+  cursor: not-allowed;
+}

@@ -19,6 +19,9 @@ type MenuItemPayload = {
   available?: unknown;
   categoryId?: unknown;
   categoryName?: unknown;
+  availableAllDay?: unknown;
+  availableFrom?: unknown;
+  availableTo?: unknown;
   imageThumbUrl?: unknown;
   imageFullUrl?: unknown;
 };
@@ -51,6 +54,11 @@ function cleanShortCode(value: unknown, fallback: string) {
 function moneyNumber(value: unknown) {
   const price = Number(value);
   return Number.isFinite(price) ? Math.round(price * 1000) / 1000 : 0;
+}
+
+function cleanTime(value: unknown, fallback: string) {
+  const text = cleanText(value, fallback);
+  return /^\d{2}:\d{2}$/.test(text) ? text : fallback;
 }
 
 function getBearerToken(request: NextRequest) {
@@ -105,10 +113,12 @@ async function requireBusinessAccess(request: NextRequest, businessId: string, u
   };
 }
 
+const MENU_SELECT = "id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, available_all_day, available_from, available_to, image_thumb_url, image_full_url, sort_order, created_at";
+
 async function fetchMenu(admin: SupabaseClient, businessId: string) {
   const { data, error } = await admin
     .from("menu_items")
-    .select("id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, image_thumb_url, image_full_url, sort_order, created_at")
+    .select(MENU_SELECT)
     .eq("business_account_id", businessId)
     .order("sort_order", { ascending: false })
     .order("created_at", { ascending: false });
@@ -129,6 +139,35 @@ async function getCategory(admin: SupabaseClient, businessId: string, categoryId
 
   if (error) throw error;
   return data as { id: string; name: string } | null;
+}
+
+async function buildItemUpdate(admin: SupabaseClient, businessId: string, item: MenuItemPayload) {
+  const requestedCategoryId = cleanText(item.categoryId);
+  const category = await getCategory(admin, businessId, requestedCategoryId);
+  const categoryName = category?.name || cleanText(item.categoryName, "Uncategorized") || "Uncategorized";
+
+  return {
+    category_id: category?.id || null,
+    category_name: categoryName,
+    item_name: cleanText(item.name),
+    item_name_ar: cleanText(item.nameAr),
+    description: cleanText(item.desc, "Menu item") || "Menu item",
+    price_jod: moneyNumber(item.price),
+    short_code: cleanShortCode(item.icon, "IT"),
+    available: item.available !== false,
+    available_all_day: item.availableAllDay !== false,
+    available_from: cleanTime(item.availableFrom, "09:00"),
+    available_to: cleanTime(item.availableTo, "23:00"),
+    image_thumb_url: cleanText(item.imageThumbUrl) || null,
+    image_full_url: cleanText(item.imageFullUrl) || null,
+  };
+}
+
+function validateItemUpdate(update: Awaited<ReturnType<typeof buildItemUpdate>>) {
+  if (!update.item_name) return "English item name is required";
+  if (!update.item_name_ar) return "Arabic item name is required";
+  if (update.price_jod <= 0) return "Valid item price is required";
+  return "";
 }
 
 export async function GET(request: NextRequest) {
@@ -167,23 +206,11 @@ export async function POST(request: NextRequest) {
     const owner = await requireBusinessAccess(request, businessId, username);
     if (!owner.ok) return owner.response;
 
-    const itemName = cleanText(item.name);
-    const itemNameAr = cleanText(item.nameAr);
-    const price = moneyNumber(item.price);
-    const requestedCategoryId = cleanText(item.categoryId);
-    const category = await getCategory(owner.admin, owner.business.id, requestedCategoryId);
-    const categoryName = category?.name || cleanText(item.categoryName, "Uncategorized") || "Uncategorized";
+    const update = await buildItemUpdate(owner.admin, owner.business.id, item);
+    const validationError = validateItemUpdate(update);
 
-    if (!itemName) {
-      return NextResponse.json({ error: "English item name is required" }, { status: 400 });
-    }
-
-    if (!itemNameAr) {
-      return NextResponse.json({ error: "Arabic item name is required" }, { status: 400 });
-    }
-
-    if (price <= 0) {
-      return NextResponse.json({ error: "Valid item price is required" }, { status: 400 });
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
     }
 
     const { data, error } = await owner.admin
@@ -191,19 +218,10 @@ export async function POST(request: NextRequest) {
       .insert({
         business_account_id: owner.business.id,
         auth_user_id: owner.userId,
-        category_id: category?.id || null,
-        category_name: categoryName,
-        item_name: itemName,
-        item_name_ar: itemNameAr,
-        description: cleanText(item.desc, "Menu item") || "Menu item",
-        price_jod: price,
-        short_code: cleanShortCode(item.icon, "IT"),
-        available: item.available !== false,
-        image_thumb_url: cleanText(item.imageThumbUrl) || null,
-        image_full_url: cleanText(item.imageFullUrl) || null,
+        ...update,
         sort_order: Date.now(),
       })
-      .select("id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, image_thumb_url, image_full_url, sort_order, created_at")
+      .select(MENU_SELECT)
       .single();
 
     if (error) {
@@ -225,7 +243,6 @@ export async function PATCH(request: NextRequest) {
     const businessId = cleanText(body.businessId);
     const username = cleanText(body.username);
     const itemId = cleanText(body.itemId);
-    const available = body.available !== false;
 
     const owner = await requireBusinessAccess(request, businessId, username);
     if (!owner.ok) return owner.response;
@@ -234,20 +251,50 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Invalid menu item" }, { status: 400 });
     }
 
-    const { error } = await owner.admin
+    if (body.item) {
+      const update = await buildItemUpdate(owner.admin, owner.business.id, body.item as MenuItemPayload);
+      const validationError = validateItemUpdate(update);
+
+      if (validationError) {
+        return NextResponse.json({ error: validationError }, { status: 400 });
+      }
+
+      const { data, error } = await owner.admin
+        .from("menu_items")
+        .update({
+          ...update,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", itemId)
+        .eq("business_account_id", owner.business.id)
+        .select(MENU_SELECT)
+        .single();
+
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      return NextResponse.json({ item: data });
+    }
+
+    const available = body.available !== false;
+
+    const { data, error } = await owner.admin
       .from("menu_items")
       .update({
         available,
         updated_at: new Date().toISOString(),
       })
       .eq("id", itemId)
-      .eq("business_account_id", owner.business.id);
+      .eq("business_account_id", owner.business.id)
+      .select(MENU_SELECT)
+      .single();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ item: data, ok: true });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Menu update failed" },

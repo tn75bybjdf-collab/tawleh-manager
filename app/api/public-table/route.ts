@@ -12,6 +12,8 @@ function clean(value: string | null) {
   return String(value || "").trim();
 }
 
+const MENU_SELECT = "id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, available_all_day, available_from, available_to, image_thumb_url, image_full_url, sort_order, created_at";
+
 export async function GET(request: NextRequest) {
   if (!supabaseUrl || !serviceRoleKey) {
     return NextResponse.json(
@@ -77,7 +79,7 @@ export async function GET(request: NextRequest) {
 
   const { data: menu, error: menuError } = await admin
     .from("menu_items")
-    .select("id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, image_thumb_url, image_full_url, sort_order, created_at")
+    .select(MENU_SELECT)
     .eq("business_account_id", business.id)
     .or("available.eq.true,available.is.null")
     .order("sort_order", { ascending: false })
