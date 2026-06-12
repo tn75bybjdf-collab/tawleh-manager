@@ -2686,45 +2686,99 @@ export default function Page() {
                         )
                       ) : (
                         orderReviewOpen ? (
-                          <div className="order-review-page">
-                            <button className="review-back-button" type="button" onClick={() => setOrderReviewOpen(false)}>
-                              Back to menu
-                            </button>
+                          <div className="order-review-page darik-review-page">
+                            <div className="review-hero-card">
+                              <button className="review-back-button prestige-back-button" type="button" onClick={() => setOrderReviewOpen(false)}>
+                                Back to menu
+                              </button>
 
-                            <div className="seat-card order-review-card">
-                              <div className="review-title-row">
-                                <div>
-                                  <h4>Review your order</h4>
-                                  <p>Table {activeTable} - {state.currentGuest}</p>
+                              <div className="review-hero-main">
+                                <div className="review-restaurant-mark">
+                                  {state.profile.logoDataUrl ? (
+                                    <img src={state.profile.logoDataUrl} alt={businessName} />
+                                  ) : (
+                                    <span>{logoFallback}</span>
+                                  )}
                                 </div>
-                                <strong>{money(orderCartTotal)}</strong>
+
+                                <div>
+                                  <p className="review-eyebrow">Confirm before kitchen</p>
+                                  <h4>Review your order</h4>
+                                  <p className="review-subtitle">Table {activeTable} - {state.currentGuest}</p>
+                                </div>
                               </div>
 
-                              <div className="review-line-list">
-                                {orderCartLines.map((line) => (
-                                  <div className="review-line" key={line.item.id}>
-                                    <div>
-                                      <strong>{line.item.name}</strong>
-                                      {line.item.nameAr ? <span dir="rtl">{line.item.nameAr}</span> : null}
-                                      <em>{money(line.item.price)} each</em>
+                              <div className="review-hero-stats">
+                                <div>
+                                  <span>Items</span>
+                                  <strong>{orderCartItemCount}</strong>
+                                </div>
+                                <div>
+                                  <span>Total</span>
+                                  <strong>{money(orderCartTotal)}</strong>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="review-line-list darik-review-list">
+                              {orderCartLines.map((line) => {
+                                const itemImage = line.item.imageThumbUrl || line.item.imageFullUrl;
+
+                                return (
+                                  <div className="review-product-card" key={line.item.id}>
+                                    <div className="review-product-photo">
+                                      {itemImage ? (
+                                        <img src={itemImage} alt={line.item.name} />
+                                      ) : (
+                                        <span>{line.item.icon}</span>
+                                      )}
                                     </div>
 
-                                    <div className="review-line-controls">
-                                      <button type="button" onClick={() => changeCartQuantity(line.item.id, line.quantity - 1)}>-</button>
-                                      <b>{line.quantity}</b>
-                                      <button type="button" onClick={() => changeCartQuantity(line.item.id, line.quantity + 1)}>+</button>
-                                      <button className="remove-line" type="button" onClick={() => removeCartItem(line.item.id)}>Delete</button>
+                                    <div className="review-product-info">
+                                      <div className="review-product-title-row">
+                                        <div>
+                                          <strong>{line.item.name}</strong>
+                                          {line.item.nameAr ? <span dir="rtl">{line.item.nameAr}</span> : null}
+                                        </div>
+                                        <b>{money(line.lineTotal)}</b>
+                                      </div>
+
+                                      <p>{line.item.desc}</p>
+
+                                      <div className="review-product-meta">
+                                        <span>{line.item.categoryName || "Menu item"}</span>
+                                        <span>{money(line.item.price)} each</span>
+                                      </div>
+                                    </div>
+
+                                    <div className="review-product-actions">
+                                      <div className="review-qty-stepper">
+                                        <button type="button" onClick={() => changeCartQuantity(line.item.id, line.quantity - 1)}>-</button>
+                                        <strong>{line.quantity}</strong>
+                                        <button type="button" onClick={() => changeCartQuantity(line.item.id, line.quantity + 1)}>+</button>
+                                      </div>
+
+                                      <button className="remove-line review-delete-button" type="button" onClick={() => removeCartItem(line.item.id)}>
+                                        Delete
+                                      </button>
                                     </div>
                                   </div>
-                                ))}
-                              </div>
+                                );
+                              })}
+                            </div>
 
-                              <div className="review-total-row">
-                                <span>Total</span>
+                            <div className="review-summary-card">
+                              <div className="review-summary-row">
+                                <span>Subtotal</span>
                                 <strong>{money(orderCartTotal)}</strong>
                               </div>
+                              <div className="review-summary-row muted">
+                                <span>Payment</span>
+                                <strong>Pay at restaurant</strong>
+                              </div>
+                              <p>When you tap looks good, this order goes straight to the kitchen screen.</p>
 
-                              <button className="btn full" type="button" onClick={confirmOrderToKitchen} disabled={orderSendBusy || !orderCartLines.length}>
+                              <button className="review-confirm-button" type="button" onClick={confirmOrderToKitchen} disabled={orderSendBusy || !orderCartLines.length}>
                                 {orderSendBusy ? "Sending..." : "Looks good - send to kitchen"}
                               </button>
                             </div>
