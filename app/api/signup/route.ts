@@ -49,8 +49,8 @@ export async function POST(request: NextRequest) {
     const businessPhone = cleanText(body.businessPhone);
     const tableCount = Math.max(1, Math.min(999, Number(body.tableCount || 1)));
     const locationCount = Math.max(1, Math.min(25, Number(body.locationCount || 1)));
-    const locations = Array.isArray(body.locations)
-      ? body.locations.map((item) => cleanText(item)).filter(Boolean)
+    const locations: string[] = Array.isArray(body.locations)
+      ? body.locations.map((item: unknown) => cleanText(item)).filter(Boolean)
       : [];
     const location = locations[0] || "";
     const welcomeMessage = cleanText(body.welcomeMessage);
