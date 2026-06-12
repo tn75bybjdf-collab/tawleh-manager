@@ -111,6 +111,7 @@ type AppState = {
 };
 
 const STORAGE_KEY = "tawleh-manager-v8-working-baseline-signup";
+const MANAGER_AUTH_STORAGE_KEY = "tawleh-manager-auth-session-v1";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const supabase = SUPABASE_URL && SUPABASE_ANON_KEY ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
@@ -317,14 +318,69 @@ function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
+function saveManagerAuthSession(accessToken: string, refreshToken: string) {
+  if (typeof window === "undefined") return;
+
+  window.localStorage.setItem(
+    MANAGER_AUTH_STORAGE_KEY,
+    JSON.stringify({
+      accessToken,
+      refreshToken,
+      savedAt: Date.now(),
+    })
+  );
+}
+
+function loadManagerAuthSession() {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = window.localStorage.getItem(MANAGER_AUTH_STORAGE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as {
+      accessToken?: string;
+      refreshToken?: string;
+      savedAt?: number;
+    };
+
+    if (!parsed.accessToken) return null;
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function clearManagerAuthSession() {
+  if (typeof window === "undefined") return;
+
+  window.localStorage.removeItem(MANAGER_AUTH_STORAGE_KEY);
+}
+
 async function getManagerAuthHeaders() {
   if (!supabase) throw new Error("Missing Supabase client");
 
   const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  let token = data.session?.access_token || "";
 
   if (!token) {
-    throw new Error("Login again before editing menu");
+    const stored = loadManagerAuthSession();
+
+    if (stored?.accessToken) {
+      token = stored.accessToken;
+
+      if (stored.refreshToken) {
+        await supabase.auth.setSession({
+          access_token: stored.accessToken,
+          refresh_token: stored.refreshToken,
+        });
+      }
+    }
+  }
+
+  if (!token) {
+    throw new Error("Login session was not saved. Log out and log back in, then add the item.");
   }
 
   return {
@@ -605,8 +661,7 @@ export default function Page() {
     if (!supabase || !loadedState.profile.businessId) return;
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      if (!sessionData.session) return;
+      await getManagerAuthHeaders();
 
       const savedMenu = await fetchMenuItemsFromSupabase(loadedState.profile.businessId);
 
@@ -807,10 +862,17 @@ export default function Page() {
       }
 
       if (result.business?.email && supabase) {
-        await supabase.auth.signInWithPassword({
+        const { data: signupSessionData } = await supabase.auth.signInWithPassword({
           email: cleanEmail,
           password: signupPassword,
         });
+
+        if (signupSessionData.session?.access_token && signupSessionData.session?.refresh_token) {
+          saveManagerAuthSession(
+            signupSessionData.session.access_token,
+            signupSessionData.session.refresh_token
+          );
+        }
       }
 
       const nextProfile: Profile = {
@@ -888,6 +950,11 @@ export default function Page() {
           access_token: result.session.access_token,
           refresh_token: result.session.refresh_token,
         });
+
+        saveManagerAuthSession(
+          result.session.access_token,
+          result.session.refresh_token
+        );
       }
 
       const business = result.business;
@@ -939,6 +1006,7 @@ export default function Page() {
     if (!ok) return;
 
     window.localStorage.removeItem(STORAGE_KEY);
+    clearManagerAuthSession();
     setState(defaultState);
     setSignupProfile(defaultState.profile);
     setQrInput(String(DEMO_TABLE));
