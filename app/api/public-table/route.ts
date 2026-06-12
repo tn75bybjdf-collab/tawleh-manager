@@ -64,11 +64,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Restaurant was not found" }, { status: 404 });
   }
 
+  /*
+    Important:
+    Older menu rows may have available = null from early test builds.
+    The manager treats null as available, but the old public QR route only fetched available = true,
+    so saved items could appear in the manager and disappear on the customer QR menu.
+    This query includes both true and null.
+  */
   const { data: menu, error: menuError } = await admin
     .from("menu_items")
     .select("id, business_account_id, auth_user_id, item_name, item_name_ar, description, price_jod, short_code, available, image_thumb_url, image_full_url, sort_order, created_at")
     .eq("business_account_id", business.id)
-    .eq("available", true)
+    .or("available.eq.true,available.is.null")
     .order("sort_order", { ascending: false })
     .order("created_at", { ascending: false });
 
@@ -76,10 +83,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: menuError.message }, { status: 500 });
   }
 
-  return NextResponse.json({
-    business,
-    menu: menu || [],
-    table,
-    token,
-  });
+  return NextResponse.json(
+    {
+      business,
+      menu: menu || [],
+      table,
+      token,
+    },
+    {
+      headers: {
+        "Cache-Control": "no-store, max-age=0",
+      },
+    }
+  );
 }
