@@ -3198,3 +3198,16 @@ img {
     justify-content: flex-start;
   }
 }
+
+
+/* Kitchen communication error shown on customer review screen */
+.order-send-error {
+  border-radius: 18px;
+  padding: 12px 13px;
+  background: rgba(188, 58, 58, 0.14);
+  border: 1px solid rgba(188, 58, 58, 0.22);
+  color: #ffdddd;
+  font-size: 12px;
+  line-height: 1.4;
+  font-weight: 850;
+}

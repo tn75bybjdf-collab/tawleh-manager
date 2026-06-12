@@ -728,9 +728,15 @@ async function joinTableGuestInSupabase(businessId: string, tableNumber: number,
   return uniqueGuestNames(rows.map((row) => rowToGuestName(row)));
 }
 
-async function fetchTableOrdersFromSupabase(businessId: string, tableNumber: number | null, username = "") {
+async function fetchTableOrdersFromSupabase(
+  businessId: string,
+  authUserId: string,
+  tableNumber: number | null,
+  username = ""
+) {
   const params = new URLSearchParams({
     businessId,
+    authUserId,
     username,
   });
 
@@ -753,6 +759,7 @@ async function fetchTableOrdersFromSupabase(businessId: string, tableNumber: num
 
 async function sendCartOrderToSupabase(
   businessId: string,
+  authUserId: string,
   tableNumber: number,
   guestName: string,
   cartLines: CartLine[],
@@ -765,6 +772,7 @@ async function sendCartOrderToSupabase(
     },
     body: JSON.stringify({
       businessId,
+      authUserId,
       username,
       table: tableNumber,
       guestName,
@@ -785,6 +793,7 @@ async function sendCartOrderToSupabase(
 
 async function updateTableOrderStatusInSupabase(
   businessId: string,
+  authUserId: string,
   orderId: string,
   status: Order["status"],
   username = ""
@@ -796,6 +805,7 @@ async function updateTableOrderStatusInSupabase(
     },
     body: JSON.stringify({
       businessId,
+      authUserId,
       username,
       orderId,
       status,
@@ -884,6 +894,7 @@ export default function Page() {
   const [orderCart, setOrderCart] = useState<Record<string, number>>({});
   const [orderReviewOpen, setOrderReviewOpen] = useState(false);
   const [orderSendBusy, setOrderSendBusy] = useState(false);
+  const [orderSendError, setOrderSendError] = useState("");
   const [kitchenBellEnabled, setKitchenBellEnabled] = useState(false);
   const kitchenBellPrimedRef = useRef(false);
   const lastKitchenNewOrderIdsRef = useRef<Set<string>>(new Set());
@@ -1085,6 +1096,7 @@ export default function Page() {
       try {
         const savedOrders = await fetchTableOrdersFromSupabase(
           state.profile.businessId,
+          state.profile.authUserId,
           publicCustomerMode ? activeTable : null,
           state.profile.username
         );
@@ -1856,6 +1868,7 @@ export default function Page() {
       return;
     }
 
+    setOrderSendError("");
     setOrderReviewOpen(true);
   }
 
@@ -1870,57 +1883,58 @@ export default function Page() {
       return;
     }
 
-    setOrderSendBusy(true);
+    if (!state.profile.businessId) {
+      const message = "Missing restaurant account on this QR link. Create a fresh QR code from Table QR.";
+      setOrderSendError(message);
+      show(message);
+      return;
+    }
 
-    const localOrders: Order[] = orderCartLines.map((line) => ({
-      id: makeId("order"),
-      table: activeTable,
-      guest: state.currentGuest,
-      itemId: line.item.id,
-      itemName: line.item.name,
-      price: line.item.price,
-      quantity: line.quantity,
-      status: "New",
-      createdAt: new Date().toISOString(),
-    }));
+    if (!state.profile.authUserId) {
+      const message = "Missing restaurant owner id. Refresh the QR page and try again.";
+      setOrderSendError(message);
+      show(message);
+      return;
+    }
+
+    setOrderSendBusy(true);
+    setOrderSendError("");
 
     try {
-      const savedOrders = state.profile.businessId
-        ? await sendCartOrderToSupabase(
-            state.profile.businessId,
-            activeTable,
-            state.currentGuest,
-            orderCartLines,
-            state.profile.username
-          )
-        : localOrders;
+      const savedOrders = await sendCartOrderToSupabase(
+        state.profile.businessId,
+        state.profile.authUserId,
+        activeTable,
+        state.currentGuest,
+        orderCartLines,
+        state.profile.username
+      );
 
-      updateState((current) => {
-        const existingIds = new Set(current.orders.map((order) => order.id));
-        const nextOrders = savedOrders.filter((order) => !existingIds.has(order.id));
+      if (!savedOrders.length) {
+        throw new Error("Kitchen API returned zero orders");
+      }
 
-        return {
-          ...current,
-          orders: [...nextOrders, ...current.orders],
-        };
-      });
+      const latestOrders = await fetchTableOrdersFromSupabase(
+        state.profile.businessId,
+        state.profile.authUserId,
+        publicCustomerMode ? activeTable : null,
+        state.profile.username
+      );
+
+      updateState((current) => ({
+        ...current,
+        orders: latestOrders.length ? latestOrders : [...savedOrders, ...current.orders],
+      }));
 
       setOrderCart({});
       setOrderReviewOpen(false);
       setPhoneTab("bill");
       show("Order sent to kitchen");
     } catch (error) {
+      const message = `Kitchen communication failed: ${getErrorMessage(error)}`;
       console.error("Order send failed", error);
-
-      updateState((current) => ({
-        ...current,
-        orders: [...localOrders, ...current.orders],
-      }));
-
-      setOrderCart({});
-      setOrderReviewOpen(false);
-      setPhoneTab("bill");
-      show("Order saved on this screen");
+      setOrderSendError(message);
+      show(message);
     } finally {
       setOrderSendBusy(false);
     }
@@ -1936,6 +1950,7 @@ export default function Page() {
       try {
         const savedOrder = await updateTableOrderStatusInSupabase(
           state.profile.businessId,
+          state.profile.authUserId,
           orderId,
           status,
           state.profile.username
@@ -2889,6 +2904,12 @@ export default function Page() {
                                 <strong>Pay at restaurant</strong>
                               </div>
                               <p>When you tap looks good, this order goes straight to the kitchen screen.</p>
+
+                              {orderSendError ? (
+                                <div className="order-send-error">
+                                  {orderSendError}
+                                </div>
+                              ) : null}
 
                               <button className="review-confirm-button" type="button" onClick={confirmOrderToKitchen} disabled={orderSendBusy || !orderCartLines.length}>
                                 {orderSendBusy ? "Sending..." : "Looks good - send to kitchen"}

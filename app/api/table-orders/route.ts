@@ -2,6 +2,7 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 type BusinessRow = {
@@ -19,17 +20,27 @@ type OrderItemPayload = {
 
 const allowedStatuses = new Set(["New", "Preparing", "Ready", "Served"]);
 
-function adminClient() {
-  if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error("Missing Supabase server environment keys");
+function serverClient() {
+  if (!supabaseUrl) {
+    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
   }
 
-  return createClient(supabaseUrl, serviceRoleKey, {
+  const key = serviceRoleKey || anonKey;
+
+  if (!key) {
+    throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  }
+
+  return createClient(supabaseUrl, key, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
     },
   });
+}
+
+function usingServiceRole() {
+  return Boolean(serviceRoleKey);
 }
 
 function isUuid(value: string) {
@@ -61,13 +72,39 @@ function cleanQuantity(value: unknown) {
   return Math.max(1, Math.min(99, Number.isFinite(quantity) ? Math.floor(quantity) : 1));
 }
 
-async function findBusiness(admin: SupabaseClient, businessId: string, username = "") {
-  let query = admin
+function jsonError(message: string, status = 500) {
+  return NextResponse.json(
+    {
+      error: message,
+      mode: usingServiceRole() ? "service_role" : "anon_fallback",
+    },
+    { status }
+  );
+}
+
+async function findBusiness(
+  db: SupabaseClient,
+  businessId: string,
+  username = "",
+  fallbackAuthUserId = ""
+) {
+  if (businessId && !isUuid(businessId)) {
+    throw new Error("Invalid business account id");
+  }
+
+  if (!usingServiceRole() && businessId && fallbackAuthUserId) {
+    return {
+      id: businessId,
+      auth_user_id: fallbackAuthUserId,
+      username: username || null,
+    } as BusinessRow;
+  }
+
+  let query = db
     .from("business_accounts")
     .select("id, auth_user_id, username");
 
   if (businessId) {
-    if (!isUuid(businessId)) throw new Error("Invalid business account");
     query = query.eq("id", businessId);
   } else if (username) {
     query = query.eq("username", username.toLowerCase());
@@ -83,8 +120,8 @@ async function findBusiness(admin: SupabaseClient, businessId: string, username 
   return data as BusinessRow;
 }
 
-async function fetchOrders(admin: SupabaseClient, businessId: string, tableNumber?: number | null) {
-  let query = admin
+async function fetchOrders(db: SupabaseClient, businessId: string, tableNumber?: number | null) {
+  let query = db
     .from("table_orders")
     .select("id, business_account_id, auth_user_id, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, status, created_at")
     .eq("business_account_id", businessId)
@@ -103,17 +140,24 @@ async function fetchOrders(admin: SupabaseClient, businessId: string, tableNumbe
 
 export async function GET(request: NextRequest) {
   try {
-    const admin = adminClient();
+    const db = serverClient();
     const businessId = cleanText(request.nextUrl.searchParams.get("businessId"));
     const username = cleanText(request.nextUrl.searchParams.get("username"));
+    const authUserId = cleanText(request.nextUrl.searchParams.get("authUserId"));
     const wantsAll = request.nextUrl.searchParams.get("all") === "1";
     const tableNumber = wantsAll ? null : cleanTable(request.nextUrl.searchParams.get("table"));
 
-    const business = await findBusiness(admin, businessId, username);
-    const orders = await fetchOrders(admin, business.id, tableNumber);
+    if (!businessId && !username) {
+      return jsonError("Missing business account for kitchen order lookup", 400);
+    }
+
+    const business = await findBusiness(db, businessId, username, authUserId);
+    const orders = await fetchOrders(db, business.id, tableNumber);
 
     return NextResponse.json(
       {
+        ok: true,
+        mode: usingServiceRole() ? "service_role" : "anon_fallback",
         orders,
         table: tableNumber,
       },
@@ -124,33 +168,39 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not load orders" },
-      { status: 500 }
-    );
+    return jsonError(error instanceof Error ? error.message : "Could not load orders");
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const admin = adminClient();
+    const db = serverClient();
     const body = await request.json();
 
     const businessId = cleanText(body.businessId);
+    const authUserId = cleanText(body.authUserId);
     const username = cleanText(body.username);
     const tableNumber = cleanTable(body.table);
     const guestName = cleanGuestName(body.guestName);
     const items = Array.isArray(body.items) ? (body.items as OrderItemPayload[]) : [];
 
+    if (!businessId || !isUuid(businessId)) {
+      return jsonError("Missing or invalid businessId. Create a fresh QR code.", 400);
+    }
+
     if (!guestName) {
-      return NextResponse.json({ error: "Guest name is required" }, { status: 400 });
+      return jsonError("Guest name is required", 400);
     }
 
     if (!items.length) {
-      return NextResponse.json({ error: "At least one item is required" }, { status: 400 });
+      return jsonError("At least one item is required", 400);
     }
 
-    const business = await findBusiness(admin, businessId, username);
+    const business = await findBusiness(db, businessId, username, authUserId);
+
+    if (!business.auth_user_id) {
+      return jsonError("Missing auth_user_id for restaurant. Refresh the QR page.", 400);
+    }
 
     const rows = items
       .map((item) => {
@@ -177,18 +227,22 @@ export async function POST(request: NextRequest) {
       .filter(Boolean);
 
     if (!rows.length) {
-      return NextResponse.json({ error: "No valid items to send" }, { status: 400 });
+      return jsonError("No valid items to send", 400);
     }
 
-    const { data: orders, error } = await admin
+    const { data: orders, error } = await db
       .from("table_orders")
       .insert(rows)
       .select("id, business_account_id, auth_user_id, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, status, created_at");
 
-    if (error) throw error;
+    if (error) {
+      return jsonError(`Supabase insert failed: ${error.message}`, 500);
+    }
 
     return NextResponse.json(
       {
+        ok: true,
+        mode: usingServiceRole() ? "service_role" : "anon_fallback",
         orders: orders || [],
         table: tableNumber,
       },
@@ -199,34 +253,36 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not send order" },
-      { status: 500 }
-    );
+    return jsonError(error instanceof Error ? error.message : "Could not send order");
   }
 }
 
 export async function PATCH(request: NextRequest) {
   try {
-    const admin = adminClient();
+    const db = serverClient();
     const body = await request.json();
 
     const businessId = cleanText(body.businessId);
+    const authUserId = cleanText(body.authUserId);
     const username = cleanText(body.username);
     const orderId = cleanText(body.orderId);
     const status = cleanText(body.status, "New");
 
+    if (!businessId || !isUuid(businessId)) {
+      return jsonError("Missing or invalid businessId", 400);
+    }
+
     if (!orderId || !isUuid(orderId)) {
-      return NextResponse.json({ error: "Invalid order" }, { status: 400 });
+      return jsonError("Invalid order", 400);
     }
 
     if (!allowedStatuses.has(status)) {
-      return NextResponse.json({ error: "Invalid order status" }, { status: 400 });
+      return jsonError("Invalid order status", 400);
     }
 
-    const business = await findBusiness(admin, businessId, username);
+    const business = await findBusiness(db, businessId, username, authUserId);
 
-    const { data: order, error } = await admin
+    const { data: order, error } = await db
       .from("table_orders")
       .update({
         status,
@@ -237,10 +293,16 @@ export async function PATCH(request: NextRequest) {
       .select("id, business_account_id, auth_user_id, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, status, created_at")
       .single();
 
-    if (error) throw error;
+    if (error) {
+      return jsonError(`Supabase update failed: ${error.message}`, 500);
+    }
 
     return NextResponse.json(
-      { order },
+      {
+        ok: true,
+        mode: usingServiceRole() ? "service_role" : "anon_fallback",
+        order,
+      },
       {
         headers: {
           "Cache-Control": "no-store, max-age=0",
@@ -248,9 +310,6 @@ export async function PATCH(request: NextRequest) {
       }
     );
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not update order" },
-      { status: 500 }
-    );
+    return jsonError(error instanceof Error ? error.message : "Could not update order");
   }
 }
