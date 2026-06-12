@@ -10,6 +10,8 @@ import { createClient } from "@supabase/supabase-js";
 import { ChangeEvent, FormEvent, ReactNode, useEffect, useMemo, useState } from "react";
 
 type Profile = {
+  businessId: string;
+  authUserId: string;
   restaurantName: string;
   branchName: string;
   businessType: string;
@@ -48,6 +50,22 @@ type MenuItem = {
   available: boolean;
   imageThumbUrl?: string;
   imageFullUrl?: string;
+};
+
+type MenuRow = {
+  id: string;
+  business_account_id: string;
+  auth_user_id: string;
+  item_name: string;
+  item_name_ar: string | null;
+  description: string | null;
+  price_jod: number | string;
+  short_code: string | null;
+  available: boolean | null;
+  image_thumb_url: string | null;
+  image_full_url: string | null;
+  sort_order: number | null;
+  created_at: string | null;
 };
 
 type MenuDraft = {
@@ -114,6 +132,8 @@ const emptyMenuDraft: MenuDraft = {
 const defaultState: AppState = {
   profileComplete: false,
   profile: {
+    businessId: "",
+    authUserId: "",
     restaurantName: "",
     branchName: "",
     businessType: "Cafe",
@@ -257,6 +277,113 @@ function menuIconFromName(name: string) {
   return clean.slice(0, 2).toUpperCase() || "IT";
 }
 
+function rowToMenuItem(row: MenuRow): MenuItem {
+  return {
+    id: row.id,
+    name: row.item_name || "Menu item",
+    nameAr: row.item_name_ar || "",
+    desc: row.description || "Menu item",
+    price: Number(row.price_jod || 0),
+    icon: (row.short_code || menuIconFromName(row.item_name || "Menu item")).slice(0, 3).toUpperCase(),
+    available: row.available !== false,
+    imageThumbUrl: row.image_thumb_url || "",
+    imageFullUrl: row.image_full_url || "",
+  };
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) return error.message;
+
+  if (typeof error === "object" && error && "message" in error) {
+    const maybeMessage = (error as { message?: unknown }).message;
+    if (maybeMessage) return String(maybeMessage);
+  }
+
+  return "Something went wrong";
+}
+
+function formatMenuDbError(error: unknown) {
+  const message = getErrorMessage(error);
+
+  if (message.toLowerCase().includes("menu_items") || message.toLowerCase().includes("schema cache")) {
+    return "Menu table missing. Run the Tawleh menu_items SQL in Supabase first.";
+  }
+
+  return message;
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+async function fetchMenuItemsFromSupabase(businessId: string) {
+  if (!supabase) throw new Error("Missing Supabase client");
+
+  const { data, error } = await supabase
+    .from("menu_items")
+    .select("*")
+    .eq("business_account_id", businessId)
+    .order("sort_order", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+
+  const rows = (data || []) as MenuRow[];
+  return rows.map((row) => rowToMenuItem(row));
+}
+
+async function insertMenuItemIntoSupabase(businessId: string, item: MenuItem) {
+  if (!supabase) throw new Error("Missing Supabase client");
+
+  const { data, error } = await supabase
+    .from("menu_items")
+    .insert({
+      business_account_id: businessId,
+      item_name: item.name,
+      item_name_ar: item.nameAr,
+      description: item.desc,
+      price_jod: item.price,
+      short_code: item.icon,
+      available: item.available,
+      image_thumb_url: item.imageThumbUrl || null,
+      image_full_url: item.imageFullUrl || null,
+      sort_order: Date.now(),
+    })
+    .select("*")
+    .single();
+
+  if (error) throw error;
+
+  return rowToMenuItem(data as MenuRow);
+}
+
+async function updateMenuItemAvailabilityInSupabase(businessId: string, itemId: string, available: boolean) {
+  if (!supabase) throw new Error("Missing Supabase client");
+
+  const { error } = await supabase
+    .from("menu_items")
+    .update({
+      available,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", itemId)
+    .eq("business_account_id", businessId);
+
+  if (error) throw error;
+}
+
+async function deleteMenuItemFromSupabase(businessId: string, itemId: string) {
+  if (!supabase) throw new Error("Missing Supabase client");
+
+  const { error } = await supabase
+    .from("menu_items")
+    .delete()
+    .eq("id", itemId)
+    .eq("business_account_id", businessId);
+
+  if (error) throw error;
+}
+
 export default function Page() {
   const [state, setState] = useState<AppState>(defaultState);
   const [loaded, setLoaded] = useState(false);
@@ -274,6 +401,7 @@ export default function Page() {
   const [qrInput, setQrInput] = useState(String(DEMO_TABLE));
   const [menuDraft, setMenuDraft] = useState<MenuDraft>(emptyMenuDraft);
   const [imageBusy, setImageBusy] = useState(false);
+  const [menuBusy, setMenuBusy] = useState(false);
   const [selectedMenuImage, setSelectedMenuImage] = useState<MenuItem | null>(null);
   const [toast, setToast] = useState("");
 
@@ -284,6 +412,10 @@ export default function Page() {
     setQrInput(String(loadedState.lastQrTable || DEMO_TABLE));
     document.documentElement.style.setProperty("--brand", loadedState.profile.brandColor || "#c8613f");
     setLoaded(true);
+
+    if (loadedState.profileComplete) {
+      void restoreSessionAndLoadMenu(loadedState);
+    }
   }, []);
 
   useEffect(() => {
@@ -346,6 +478,65 @@ export default function Page() {
 
   function show(message: string) {
     setToast(message);
+  }
+
+  async function restoreSessionAndLoadMenu(loadedState: AppState) {
+    if (!supabase || !loadedState.profile.businessId) return;
+
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) return;
+
+      const savedMenu = await fetchMenuItemsFromSupabase(loadedState.profile.businessId);
+
+      if (savedMenu.length > 0) {
+        updateState((current) => ({
+          ...current,
+          menu: savedMenu,
+        }));
+        return;
+      }
+
+      const localOnlyItems = loadedState.menu.filter((item) => !isUuid(item.id));
+
+      if (localOnlyItems.length > 0) {
+        const syncedItems: MenuItem[] = [];
+
+        for (const item of localOnlyItems) {
+          const savedItem = await insertMenuItemIntoSupabase(loadedState.profile.businessId, item);
+          syncedItems.push(savedItem);
+        }
+
+        updateState((current) => ({
+          ...current,
+          menu: syncedItems,
+        }));
+      }
+    } catch (error) {
+      console.error("Menu restore failed", error);
+    }
+  }
+
+  async function refreshMenuFromSupabase() {
+    if (!state.profile.businessId) {
+      show("Login first, then refresh menu");
+      return;
+    }
+
+    setMenuBusy(true);
+
+    try {
+      const savedMenu = await fetchMenuItemsFromSupabase(state.profile.businessId);
+      updateState((current) => ({
+        ...current,
+        menu: savedMenu,
+      }));
+      show("Menu loaded from Supabase");
+    } catch (error) {
+      show(formatMenuDbError(error));
+    } finally {
+      setMenuBusy(false);
+    }
   }
 
   function buildQrUrl(tableNumber: number, token: string) {
@@ -486,8 +677,17 @@ export default function Page() {
         return;
       }
 
+      if (result.business?.email && supabase) {
+        await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password: signupPassword,
+        });
+      }
+
       const nextProfile: Profile = {
         ...signupProfile,
+        businessId: result.business?.id || "",
+        authUserId: result.business?.auth_user_id || "",
         restaurantName: cleanName,
         branchName: cleanBranch,
         businessEmail: cleanEmail,
@@ -568,7 +768,11 @@ export default function Page() {
         return;
       }
 
+      const savedMenu = business.id ? await fetchMenuItemsFromSupabase(business.id) : [];
+
       const nextProfile: Profile = {
+        businessId: business.id || "",
+        authUserId: business.auth_user_id || "",
         restaurantName: business.restaurant_name || "Restaurant",
         branchName: business.branch_name || "Main Branch",
         businessType: business.business_type || "Cafe",
@@ -589,10 +793,11 @@ export default function Page() {
         ...current,
         profileComplete: true,
         profile: nextProfile,
+        menu: savedMenu,
       }));
 
       setManagerTab("kitchen");
-      show("Logged in with username");
+      show(savedMenu.length ? "Logged in and menu loaded" : "Logged in with username");
     } catch {
       show("Login failed. Check Supabase setup.");
     } finally {
@@ -717,12 +922,31 @@ export default function Page() {
     show("Request resolved");
   }
 
-  function toggleItem(itemId: string) {
+  async function toggleItem(itemId: string) {
+    const item = state.menu.find((menuItem) => menuItem.id === itemId);
+    if (!item) return;
+
+    const nextAvailable = !item.available;
+
+    if (state.profile.businessId && isUuid(itemId)) {
+      setMenuBusy(true);
+
+      try {
+        await updateMenuItemAvailabilityInSupabase(state.profile.businessId, itemId, nextAvailable);
+      } catch (error) {
+        show(formatMenuDbError(error));
+        setMenuBusy(false);
+        return;
+      }
+
+      setMenuBusy(false);
+    }
+
     updateState((current) => ({
       ...current,
-      menu: current.menu.map((item) => (item.id === itemId ? { ...item, available: !item.available } : item)),
+      menu: current.menu.map((menuItem) => (menuItem.id === itemId ? { ...menuItem, available: nextAvailable } : menuItem)),
     }));
-    show("Menu availability updated");
+    show("Menu availability saved");
   }
 
   async function handleMenuImageUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -752,7 +976,7 @@ export default function Page() {
     }
   }
 
-  function addMenuItemFromBuilder() {
+  async function addMenuItemFromBuilder() {
     const cleanName = menuDraft.name.trim();
     const cleanNameAr = menuDraft.nameAr.trim();
     const cleanDesc = menuDraft.desc.trim();
@@ -773,6 +997,11 @@ export default function Page() {
       return;
     }
 
+    if (!state.profile.businessId) {
+      show("Login again before adding menu items");
+      return;
+    }
+
     const icon = (menuDraft.icon.trim() || menuIconFromName(cleanName)).slice(0, 3).toUpperCase();
 
     const nextItem: MenuItem = {
@@ -787,28 +1016,52 @@ export default function Page() {
       imageFullUrl: menuDraft.imageFullUrl,
     };
 
-    updateState((current) => ({
-      ...current,
-      menu: [nextItem, ...current.menu],
-    }));
+    setMenuBusy(true);
 
-    setMenuDraft(emptyMenuDraft);
-    show(`${cleanName} added to menu`);
+    try {
+      const savedItem = await insertMenuItemIntoSupabase(state.profile.businessId, nextItem);
+
+      updateState((current) => ({
+        ...current,
+        menu: [savedItem, ...current.menu.filter((item) => item.id !== savedItem.id)],
+      }));
+
+      setMenuDraft(emptyMenuDraft);
+      show(`${cleanName} saved to menu`);
+    } catch (error) {
+      show(formatMenuDbError(error));
+    } finally {
+      setMenuBusy(false);
+    }
   }
 
-  function removeMenuItem(itemId: string) {
+  async function removeMenuItem(itemId: string) {
     const item = state.menu.find((menuItem) => menuItem.id === itemId);
     if (!item) return;
 
     const ok = window.confirm(`Remove ${item.name} from the menu?`);
     if (!ok) return;
 
+    if (state.profile.businessId && isUuid(itemId)) {
+      setMenuBusy(true);
+
+      try {
+        await deleteMenuItemFromSupabase(state.profile.businessId, itemId);
+      } catch (error) {
+        show(formatMenuDbError(error));
+        setMenuBusy(false);
+        return;
+      }
+
+      setMenuBusy(false);
+    }
+
     updateState((current) => ({
       ...current,
       menu: current.menu.filter((menuItem) => menuItem.id !== itemId),
     }));
 
-    show(`${item.name} removed`);
+    show(`${item.name} removed from saved menu`);
   }
 
   function closeTable() {
@@ -1470,7 +1723,8 @@ export default function Page() {
                 {managerTab === "menu" && (
                   <div className="manager-card">
                     <h3>Menu Manager</h3>
-                    <p className="sub">Turn items on/off instantly. Unavailable items cannot be ordered by customers.</p>
+                    <p className="sub">Turn items on/off instantly. Changes are saved to this restaurant account.</p>
+                    {menuBusy ? <p className="sub">Saving menu...</p> : null}
                     <div className="menu-edit-list">
                       {state.menu.map((item) => (
                         <div className="menu-edit-row with-photo" key={item.id}>
@@ -1490,7 +1744,7 @@ export default function Page() {
 
                           <strong>{money(item.price)}</strong>
 
-                          <button className={`btn small ${item.available ? "success" : "danger"}`} onClick={() => toggleItem(item.id)}>
+                          <button className={`btn small ${item.available ? "success" : "danger"}`} onClick={() => toggleItem(item.id)} disabled={menuBusy}>
                             {item.available ? "Available" : "Unavailable"}
                           </button>
                         </div>
@@ -1503,7 +1757,8 @@ export default function Page() {
                   <div className="two-col">
                     <div className="manager-card">
                       <h3>Menu Builder</h3>
-                      <p className="sub">Add menu items with a photo. Tawleh compresses a fast thumbnail and keeps a bigger preview image.</p>
+                      <p className="sub">Add menu items with a photo. Items save to Supabase and stay after refresh/login.</p>
+                      {menuBusy ? <p className="sub">Saving menu...</p> : null}
 
                       <div className="menu-builder-form">
                         <div className="menu-builder-row">
@@ -1593,7 +1848,7 @@ export default function Page() {
                         </Field>
 
                         <div className="row-actions">
-                          <button className="btn" type="button" onClick={addMenuItemFromBuilder} disabled={imageBusy}>
+                          <button className="btn" type="button" onClick={addMenuItemFromBuilder} disabled={imageBusy || menuBusy}>
                             Add item
                           </button>
                           <button className="btn ghost" type="button" onClick={() => setMenuDraft(emptyMenuDraft)}>
@@ -1606,6 +1861,9 @@ export default function Page() {
                     <div className="manager-card">
                       <h3>Current Menu Items</h3>
                       <p className="sub">Click a photo to open the larger compressed preview.</p>
+                      <button className="btn ghost small" type="button" onClick={refreshMenuFromSupabase} disabled={menuBusy}>
+                        Refresh saved menu
+                      </button>
 
                       <div className="menu-builder-list">
                         {state.menu.map((item) => (
@@ -1626,10 +1884,10 @@ export default function Page() {
                             </div>
 
                             <div className="menu-builder-actions">
-                              <button className={`btn small ${item.available ? "success" : "danger"}`} type="button" onClick={() => toggleItem(item.id)}>
+                              <button className={`btn small ${item.available ? "success" : "danger"}`} type="button" onClick={() => toggleItem(item.id)} disabled={menuBusy}>
                                 {item.available ? "On" : "Off"}
                               </button>
-                              <button className="btn small danger" type="button" onClick={() => removeMenuItem(item.id)}>
+                              <button className="btn small danger" type="button" onClick={() => removeMenuItem(item.id)} disabled={menuBusy}>
                                 Remove
                               </button>
                             </div>
