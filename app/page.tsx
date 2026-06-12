@@ -940,7 +940,7 @@ export default function Page() {
   const selectedQrTable = Math.max(1, Math.min(999, Number(state.lastQrTable || DEMO_TABLE)));
   const selectedQrToken = state.qrTokens[String(selectedQrTable)] || "preview-token-create-qr-first";
   const selectedQrUrl = buildQrUrl(selectedQrTable, selectedQrToken);
-  const selectedQrImage = `https://api.qrserver.com/v1/create-qr-code/?size=460x460&margin=16&data=${encodeURIComponent(selectedQrUrl)}`;
+  const selectedQrImage = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&margin=18&ecc=H&data=${encodeURIComponent(selectedQrUrl)}`;
 
   const ordersByGuest = activeOrders.reduce<Record<string, Order[]>>((acc, order) => {
     acc[order.guest] = acc[order.guest] || [];
@@ -2866,8 +2866,15 @@ export default function Page() {
                       </div>
 
                       <div className="qr-result-card">
-                        <div className="real-qr-wrap">
-                          <img src={selectedQrImage} alt={`QR code for table ${selectedQrTable}`} />
+                        <div className="real-qr-wrap prestigious-qr">
+                          <img className="qr-base-image" src={selectedQrImage} alt={`QR code for table ${selectedQrTable}`} />
+                          <div className="qr-logo-mark" aria-hidden="true">
+                            {state.profile.logoDataUrl ? (
+                              <img src={state.profile.logoDataUrl} alt="" />
+                            ) : (
+                              <span>{logoFallback}</span>
+                            )}
+                          </div>
                         </div>
 
                         <div className="bill-list">
@@ -2951,7 +2958,16 @@ export default function Page() {
               <h1>{businessName}</h1>
               <p>{branchName}</p>
               <div className="print-table">Table {selectedQrTable}</div>
-              <img className="print-qr" src={selectedQrImage} alt={`Printable QR for table ${selectedQrTable}`} />
+              <div className="print-qr-wrap prestigious-qr">
+                <img className="print-qr qr-base-image" src={selectedQrImage} alt={`Printable QR for table ${selectedQrTable}`} />
+                <div className="qr-logo-mark print-qr-logo-mark" aria-hidden="true">
+                  {state.profile.logoDataUrl ? (
+                    <img src={state.profile.logoDataUrl} alt="" />
+                  ) : (
+                    <span>{logoFallback}</span>
+                  )}
+                </div>
+              </div>
               <h2>Scan to order</h2>
               <p>Have a seat, enter your name, and order from this table.</p>
             </div>

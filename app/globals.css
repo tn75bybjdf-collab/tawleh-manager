@@ -1302,7 +1302,7 @@ img {
   box-shadow: 0 14px 34px rgba(30, 36, 48, 0.1);
 }
 
-.real-qr-wrap img {
+.real-qr-wrap > .qr-base-image {
   width: 100%;
   height: auto;
   border-radius: 10px;
@@ -2395,4 +2395,82 @@ img {
   .current-menu-actions {
     justify-content: flex-end;
   }
+}
+
+
+/* Prestigious QR logo overlay */
+.prestigious-qr {
+  position: relative;
+}
+
+.real-qr-wrap .qr-base-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+.qr-logo-mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 25%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 22%;
+  background: #ffffff;
+  border: 8px solid #ffffff;
+  box-shadow:
+    0 12px 28px rgba(30, 36, 48, 0.18),
+    0 0 0 1px rgba(118, 83, 66, 0.12);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.qr-logo-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border-radius: 16%;
+}
+
+.qr-logo-mark span {
+  width: 100%;
+  height: 100%;
+  border-radius: 16%;
+  background: #f1dfca;
+  color: var(--brand);
+  display: grid;
+  place-items: center;
+  font-size: clamp(14px, 2vw, 26px);
+  font-weight: 950;
+  letter-spacing: -0.06em;
+}
+
+.print-qr-wrap {
+  position: relative;
+  width: 280px;
+  height: 280px;
+  margin: 0 auto;
+  background: #ffffff;
+  border: 10px solid #ffffff;
+}
+
+.print-qr-wrap .print-qr {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  display: block;
+}
+
+.print-qr-logo-mark {
+  width: 24%;
+  border-width: 7px;
+  box-shadow:
+    0 9px 20px rgba(30, 36, 48, 0.16),
+    0 0 0 1px rgba(118, 83, 66, 0.12);
 }
