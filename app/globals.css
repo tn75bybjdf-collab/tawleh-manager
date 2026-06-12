@@ -2225,3 +2225,23 @@ img {
 .menu-item.unavailable .btn {
   cursor: not-allowed;
 }
+
+
+/* Manager dashboard: remove the left-side customer preview panel */
+.app-shell:not(.customer-only-shell) .grid {
+  grid-template-columns: 1fr;
+}
+
+.app-shell:not(.customer-only-shell) .customer-panel {
+  display: none;
+}
+
+.app-shell:not(.customer-only-shell) .dashboard-panel,
+.app-shell:not(.customer-only-shell) .manager-panel {
+  width: 100%;
+}
+
+.app-shell:not(.customer-only-shell) .main-panel,
+.app-shell:not(.customer-only-shell) .dashboard-content {
+  max-width: none;
+}
