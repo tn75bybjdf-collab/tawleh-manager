@@ -80,6 +80,8 @@ type MenuRow = {
   available_to: string | null;
   image_thumb_url: string | null;
   image_full_url: string | null;
+  image_url?: string | null;
+  image_path?: string | null;
   sort_order: number | null;
   created_at: string | null;
 };
@@ -264,6 +266,65 @@ function initials(name: string) {
   return parts.map((part) => part[0] || "").join("").toUpperCase() || "T";
 }
 
+
+function cleanPersistedImageUrl(value: unknown) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+
+  // Never keep base64 images in localStorage. They crash the browser fast.
+  if (text.startsWith("data:image/")) return "";
+
+  return text;
+}
+
+function cleanMenuItemForStorage(item: MenuItem): MenuItem {
+  return {
+    ...item,
+    imageThumbUrl: cleanPersistedImageUrl(item.imageThumbUrl),
+    imageFullUrl: cleanPersistedImageUrl(item.imageFullUrl),
+  };
+}
+
+function sanitizeStateForLocalStorage(nextState: AppState): AppState {
+  return {
+    ...nextState,
+    profile: {
+      ...nextState.profile,
+      // Logo upload will move to Supabase later too. For now, don't let a base64 logo crash the site.
+      logoDataUrl: cleanPersistedImageUrl(nextState.profile.logoDataUrl),
+    },
+    menu: nextState.menu.map(cleanMenuItemForStorage),
+  };
+}
+
+function safeSaveStateToLocalStorage(nextState: AppState) {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sanitizeStateForLocalStorage(nextState)));
+  } catch (error) {
+    console.warn("Tawleh localStorage save skipped to prevent browser crash", error);
+
+    try {
+      const fallbackState: AppState = {
+        ...defaultState,
+        profileComplete: nextState.profileComplete,
+        profile: {
+          ...nextState.profile,
+          logoDataUrl: "",
+        },
+        categories: nextState.categories,
+        qrTokens: nextState.qrTokens,
+        lastQrTable: nextState.lastQrTable,
+      };
+
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(fallbackState));
+    } catch {
+      window.localStorage.removeItem(STORAGE_KEY);
+    }
+  }
+}
+
 function safeLoadState(): AppState {
   if (typeof window === "undefined") return defaultState;
 
@@ -283,6 +344,8 @@ function safeLoadState(): AppState {
         availableAllDay: item.availableAllDay !== false,
         availableFrom: item.availableFrom || "09:00",
         availableTo: item.availableTo || "23:00",
+        imageThumbUrl: cleanPersistedImageUrl(item.imageThumbUrl),
+        imageFullUrl: cleanPersistedImageUrl(item.imageFullUrl),
       })) : starterMenu,
       categories: parsed.categories || [],
       orders: (parsed.orders || []).map((order) => ({
@@ -350,6 +413,50 @@ async function compressMenuImage(file: File) {
   return { imageThumbUrl, imageFullUrl };
 }
 
+
+function dataUrlToBlob(dataUrl: string) {
+  const [meta, base64 = ""] = dataUrl.split(",");
+  const mime = meta.match(/^data:(.*?);base64$/)?.[1] || "image/jpeg";
+  const binary = window.atob(base64);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return new Blob([bytes], { type: mime });
+}
+
+async function uploadMenuItemImagesToStorage(
+  businessId: string,
+  username: string,
+  itemName: string,
+  imageData: { imageThumbUrl: string; imageFullUrl: string }
+) {
+  const headers = await getManagerAuthHeaders();
+  delete headers["Content-Type"];
+
+  const formData = new FormData();
+  formData.append("businessId", businessId);
+  formData.append("username", username);
+  formData.append("itemName", itemName || "menu-item");
+  formData.append("thumb", dataUrlToBlob(imageData.imageThumbUrl), "thumb.jpg");
+  formData.append("full", dataUrlToBlob(imageData.imageFullUrl), "full.jpg");
+
+  const response = await fetch("/api/menu-item-image", {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  const result = await readApiJson(response);
+
+  return {
+    imageThumbUrl: cleanPersistedImageUrl(result.imageThumbUrl),
+    imageFullUrl: cleanPersistedImageUrl(result.imageFullUrl),
+  };
+}
+
 function menuIconFromName(name: string) {
   const clean = name.trim().replace(/[^a-zA-Z0-9 ]/g, "");
   const parts = clean.split(/\s+/).filter(Boolean);
@@ -375,8 +482,8 @@ function rowToMenuItem(row: MenuRow): MenuItem {
     availableAllDay: row.available_all_day !== false,
     availableFrom: row.available_from || "09:00",
     availableTo: row.available_to || "23:00",
-    imageThumbUrl: row.image_thumb_url || "",
-    imageFullUrl: row.image_full_url || "",
+    imageThumbUrl: cleanPersistedImageUrl(row.image_thumb_url || row.image_url || ""),
+    imageFullUrl: cleanPersistedImageUrl(row.image_full_url || row.image_url || ""),
   };
 }
 
@@ -1089,7 +1196,7 @@ export default function Page() {
 
   useEffect(() => {
     if (!loaded || publicTableMode) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    safeSaveStateToLocalStorage(state);
     document.documentElement.style.setProperty("--brand", state.profile.brandColor || "#c8613f");
   }, [state, loaded, publicTableMode]);
 
@@ -2181,18 +2288,43 @@ export default function Page() {
       return;
     }
 
+    let managerProfile = state.profile;
+
+    if (!managerProfile.businessId) {
+      try {
+        managerProfile = await ensureManagerBusinessProfile();
+      } catch {
+        show("Login again, then upload item images");
+        event.target.value = "";
+        return;
+      }
+    }
+
+    if (!managerProfile.businessId) {
+      show("Login again, then upload item images");
+      event.target.value = "";
+      return;
+    }
+
     setImageBusy(true);
 
     try {
       const imageData = await compressMenuImage(file);
+      const uploadedImage = await uploadMenuItemImagesToStorage(
+        managerProfile.businessId,
+        managerProfile.username,
+        menuDraft.name.trim() || file.name || "menu-item",
+        imageData
+      );
+
       setMenuDraft((current) => ({
         ...current,
-        imageThumbUrl: imageData.imageThumbUrl,
-        imageFullUrl: imageData.imageFullUrl,
+        imageThumbUrl: uploadedImage.imageThumbUrl,
+        imageFullUrl: uploadedImage.imageFullUrl,
       }));
-      show("Image compressed into thumbnail and preview");
-    } catch {
-      show("Image upload failed");
+      show("Image uploaded to Supabase Storage");
+    } catch (error) {
+      show(error instanceof Error ? error.message : "Image upload failed");
     } finally {
       setImageBusy(false);
       event.target.value = "";
@@ -3544,7 +3676,7 @@ export default function Page() {
                               <div className="helper">
                                 {imageBusy
                                   ? "Compressing image..."
-                                  : "Uploads create a small thumbnail for the menu and a bigger image for preview."}
+                                  : "Uploads save to Supabase Storage. The menu keeps only image URLs, not heavy browser data."}
                               </div>
                             </div>
                           </div>
