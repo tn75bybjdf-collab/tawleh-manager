@@ -40,6 +40,12 @@ type SavedBusinessAccount = {
   createdAt: string;
 };
 
+type MenuCategory = {
+  id: string;
+  name: string;
+  nameAr: string;
+};
+
 type MenuItem = {
   id: string;
   name: string;
@@ -48,6 +54,8 @@ type MenuItem = {
   price: number;
   icon: string;
   available: boolean;
+  categoryId: string;
+  categoryName: string;
   imageThumbUrl?: string;
   imageFullUrl?: string;
 };
@@ -56,6 +64,8 @@ type MenuRow = {
   id: string;
   business_account_id: string;
   auth_user_id: string;
+  category_id: string | null;
+  category_name: string | null;
   item_name: string;
   item_name_ar: string | null;
   description: string | null;
@@ -68,12 +78,23 @@ type MenuRow = {
   created_at: string | null;
 };
 
+type CategoryRow = {
+  id: string;
+  business_account_id: string;
+  auth_user_id: string;
+  name: string;
+  name_ar: string | null;
+  sort_order: number | null;
+  created_at: string | null;
+};
+
 type MenuDraft = {
   name: string;
   nameAr: string;
   desc: string;
   price: string;
   icon: string;
+  categoryId: string;
   imageThumbUrl: string;
   imageFullUrl: string;
 };
@@ -104,6 +125,7 @@ type AppState = {
   currentGuest: string;
   guests: string[];
   menu: MenuItem[];
+  categories: MenuCategory[];
   orders: Order[];
   requests: ServiceRequest[];
   qrTokens: Record<string, string>;
@@ -127,6 +149,7 @@ const emptyMenuDraft: MenuDraft = {
   desc: "",
   price: "",
   icon: "",
+  categoryId: "",
   imageThumbUrl: "",
   imageFullUrl: "",
 };
@@ -154,6 +177,7 @@ const defaultState: AppState = {
   currentGuest: "",
   guests: [],
   menu: starterMenu,
+  categories: [],
   orders: [],
   requests: [],
   qrTokens: {},
@@ -206,7 +230,12 @@ function safeLoadState(): AppState {
       ...defaultState,
       ...parsed,
       profile: { ...defaultState.profile, ...(parsed.profile || {}) },
-      menu: parsed.menu?.length ? parsed.menu : starterMenu,
+      menu: parsed.menu?.length ? parsed.menu.map((item) => ({
+        ...item,
+        categoryId: item.categoryId || "",
+        categoryName: item.categoryName || "Uncategorized",
+      })) : starterMenu,
+      categories: parsed.categories || [],
       qrTokens: parsed.qrTokens || {},
     };
   } catch {
@@ -288,8 +317,18 @@ function rowToMenuItem(row: MenuRow): MenuItem {
     price: Number(row.price_jod || 0),
     icon: (row.short_code || menuIconFromName(row.item_name || "Menu item")).slice(0, 3).toUpperCase(),
     available: row.available !== false,
+    categoryId: row.category_id || "",
+    categoryName: row.category_name || "Uncategorized",
     imageThumbUrl: row.image_thumb_url || "",
     imageFullUrl: row.image_full_url || "",
+  };
+}
+
+function rowToMenuCategory(row: CategoryRow): MenuCategory {
+  return {
+    id: row.id,
+    name: row.name || "Category",
+    nameAr: row.name_ar || "",
   };
 }
 
@@ -463,7 +502,7 @@ async function fetchBusinessProfileFromServer(profile: Profile) {
 async function fetchMenuItemsFromSupabase(businessId: string) {
   const headers = await getManagerAuthHeaders();
 
-  const response = await fetch(`/api/menu-items?businessId=${encodeURIComponent(businessId)}`, {
+  const response = await fetch(`/api/menu-items?businessId=${encodeURIComponent(businessId)}&username=${encodeURIComponent(safeLoadState().profile.username || "")}`, {
     method: "GET",
     headers,
     cache: "no-store",
@@ -475,6 +514,38 @@ async function fetchMenuItemsFromSupabase(businessId: string) {
   return rows.map((row) => rowToMenuItem(row));
 }
 
+async function fetchMenuCategoriesFromSupabase(businessId: string) {
+  const headers = await getManagerAuthHeaders();
+
+  const response = await fetch(`/api/menu-categories?businessId=${encodeURIComponent(businessId)}`, {
+    method: "GET",
+    headers,
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  const rows = (result.categories || []) as CategoryRow[];
+
+  return rows.map((row) => rowToMenuCategory(row));
+}
+
+async function insertMenuCategoryIntoSupabase(businessId: string, name: string, nameAr: string) {
+  const headers = await getManagerAuthHeaders();
+
+  const response = await fetch("/api/menu-categories", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      businessId,
+      name,
+      nameAr,
+    }),
+  });
+
+  const result = await readApiJson(response);
+  return rowToMenuCategory(result.category as CategoryRow);
+}
+
 async function insertMenuItemIntoSupabase(businessId: string, item: MenuItem) {
   const headers = await getManagerAuthHeaders();
 
@@ -483,6 +554,7 @@ async function insertMenuItemIntoSupabase(businessId: string, item: MenuItem) {
     headers,
     body: JSON.stringify({
       businessId,
+      username: safeLoadState().profile.username || "",
       item,
     }),
   });
@@ -499,6 +571,7 @@ async function updateMenuItemAvailabilityInSupabase(businessId: string, itemId: 
     headers,
     body: JSON.stringify({
       businessId,
+      username: safeLoadState().profile.username || "",
       itemId,
       available,
     }),
@@ -515,6 +588,7 @@ async function deleteMenuItemFromSupabase(businessId: string, itemId: string) {
     headers,
     body: JSON.stringify({
       businessId,
+      username: safeLoadState().profile.username || "",
       itemId,
     }),
   });
@@ -538,6 +612,8 @@ export default function Page() {
   const [loginPassword, setLoginPassword] = useState("");
   const [qrInput, setQrInput] = useState(String(DEMO_TABLE));
   const [menuDraft, setMenuDraft] = useState<MenuDraft>(emptyMenuDraft);
+  const [categoryDraft, setCategoryDraft] = useState({ name: "", nameAr: "" });
+  const [activeMenuCategory, setActiveMenuCategory] = useState("all");
   const [imageBusy, setImageBusy] = useState(false);
   const [menuBusy, setMenuBusy] = useState(false);
   const [selectedMenuImage, setSelectedMenuImage] = useState<MenuItem | null>(null);
@@ -578,6 +654,7 @@ export default function Page() {
 
           const business = result.business || {};
           const menuRows = (result.menu || []) as MenuRow[];
+          const categoryRows = (result.categories || []) as CategoryRow[];
 
           const nextProfile: Profile = {
             businessId: business.id || businessId,
@@ -605,6 +682,7 @@ export default function Page() {
             profileComplete: true,
             profile: nextProfile,
             menu: menuRows.map((row) => rowToMenuItem(row)),
+            categories: categoryRows.map((row) => rowToMenuCategory(row)),
             qrTokens: token ? { [String(tableNumber)]: token } : {},
             lastQrTable: tableNumber,
           });
@@ -687,6 +765,19 @@ export default function Page() {
       .reduce((sum, order) => sum + order.price, 0);
   }, [state.orders, state.currentGuest]);
 
+  const menuCategoriesWithItems = useMemo(() => {
+    return state.categories.filter((category) =>
+      state.menu.some((item) => item.categoryId === category.id)
+    );
+  }, [state.categories, state.menu]);
+
+  const hasUncategorizedItems = state.menu.some((item) => !item.categoryId);
+  const visibleCustomerMenu = activeMenuCategory === "all"
+    ? state.menu
+    : activeMenuCategory === "uncategorized"
+      ? state.menu.filter((item) => !item.categoryId)
+      : state.menu.filter((item) => item.categoryId === activeMenuCategory);
+
   const openOrderCount = state.orders.filter((order) => order.status !== "Served").length;
   const waitingRequests = state.requests.filter((request) => request.status === "Waiting");
   const readyOrders = state.orders.filter((order) => order.status === "Ready");
@@ -725,35 +816,19 @@ export default function Page() {
         ? loadedState.profile
         : await fetchBusinessProfileFromServer(loadedState.profile);
 
-      const savedMenu = repairedProfile.businessId
-        ? await fetchMenuItemsFromSupabase(repairedProfile.businessId)
-        : [];
+      const [savedMenu, savedCategories] = repairedProfile.businessId
+        ? await Promise.all([
+            fetchMenuItemsFromSupabase(repairedProfile.businessId),
+            fetchMenuCategoriesFromSupabase(repairedProfile.businessId),
+          ])
+        : [[], []];
 
-      if (savedMenu.length > 0) {
-        updateState((current) => ({
-          ...current,
-          profile: repairedProfile,
-          menu: savedMenu,
-        }));
-        return;
-      }
-
-      const localOnlyItems = loadedState.menu.filter((item) => !isUuid(item.id));
-
-      if (localOnlyItems.length > 0 && repairedProfile.businessId) {
-        const syncedItems: MenuItem[] = [];
-
-        for (const item of localOnlyItems) {
-          const savedItem = await insertMenuItemIntoSupabase(repairedProfile.businessId, item);
-          syncedItems.push(savedItem);
-        }
-
-        updateState((current) => ({
-          ...current,
-          profile: repairedProfile,
-          menu: syncedItems,
-        }));
-      }
+      updateState((current) => ({
+        ...current,
+        profile: repairedProfile,
+        menu: savedMenu.length ? savedMenu : current.menu,
+        categories: savedCategories,
+      }));
     } catch (error) {
       console.error("Menu restore failed", error);
     }
@@ -779,12 +854,16 @@ export default function Page() {
     setMenuBusy(true);
 
     try {
-      const savedMenu = await fetchMenuItemsFromSupabase(managerProfile.businessId);
+      const [savedMenu, savedCategories] = await Promise.all([
+        fetchMenuItemsFromSupabase(managerProfile.businessId),
+        fetchMenuCategoriesFromSupabase(managerProfile.businessId),
+      ]);
       updateState((current) => ({
         ...current,
         menu: savedMenu,
+        categories: savedCategories,
       }));
-      show("Menu loaded from Supabase");
+      show("Menu and categories loaded from Supabase");
     } catch (error) {
       show(formatMenuDbError(error));
     } finally {
@@ -1238,6 +1317,58 @@ export default function Page() {
     return repairedProfile;
   }
 
+  async function addMenuCategoryFromBuilder() {
+    const cleanName = categoryDraft.name.trim();
+    const cleanNameAr = categoryDraft.nameAr.trim();
+
+    if (!cleanName) {
+      show("Category name is required");
+      return;
+    }
+
+    let managerProfile = state.profile;
+
+    if (!managerProfile.businessId) {
+      try {
+        managerProfile = await ensureManagerBusinessProfile();
+      } catch {
+        show("Login again, then add categories");
+        return;
+      }
+    }
+
+    if (!managerProfile.businessId) {
+      show("Login again, then add categories");
+      return;
+    }
+
+    setMenuBusy(true);
+
+    try {
+      const savedCategory = await insertMenuCategoryIntoSupabase(managerProfile.businessId, cleanName, cleanNameAr);
+
+      updateState((current) => ({
+        ...current,
+        categories: [
+          savedCategory,
+          ...current.categories.filter((category) => category.id !== savedCategory.id),
+        ],
+      }));
+
+      setMenuDraft((current) => ({
+        ...current,
+        categoryId: current.categoryId || savedCategory.id,
+      }));
+
+      setCategoryDraft({ name: "", nameAr: "" });
+      show(`${cleanName} category added`);
+    } catch (error) {
+      show(formatMenuDbError(error));
+    } finally {
+      setMenuBusy(false);
+    }
+  }
+
   async function handleMenuImageUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -1303,6 +1434,7 @@ export default function Page() {
     }
 
     const icon = (menuDraft.icon.trim() || menuIconFromName(cleanName)).slice(0, 3).toUpperCase();
+    const selectedCategory = state.categories.find((category) => category.id === menuDraft.categoryId);
 
     const nextItem: MenuItem = {
       id: makeId("menu"),
@@ -1312,6 +1444,8 @@ export default function Page() {
       price: Math.round(cleanPrice * 1000) / 1000,
       icon,
       available: true,
+      categoryId: selectedCategory?.id || "",
+      categoryName: selectedCategory?.name || "Uncategorized",
       imageThumbUrl: menuDraft.imageThumbUrl,
       imageFullUrl: menuDraft.imageFullUrl,
     };
@@ -1837,14 +1971,46 @@ export default function Page() {
                           </div>
 
                           {phoneTab === "menu" && (
-                            <div className="menu-list">
+                            <>
+                              {state.menu.length ? (
+                                <div className="category-scroll">
+                                  <button
+                                    className={`category-chip ${activeMenuCategory === "all" ? "active" : ""}`}
+                                    type="button"
+                                    onClick={() => setActiveMenuCategory("all")}
+                                  >
+                                    All
+                                  </button>
+                                  {menuCategoriesWithItems.map((category) => (
+                                    <button
+                                      key={category.id}
+                                      className={`category-chip ${activeMenuCategory === category.id ? "active" : ""}`}
+                                      type="button"
+                                      onClick={() => setActiveMenuCategory(category.id)}
+                                    >
+                                      {category.name}
+                                    </button>
+                                  ))}
+                                  {hasUncategorizedItems ? (
+                                    <button
+                                      className={`category-chip ${activeMenuCategory === "uncategorized" ? "active" : ""}`}
+                                      type="button"
+                                      onClick={() => setActiveMenuCategory("uncategorized")}
+                                    >
+                                      Other
+                                    </button>
+                                  ) : null}
+                                </div>
+                              ) : null}
+
+                              <div className="menu-list">
                               {!state.menu.length ? (
                                 <div className="seat-card menu-empty-card">
                                   <h4>No menu items yet</h4>
                                   <p>This table QR is connected, but no saved menu items were found for this restaurant account.</p>
                                 </div>
-                              ) : (
-                                state.menu.map((item) => (
+                              ) : visibleCustomerMenu.length ? (
+                                visibleCustomerMenu.map((item) => (
                                   <div key={item.id} className={`menu-item ${item.available ? "" : "unavailable"}`}>
                                     {item.imageThumbUrl ? (
                                       <button className="item-photo-button" type="button" onClick={() => setSelectedMenuImage(item)}>
@@ -1864,8 +2030,14 @@ export default function Page() {
                                     </button>
                                   </div>
                                 ))
+                              ) : (
+                                <div className="seat-card menu-empty-card">
+                                  <h4>No items in this category</h4>
+                                  <p>Choose All to see the full menu.</p>
+                                </div>
                               )}
                             </div>
+                            </>
                           )}
 
                           {phoneTab === "bill" && (
@@ -2079,6 +2251,7 @@ export default function Page() {
                           <div className="meta">
                             <strong>{item.name}</strong>
                             {item.nameAr ? <small className="arabic-item-name" dir="rtl">{item.nameAr}</small> : null}
+                            <small>{item.categoryName || "Uncategorized"}</small>
                             <small>{item.desc}</small>
                           </div>
 
@@ -2099,6 +2272,44 @@ export default function Page() {
                       <h3>Menu Builder</h3>
                       <p className="sub">Add menu items with a photo. Items save to Supabase and stay after refresh/login.</p>
                       {menuBusy ? <p className="sub">Saving menu...</p> : null}
+
+                      <div className="category-builder-card">
+                        <h4>Menu Categories</h4>
+                        <p>Add your own categories, then choose one when adding an item.</p>
+
+                        <div className="menu-builder-row">
+                          <Field label="Category name">
+                            <input
+                              value={categoryDraft.name}
+                              onChange={(e) => setCategoryDraft({ ...categoryDraft, name: e.target.value })}
+                              placeholder="Example: Salads"
+                            />
+                          </Field>
+
+                          <Field label="Arabic category name">
+                            <input
+                              dir="rtl"
+                              value={categoryDraft.nameAr}
+                              onChange={(e) => setCategoryDraft({ ...categoryDraft, nameAr: e.target.value })}
+                              placeholder="مثال: السلطات"
+                            />
+                          </Field>
+                        </div>
+
+                        <div className="row-actions">
+                          <button className="btn secondary" type="button" onClick={addMenuCategoryFromBuilder} disabled={menuBusy}>
+                            Add category
+                          </button>
+                        </div>
+
+                        <div className="manager-category-list">
+                          {state.categories.length ? state.categories.map((category) => (
+                            <span className="manager-category-pill" key={category.id}>
+                              {category.name}{category.nameAr ? ` / ${category.nameAr}` : ""}
+                            </span>
+                          )) : <span className="helper">No categories yet. Items can still be saved as Uncategorized.</span>}
+                        </div>
+                      </div>
 
                       <div className="menu-builder-form">
                         <div className="menu-builder-row">
@@ -2126,6 +2337,20 @@ export default function Page() {
                             onChange={(e) => setMenuDraft({ ...menuDraft, desc: e.target.value })}
                             placeholder="Short description shown to the customer"
                           />
+                        </Field>
+
+                        <Field label="Category">
+                          <select
+                            value={menuDraft.categoryId}
+                            onChange={(e) => setMenuDraft({ ...menuDraft, categoryId: e.target.value })}
+                          >
+                            <option value="">Uncategorized</option>
+                            {state.categories.map((category) => (
+                              <option key={category.id} value={category.id}>
+                                {category.name}{category.nameAr ? ` / ${category.nameAr}` : ""}
+                              </option>
+                            ))}
+                          </select>
                         </Field>
 
                         <div className="menu-builder-row">
@@ -2162,6 +2387,8 @@ export default function Page() {
                                   price: Number(menuDraft.price || 0),
                                   icon: menuDraft.icon || "IT",
                                   available: true,
+                                  categoryId: menuDraft.categoryId,
+                                  categoryName: state.categories.find((category) => category.id === menuDraft.categoryId)?.name || "Uncategorized",
                                   imageThumbUrl: menuDraft.imageThumbUrl,
                                   imageFullUrl: menuDraft.imageFullUrl,
                                 })}>
@@ -2219,6 +2446,7 @@ export default function Page() {
                             <div className="menu-builder-main">
                               <strong>{item.name}</strong>
                               {item.nameAr ? <span className="arabic-item-name" dir="rtl">{item.nameAr}</span> : null}
+                              <span className="category-line">{item.categoryName || "Uncategorized"}</span>
                               <span>{item.desc}</span>
                               <em>{money(item.price)}</em>
                             </div>

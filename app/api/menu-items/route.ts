@@ -17,6 +17,8 @@ type MenuItemPayload = {
   price?: unknown;
   icon?: unknown;
   available?: unknown;
+  categoryId?: unknown;
+  categoryName?: unknown;
   imageThumbUrl?: unknown;
   imageFullUrl?: unknown;
 };
@@ -63,10 +65,7 @@ async function findBusiness(admin: SupabaseClient, businessId: string, username 
     .select("id, auth_user_id, username");
 
   if (businessId) {
-    if (!isUuid(businessId)) {
-      throw new Error("Invalid business account");
-    }
-
+    if (!isUuid(businessId)) throw new Error("Invalid business account");
     query = query.eq("id", businessId);
   } else if (username) {
     query = query.eq("username", username.toLowerCase());
@@ -109,13 +108,27 @@ async function requireBusinessAccess(request: NextRequest, businessId: string, u
 async function fetchMenu(admin: SupabaseClient, businessId: string) {
   const { data, error } = await admin
     .from("menu_items")
-    .select("id, business_account_id, auth_user_id, item_name, item_name_ar, description, price_jod, short_code, available, image_thumb_url, image_full_url, sort_order, created_at")
+    .select("id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, image_thumb_url, image_full_url, sort_order, created_at")
     .eq("business_account_id", businessId)
     .order("sort_order", { ascending: false })
     .order("created_at", { ascending: false });
 
   if (error) throw error;
   return data || [];
+}
+
+async function getCategory(admin: SupabaseClient, businessId: string, categoryId: string) {
+  if (!categoryId || !isUuid(categoryId)) return null;
+
+  const { data, error } = await admin
+    .from("menu_categories")
+    .select("id, name")
+    .eq("id", categoryId)
+    .eq("business_account_id", businessId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data as { id: string; name: string } | null;
 }
 
 export async function GET(request: NextRequest) {
@@ -157,6 +170,9 @@ export async function POST(request: NextRequest) {
     const itemName = cleanText(item.name);
     const itemNameAr = cleanText(item.nameAr);
     const price = moneyNumber(item.price);
+    const requestedCategoryId = cleanText(item.categoryId);
+    const category = await getCategory(owner.admin, owner.business.id, requestedCategoryId);
+    const categoryName = category?.name || cleanText(item.categoryName, "Uncategorized") || "Uncategorized";
 
     if (!itemName) {
       return NextResponse.json({ error: "English item name is required" }, { status: 400 });
@@ -175,6 +191,8 @@ export async function POST(request: NextRequest) {
       .insert({
         business_account_id: owner.business.id,
         auth_user_id: owner.userId,
+        category_id: category?.id || null,
+        category_name: categoryName,
         item_name: itemName,
         item_name_ar: itemNameAr,
         description: cleanText(item.desc, "Menu item") || "Menu item",
@@ -185,7 +203,7 @@ export async function POST(request: NextRequest) {
         image_full_url: cleanText(item.imageFullUrl) || null,
         sort_order: Date.now(),
       })
-      .select("id, business_account_id, auth_user_id, item_name, item_name_ar, description, price_jod, short_code, available, image_thumb_url, image_full_url, sort_order, created_at")
+      .select("id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, image_thumb_url, image_full_url, sort_order, created_at")
       .single();
 
     if (error) {

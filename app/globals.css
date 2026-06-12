@@ -2107,3 +2107,88 @@ img {
   border: 1px dashed rgba(118, 83, 66, 0.22);
   background: rgba(255, 255, 255, 0.78);
 }
+
+
+/* Restaurant-defined menu categories */
+.category-builder-card {
+  margin: 0 0 18px;
+  padding: 16px;
+  border: 1px solid rgba(118, 83, 66, 0.12);
+  border-radius: 22px;
+  background: rgba(255, 250, 244, 0.72);
+}
+
+.category-builder-card h4 {
+  margin: 0 0 5px;
+  color: #2f211b;
+  font-size: 16px;
+  letter-spacing: -0.02em;
+}
+
+.category-builder-card p {
+  margin: 0 0 14px;
+  color: #7d675d;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.manager-category-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.manager-category-pill,
+.category-line {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 999px;
+  background: rgba(200, 97, 63, 0.10);
+  color: var(--brand);
+  font-size: 12px;
+  font-weight: 900;
+  padding: 6px 10px;
+}
+
+.category-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 12px;
+  scrollbar-width: none;
+}
+
+.category-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.category-chip {
+  border: 1px solid rgba(118, 83, 66, 0.14);
+  background: rgba(255, 255, 255, 0.82);
+  color: #6d5a51;
+  border-radius: 999px;
+  padding: 10px 13px;
+  font-size: 13px;
+  font-weight: 950;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.category-chip.active {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: white;
+}
+
+.menu-builder-form select {
+  width: 100%;
+  border: 1px solid rgba(118, 83, 66, 0.16);
+  background: rgba(255, 255, 255, 0.86);
+  border-radius: 16px;
+  padding: 12px 13px;
+  color: #2f211b;
+  font-weight: 850;
+  outline: none;
+}
