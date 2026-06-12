@@ -317,72 +317,93 @@ function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
 
-async function fetchMenuItemsFromSupabase(businessId: string) {
+async function getManagerAuthHeaders() {
   if (!supabase) throw new Error("Missing Supabase client");
 
-  const { data, error } = await supabase
-    .from("menu_items")
-    .select("*")
-    .eq("business_account_id", businessId)
-    .order("sort_order", { ascending: false })
-    .order("created_at", { ascending: false });
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
 
-  if (error) throw error;
+  if (!token) {
+    throw new Error("Login again before editing menu");
+  }
 
-  const rows = (data || []) as MenuRow[];
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+async function readApiJson(response: Response) {
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    const message = typeof result?.error === "string" ? result.error : "Menu request failed";
+    throw new Error(message);
+  }
+
+  return result;
+}
+
+async function fetchMenuItemsFromSupabase(businessId: string) {
+  const headers = await getManagerAuthHeaders();
+
+  const response = await fetch(`/api/menu-items?businessId=${encodeURIComponent(businessId)}`, {
+    method: "GET",
+    headers,
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  const rows = (result.menu || []) as MenuRow[];
+
   return rows.map((row) => rowToMenuItem(row));
 }
 
 async function insertMenuItemIntoSupabase(businessId: string, item: MenuItem) {
-  if (!supabase) throw new Error("Missing Supabase client");
+  const headers = await getManagerAuthHeaders();
 
-  const { data, error } = await supabase
-    .from("menu_items")
-    .insert({
-      business_account_id: businessId,
-      item_name: item.name,
-      item_name_ar: item.nameAr,
-      description: item.desc,
-      price_jod: item.price,
-      short_code: item.icon,
-      available: item.available,
-      image_thumb_url: item.imageThumbUrl || null,
-      image_full_url: item.imageFullUrl || null,
-      sort_order: Date.now(),
-    })
-    .select("*")
-    .single();
+  const response = await fetch("/api/menu-items", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      businessId,
+      item,
+    }),
+  });
 
-  if (error) throw error;
-
-  return rowToMenuItem(data as MenuRow);
+  const result = await readApiJson(response);
+  return rowToMenuItem(result.item as MenuRow);
 }
 
 async function updateMenuItemAvailabilityInSupabase(businessId: string, itemId: string, available: boolean) {
-  if (!supabase) throw new Error("Missing Supabase client");
+  const headers = await getManagerAuthHeaders();
 
-  const { error } = await supabase
-    .from("menu_items")
-    .update({
+  const response = await fetch("/api/menu-items", {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({
+      businessId,
+      itemId,
       available,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", itemId)
-    .eq("business_account_id", businessId);
+    }),
+  });
 
-  if (error) throw error;
+  await readApiJson(response);
 }
 
 async function deleteMenuItemFromSupabase(businessId: string, itemId: string) {
-  if (!supabase) throw new Error("Missing Supabase client");
+  const headers = await getManagerAuthHeaders();
 
-  const { error } = await supabase
-    .from("menu_items")
-    .delete()
-    .eq("id", itemId)
-    .eq("business_account_id", businessId);
+  const response = await fetch("/api/menu-items", {
+    method: "DELETE",
+    headers,
+    body: JSON.stringify({
+      businessId,
+      itemId,
+    }),
+  });
 
-  if (error) throw error;
+  await readApiJson(response);
 }
 
 export default function Page() {
@@ -1646,26 +1667,33 @@ export default function Page() {
 
                           {phoneTab === "menu" && (
                             <div className="menu-list">
-                              {state.menu.map((item) => (
-                                <div key={item.id} className={`menu-item ${item.available ? "" : "unavailable"}`}>
-                                  {item.imageThumbUrl ? (
-                                    <button className="item-photo-button" type="button" onClick={() => setSelectedMenuImage(item)}>
-                                      <img src={item.imageThumbUrl} alt={item.name} />
-                                    </button>
-                                  ) : (
-                                    <div className="item-icon">{item.icon}</div>
-                                  )}
-                                  <div>
-                                    <h5>{item.name}</h5>
-                                    {item.nameAr ? <p className="arabic-item-name" dir="rtl">{item.nameAr}</p> : null}
-                                    <p>{item.desc}</p>
-                                    <div className="price">{money(item.price)}</div>
-                                  </div>
-                                  <button className="btn small" disabled={!item.available} onClick={() => addOrder(item.id)}>
-                                    {item.available ? "Add" : "Off"}
-                                  </button>
+                              {!state.menu.length ? (
+                                <div className="seat-card menu-empty-card">
+                                  <h4>No menu items yet</h4>
+                                  <p>This table QR is connected, but no saved menu items were found for this restaurant account.</p>
                                 </div>
-                              ))}
+                              ) : (
+                                state.menu.map((item) => (
+                                  <div key={item.id} className={`menu-item ${item.available ? "" : "unavailable"}`}>
+                                    {item.imageThumbUrl ? (
+                                      <button className="item-photo-button" type="button" onClick={() => setSelectedMenuImage(item)}>
+                                        <img src={item.imageThumbUrl} alt={item.name} />
+                                      </button>
+                                    ) : (
+                                      <div className="item-icon">{item.icon}</div>
+                                    )}
+                                    <div>
+                                      <h5>{item.name}</h5>
+                                      {item.nameAr ? <p className="arabic-item-name" dir="rtl">{item.nameAr}</p> : null}
+                                      <p>{item.desc}</p>
+                                      <div className="price">{money(item.price)}</div>
+                                    </div>
+                                    <button className="btn small" disabled={!item.available} onClick={() => addOrder(item.id)}>
+                                      {item.available ? "Add" : "Off"}
+                                    </button>
+                                  </div>
+                                ))
+                              )}
                             </div>
                           )}
 
