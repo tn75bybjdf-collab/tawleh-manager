@@ -2027,6 +2027,126 @@ main.customer-only-shell .category-scroll .category-chip {
   }
 }
 
+
+
+/* =========================================================
+   CUSTOMER GLASS SECTION TRANSPARENCY
+   Makes the customer sections more see-through so rotating food
+   backgrounds show through, while keeping text readable and bold.
+   ========================================================= */
+
+main.customer-only-shell .option-one-customer-hero {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 249, 239, 0.38),
+    rgba(255, 249, 239, 0.18)
+  ) !important;
+  border-bottom: 1px solid rgba(136, 94, 62, 0.10) !important;
+  backdrop-filter: blur(9px) saturate(1.06) !important;
+  -webkit-backdrop-filter: blur(9px) saturate(1.06) !important;
+}
+
+main.customer-only-shell .option-one-logo-center .logo-box,
+main.customer-only-shell .option-one-table-logo {
+  background: rgba(255, 255, 255, 0.54) !important;
+  border-color: rgba(255, 255, 255, 0.40) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+main.customer-only-shell .option-one-table-card,
+main.customer-only-shell .option-one-seat-card,
+main.customer-only-shell .option-one-explore-card,
+main.customer-only-shell .option-one-current-guest-card,
+main.customer-only-shell .option-one-bill-card,
+main.customer-only-shell .option-one-service-card,
+main.customer-only-shell .bill-stack .seat-card {
+  background: rgba(255, 255, 255, 0.50) !important;
+  border: 1px solid rgba(255, 255, 255, 0.36) !important;
+  box-shadow: 0 16px 38px rgba(54, 36, 24, 0.13) !important;
+  backdrop-filter: blur(14px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.08) !important;
+}
+
+main.customer-only-shell .option-one-explore-card {
+  background: rgba(255, 255, 255, 0.44) !important;
+}
+
+main.customer-only-shell .option-one-seat-card {
+  background: rgba(255, 255, 255, 0.46) !important;
+}
+
+main.customer-only-shell .option-one-table-card {
+  background: rgba(255, 255, 255, 0.42) !important;
+}
+
+main.customer-only-shell .option-one-category-card {
+  background: rgba(255, 255, 255, 0.46) !important;
+  border: 1px solid rgba(255, 255, 255, 0.32) !important;
+  box-shadow: 0 12px 28px rgba(54, 36, 24, 0.12) !important;
+  backdrop-filter: blur(13px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(13px) saturate(1.08) !important;
+}
+
+main.customer-only-shell .menu-item,
+main.customer-only-shell .mini-card {
+  background: rgba(255, 255, 255, 0.58) !important;
+  border-color: rgba(255, 255, 255, 0.34) !important;
+  backdrop-filter: blur(14px) saturate(1.06) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.06) !important;
+}
+
+/* Keep text strong on transparent cards */
+main.customer-only-shell .option-one-card-head h4,
+main.customer-only-shell .option-one-section-row h4,
+main.customer-only-shell .option-one-table-card strong,
+main.customer-only-shell .option-one-current-guest-card strong,
+main.customer-only-shell .option-one-category-card strong,
+main.customer-only-shell .menu-item h5,
+main.customer-only-shell .option-one-wordmark {
+  color: #2d211b !important;
+  font-weight: 1000 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.55) !important;
+}
+
+main.customer-only-shell .option-one-card-head p,
+main.customer-only-shell .option-one-table-card span,
+main.customer-only-shell .option-one-table-card em,
+main.customer-only-shell .option-one-category-card small,
+main.customer-only-shell .menu-item p,
+main.customer-only-shell .option-one-submark,
+main.customer-only-shell .option-one-welcome-copy p {
+  color: #5f4c40 !important;
+  font-weight: 850 !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.50) !important;
+}
+
+main.customer-only-shell .option-one-name-entry,
+main.customer-only-shell .input-row,
+main.customer-only-shell .request-btn,
+main.customer-only-shell .cart-quantity-control {
+  background: rgba(255, 255, 255, 0.62) !important;
+  border-color: rgba(255, 255, 255, 0.38) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+/* Keep bottom nav readable but still glassy */
+main.customer-only-shell .option-one-bottom-nav button {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(255, 255, 255, 0.38) !important;
+  color: #34251f !important;
+  font-weight: 1000 !important;
+  backdrop-filter: blur(18px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.08) !important;
+}
+
+main.customer-only-shell .option-one-bottom-nav button.active {
+  background: linear-gradient(135deg, rgba(211, 109, 71, 0.88), rgba(189, 83, 56, 0.88)) !important;
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18) !important;
+}
+
 `;
 
 
