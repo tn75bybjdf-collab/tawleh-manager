@@ -3279,6 +3279,114 @@ body {
   }
 }
 
+
+
+/* =========================================================
+   FIX PRINT INSTRUCTION CARDS READABILITY
+   The old 1/2/3 row was too compressed and only the numbers showed.
+   This makes the text large, dark, and side-by-side with the number.
+   ========================================================= */
+
+.print-steps-grid.print-steps-readable,
+.print-steps-readable {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin-top: 0.08in !important;
+  padding-top: 0 !important;
+}
+
+.print-steps-readable .print-step-card {
+  min-height: 0.78in !important;
+  padding: 10px 12px !important;
+  border-radius: 18px !important;
+  display: grid !important;
+  grid-template-columns: 34px minmax(0, 1fr) !important;
+  align-items: center !important;
+  justify-items: stretch !important;
+  align-content: center !important;
+  gap: 10px !important;
+  text-align: left !important;
+  background: linear-gradient(180deg, #ffffff, #fff8ef) !important;
+  border: 1px solid rgba(91, 71, 48, 0.13) !important;
+  box-shadow: 0 10px 24px rgba(74, 45, 19, 0.07) !important;
+}
+
+.print-steps-readable .print-step-card strong {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  border-radius: 999px !important;
+  display: grid !important;
+  place-items: center !important;
+  background: #eff4df !important;
+  color: #4f5a31 !important;
+  font-size: 16px !important;
+  font-weight: 1000 !important;
+}
+
+.print-step-text {
+  display: grid !important;
+  min-width: 0 !important;
+  gap: 2px !important;
+}
+
+.print-step-text b {
+  display: block !important;
+  color: #2f2a25 !important;
+  font-size: 15px !important;
+  line-height: 1.05 !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.02em !important;
+  white-space: nowrap !important;
+}
+
+.print-step-text small {
+  display: block !important;
+  color: #6b6158 !important;
+  font-size: 10.5px !important;
+  line-height: 1.08 !important;
+  font-weight: 800 !important;
+  white-space: nowrap !important;
+}
+
+@media print {
+  .print-steps-grid.print-steps-readable,
+  .print-steps-readable {
+    gap: 8px !important;
+    margin-top: 0.07in !important;
+    padding-top: 0 !important;
+  }
+
+  .print-steps-readable .print-step-card {
+    min-height: 0.68in !important;
+    padding: 8px 9px !important;
+    border-radius: 16px !important;
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .print-steps-readable .print-step-card strong {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    font-size: 14px !important;
+  }
+
+  .print-step-text b {
+    font-size: 13px !important;
+    color: #2f2a25 !important;
+  }
+
+  .print-step-text small {
+    font-size: 9.5px !important;
+    color: #6b6158 !important;
+  }
+}
+
 `;
 
 
@@ -7932,18 +8040,27 @@ export default function Page() {
                   </div>
                 </div>
 
-                <div className="print-steps-grid">
+                <div className="print-steps-grid print-steps-readable">
                   <div className="print-step-card">
                     <strong>1</strong>
-                    <span>Scan the QR code</span>
+                    <div className="print-step-text">
+                      <b>Scan</b>
+                      <small>Open the menu</small>
+                    </div>
                   </div>
                   <div className="print-step-card">
                     <strong>2</strong>
-                    <span>Enter your name</span>
+                    <div className="print-step-text">
+                      <b>Enter name</b>
+                      <small>Start your table</small>
+                    </div>
                   </div>
                   <div className="print-step-card">
                     <strong>3</strong>
-                    <span>Order from your table</span>
+                    <div className="print-step-text">
+                      <b>Order</b>
+                      <small>Send to kitchen</small>
+                    </div>
                   </div>
                 </div>
 
