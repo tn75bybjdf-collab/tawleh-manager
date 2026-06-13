@@ -1824,6 +1824,122 @@ main.customer-only-shell .fixed-send-order-bar,
   }
 }
 
+
+
+/* =========================================================
+   CUSTOMER ITEM PHOTO MODAL RESTORE
+   Tapping a menu photo opens a real centered full-screen modal again,
+   instead of rendering the enlarged image at the bottom of the page.
+   ========================================================= */
+
+.image-modal,
+main.customer-only-shell .image-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom)) !important;
+  background: rgba(24, 18, 14, 0.72) !important;
+  backdrop-filter: blur(18px) saturate(1.05) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.05) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  touch-action: pan-y !important;
+}
+
+.image-modal-card,
+main.customer-only-shell .image-modal-card {
+  width: min(94vw, 680px) !important;
+  max-height: calc(100dvh - 32px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  border-radius: 28px !important;
+  background: rgba(255, 250, 243, 0.98) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42) !important;
+}
+
+.image-modal-head,
+main.customer-only-shell .image-modal-head {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 12px !important;
+  align-items: start !important;
+  padding: 16px 16px 12px !important;
+  border-bottom: 1px solid rgba(129, 92, 62, 0.12) !important;
+}
+
+.image-modal-head h3,
+main.customer-only-shell .image-modal-head h3 {
+  margin: 0 !important;
+  color: #32251f !important;
+  font-size: 20px !important;
+  line-height: 1.08 !important;
+  font-weight: 950 !important;
+}
+
+.image-modal-head p,
+main.customer-only-shell .image-modal-head p {
+  margin: 5px 0 0 !important;
+  color: #786a5f !important;
+  font-size: 12px !important;
+  line-height: 1.28 !important;
+}
+
+.image-modal-head .btn,
+main.customer-only-shell .image-modal-head .btn {
+  min-height: 36px !important;
+  padding: 0 13px !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  border: 1px solid rgba(129, 92, 62, 0.14) !important;
+  color: #4a3227 !important;
+  box-shadow: 0 8px 20px rgba(73, 49, 30, 0.10) !important;
+}
+
+.image-modal-card > img,
+main.customer-only-shell .image-modal-card > img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: calc(100dvh - 150px) !important;
+  display: block !important;
+  object-fit: contain !important;
+  background: #f3e6d7 !important;
+}
+
+@media (max-width: 430px) {
+  .image-modal,
+  main.customer-only-shell .image-modal {
+    align-items: center !important;
+    padding: 12px !important;
+  }
+
+  .image-modal-card,
+  main.customer-only-shell .image-modal-card {
+    width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    border-radius: 24px !important;
+  }
+
+  .image-modal-head,
+  main.customer-only-shell .image-modal-head {
+    padding: 13px 13px 10px !important;
+  }
+
+  .image-modal-head h3,
+  main.customer-only-shell .image-modal-head h3 {
+    font-size: 18px !important;
+  }
+
+  .image-modal-card > img,
+  main.customer-only-shell .image-modal-card > img {
+    max-height: calc(100dvh - 142px) !important;
+  }
+}
+
 `;
 
 
@@ -3913,6 +4029,122 @@ body {
   .print-step-text small {
     font-size: 9.5px !important;
     color: #6b6158 !important;
+  }
+}
+
+
+
+/* =========================================================
+   CUSTOMER ITEM PHOTO MODAL RESTORE
+   Tapping a menu photo opens a real centered full-screen modal again,
+   instead of rendering the enlarged image at the bottom of the page.
+   ========================================================= */
+
+.image-modal,
+main.customer-only-shell .image-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 2147483000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: max(18px, env(safe-area-inset-top)) 16px max(18px, env(safe-area-inset-bottom)) !important;
+  background: rgba(24, 18, 14, 0.72) !important;
+  backdrop-filter: blur(18px) saturate(1.05) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.05) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  touch-action: pan-y !important;
+}
+
+.image-modal-card,
+main.customer-only-shell .image-modal-card {
+  width: min(94vw, 680px) !important;
+  max-height: calc(100dvh - 32px) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  border-radius: 28px !important;
+  background: rgba(255, 250, 243, 0.98) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.42) !important;
+}
+
+.image-modal-head,
+main.customer-only-shell .image-modal-head {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 12px !important;
+  align-items: start !important;
+  padding: 16px 16px 12px !important;
+  border-bottom: 1px solid rgba(129, 92, 62, 0.12) !important;
+}
+
+.image-modal-head h3,
+main.customer-only-shell .image-modal-head h3 {
+  margin: 0 !important;
+  color: #32251f !important;
+  font-size: 20px !important;
+  line-height: 1.08 !important;
+  font-weight: 950 !important;
+}
+
+.image-modal-head p,
+main.customer-only-shell .image-modal-head p {
+  margin: 5px 0 0 !important;
+  color: #786a5f !important;
+  font-size: 12px !important;
+  line-height: 1.28 !important;
+}
+
+.image-modal-head .btn,
+main.customer-only-shell .image-modal-head .btn {
+  min-height: 36px !important;
+  padding: 0 13px !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  border: 1px solid rgba(129, 92, 62, 0.14) !important;
+  color: #4a3227 !important;
+  box-shadow: 0 8px 20px rgba(73, 49, 30, 0.10) !important;
+}
+
+.image-modal-card > img,
+main.customer-only-shell .image-modal-card > img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: calc(100dvh - 150px) !important;
+  display: block !important;
+  object-fit: contain !important;
+  background: #f3e6d7 !important;
+}
+
+@media (max-width: 430px) {
+  .image-modal,
+  main.customer-only-shell .image-modal {
+    align-items: center !important;
+    padding: 12px !important;
+  }
+
+  .image-modal-card,
+  main.customer-only-shell .image-modal-card {
+    width: calc(100vw - 24px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    border-radius: 24px !important;
+  }
+
+  .image-modal-head,
+  main.customer-only-shell .image-modal-head {
+    padding: 13px 13px 10px !important;
+  }
+
+  .image-modal-head h3,
+  main.customer-only-shell .image-modal-head h3 {
+    font-size: 18px !important;
+  }
+
+  .image-modal-card > img,
+  main.customer-only-shell .image-modal-card > img {
+    max-height: calc(100dvh - 142px) !important;
   }
 }
 
