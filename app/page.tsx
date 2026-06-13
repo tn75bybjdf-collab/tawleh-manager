@@ -3178,61 +3178,172 @@ export default function Page() {
                   <div className="phone-screen">
                     <div className="phone-status">9:41 &nbsp; Tawleh</div>
 
-                    <div className="hero-card">
-                      <div className="customer-business-head">
-                        <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} customer />
-                        <div>
-                          <div className="eyebrow">Welcome to</div>
+                    {publicCustomerMode ? (
+                      <div className="option-one-customer-hero">
+                        <div className="option-one-logo-center">
+                          <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} large customer />
+                          <div className="option-one-wordmark">{businessName}</div>
+                          <div className="option-one-submark">Lebanese Cuisine</div>
+                        </div>
+
+                        <div className="option-one-welcome-copy">
+                          <span>Welcome to</span>
                           <h3>{businessName}</h3>
+                          <p>{state.profile.welcomeMessage || "Sit back, relax, and enjoy. We'll take care of the rest."}</p>
+                        </div>
+
+                        <div className="option-one-table-card">
+                          <div className="option-one-table-icon">▦</div>
+                          <div>
+                            <span>You’re at</span>
+                            <strong>Table {activeTable}</strong>
+                            <em>{branchName}</em>
+                          </div>
+                          <b>›</b>
                         </div>
                       </div>
-                      <p>{state.profile.welcomeMessage}</p>
-                      <div className="table-chip">Table {activeTable}  {branchName}</div>
-                    </div>
+                    ) : (
+                      <div className="hero-card">
+                        <div className="customer-business-head">
+                          <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} customer />
+                          <div>
+                            <div className="eyebrow">Welcome to</div>
+                            <h3>{businessName}</h3>
+                          </div>
+                        </div>
+                        <p>{state.profile.welcomeMessage}</p>
+                        <div className="table-chip">Table {activeTable}  {branchName}</div>
+                      </div>
+                    )}
 
                     <div className="phone-content">
                       {!state.currentGuest ? (
                         publicCustomerMode ? (
-                          <div className="qr-welcome-card">
-                            <div className="qr-welcome-badge">Table {activeTable}</div>
-                            <h4>Welcome to {businessName}</h4>
-                            <p>
-                              {seatedGuests.length
-                                ? "Choose your name if you already sat down, or enter a new name."
-                                : "If you already sat here, tap your name. If not, enter your name once and it will stay on this table."}
-                            </p>
-
-                            {seatedGuests.length ? (
-                              <div className="seated-guest-card">
-                                <span>Already seated at this table — tap your name</span>
-                                <div className="guest-chips seated-guest-chips">
-                                  {seatedGuests.map((guest) => (
-                                    <button
-                                      key={guest}
-                                      className="guest-chip active"
-                                      type="button"
-                                      onClick={() => chooseSeatedGuest(guest)}
-                                    >
-                                      {guest}
-                                    </button>
-                                  ))}
-                                </div>
+                          <> 
+                          <div className="option-one-seat-card">
+                            <div className="option-one-card-head">
+                              <div>
+                                <h4>Who’s dining today?</h4>
+                                <p>Enter your name or select your profile.</p>
                               </div>
-                            ) : null}
+                            </div>
 
-                            <div className="qr-name-form">
-                              <label>{seatedGuests.length ? "Not listed? Add your name" : "Your name"}</label>
+                            <div className="option-one-name-entry">
+                              <span className="option-one-input-icon">♙</span>
                               <input
                                 value={guestName}
                                 onChange={(e) => setGuestName(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && joinGuest(guestName)}
-                                placeholder="Your name"
+                                placeholder="Enter your name"
                                 maxLength={24}
                                 autoFocus={!seatedGuests.length}
                               />
-                              <button className="btn full" onClick={() => joinGuest(guestName)}>Begin ordering</button>
+                              <button
+                                className="option-one-arrow-button"
+                                type="button"
+                                onClick={() => joinGuest(guestName)}
+                                aria-label="Begin ordering"
+                              >
+                                →
+                              </button>
+                            </div>
+
+                            <div className="guest-chips option-one-profile-chips">
+                              {seatedGuests.length ? (
+                                seatedGuests.map((guest) => (
+                                  <button
+                                    key={guest}
+                                    className="guest-chip option-one-profile-chip active"
+                                    type="button"
+                                    onClick={() => chooseSeatedGuest(guest)}
+                                  >
+                                    <span>♙</span>{guest}
+                                  </button>
+                                ))
+                              ) : (
+                                ["Jihad", "Rami", "Lina", "Sara"].map((name) => (
+                                  <button
+                                    key={name}
+                                    className="guest-chip option-one-profile-chip"
+                                    type="button"
+                                    onClick={() => joinGuest(name)}
+                                  >
+                                    <span>♙</span>{name}
+                                  </button>
+                                ))
+                              )}
                             </div>
                           </div>
+
+                          <div className="option-one-explore-card">
+                            <div className="option-one-section-row">
+                              <h4>Explore our menu</h4>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveMenuCategory("all");
+                                  setPhoneTab("menu");
+                                }}
+                              >
+                                View all ›
+                              </button>
+                            </div>
+
+                            <div className="option-one-category-preview">
+                              {[
+                                { label: "Mezze", icon: "🥣" },
+                                { label: "Hot Mezze", icon: "🥟" },
+                                { label: "Grills", icon: "🔥" },
+                                { label: "Desserts", icon: "🍰" },
+                              ].map((preview, index) => {
+                                const category = menuCategoriesWithItems[index];
+                                const itemCount = category
+                                  ? state.menu.filter((item) => item.categoryId === category.id).length
+                                  : 0;
+
+                                return (
+                                  <button
+                                    key={`${preview.label}-${index}`}
+                                    className="option-one-category-card"
+                                    type="button"
+                                    onClick={() => {
+                                      setActiveMenuCategory(category?.id || "all");
+                                      setPhoneTab("menu");
+                                    }}
+                                  >
+                                    <div className="option-one-category-photo">
+                                      <span>{preview.icon}</span>
+                                    </div>
+                                    <strong>{category?.name || preview.label}</strong>
+                                    <small>{itemCount || " "} {itemCount ? "items" : ""}</small>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          <div className="option-one-bottom-nav">
+                            <button type="button" onClick={() => setPhoneTab("bill")}>
+                              <span>▤</span>
+                              My Bill
+                            </button>
+                            <button className="active" type="button" onClick={() => setPhoneTab("menu")}>
+                              <span>⌂</span>
+                              Menu
+                            </button>
+                            <button type="button" onClick={() => setPhoneTab("service")}>
+                              <span>◉</span>
+                              Call Waiter
+                            </button>
+                          </div>
+
+                          <div className="option-one-secure-row">
+                            <span>Secure</span>
+                            <em>Private</em>
+                            <span>Hassle-free</span>
+                          </div>
+                          </>
+
                         ) : (
                           <div className="seat-card">
                             <h4>Have a Seat</h4>
