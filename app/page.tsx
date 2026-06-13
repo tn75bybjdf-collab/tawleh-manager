@@ -2352,6 +2352,74 @@ main.customer-only-shell .guest-chip {
   display: none !important;
 }
 
+
+
+/* =========================================================
+   CUSTOMER NAME REQUIRED RED HIGHLIGHT
+   If guest taps a category/order button before entering name,
+   highlight the name bar red and focus the field.
+   ========================================================= */
+
+main.customer-only-shell .option-one-name-entry.name-entry-error {
+  border: 2px solid rgba(220, 38, 38, 0.92) !important;
+  background: rgba(255, 245, 245, 0.86) !important;
+  box-shadow:
+    0 0 0 4px rgba(220, 38, 38, 0.16),
+    0 14px 34px rgba(168, 35, 35, 0.20) !important;
+  animation: tawlehNameRequiredPulse 880ms ease-in-out 0s 2 !important;
+}
+
+main.customer-only-shell .option-one-name-entry.name-entry-error .option-one-input-icon {
+  color: #dc2626 !important;
+}
+
+main.customer-only-shell .option-one-name-entry.name-entry-error input {
+  color: #3f1d1d !important;
+  font-weight: 950 !important;
+}
+
+main.customer-only-shell .option-one-name-entry.name-entry-error input::placeholder {
+  color: #dc2626 !important;
+  font-weight: 950 !important;
+  opacity: 1 !important;
+}
+
+main.customer-only-shell .option-one-name-entry.name-entry-error .option-one-arrow-button {
+  background: linear-gradient(135deg, #ef4444, #b91c1c) !important;
+  box-shadow: 0 12px 28px rgba(185, 28, 28, 0.28) !important;
+}
+
+main.customer-only-shell .name-entry-error-text {
+  margin: 8px 10px 0 !important;
+  color: #b91c1c !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+  text-align: center !important;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.60) !important;
+}
+
+@keyframes tawlehNameRequiredPulse {
+  0%, 100% {
+    transform: translateX(0);
+  }
+
+  20% {
+    transform: translateX(-3px);
+  }
+
+  40% {
+    transform: translateX(3px);
+  }
+
+  60% {
+    transform: translateX(-2px);
+  }
+
+  80% {
+    transform: translateX(2px);
+  }
+}
+
 `;
 
 
@@ -5630,6 +5698,8 @@ export default function Page() {
   const [managerTab, setManagerTab] = useState<"kitchen" | "waiter" | "tables" | "menu" | "menuBuilder" | "qr" | "profile">("kitchen");
   const [authTab, setAuthTab] = useState<"login" | "signup">("signup");
   const [guestName, setGuestName] = useState("");
+  const [namePromptError, setNamePromptError] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
   const [orderCart, setOrderCart] = useState<Record<string, number>>({});
   const [orderReviewOpen, setOrderReviewOpen] = useState(false);
   const [orderSendBusy, setOrderSendBusy] = useState(false);
@@ -6888,13 +6958,30 @@ export default function Page() {
     setAuthTab("signup");
   }
 
+  function requireCustomerName() {
+    setNamePromptError(true);
+
+    if (publicCustomerMode) {
+      setPhoneTab("menu");
+      setActiveMenuCategory("__home");
+    }
+
+    window.setTimeout(() => {
+      nameInputRef.current?.focus();
+    }, 80);
+
+    show("Enter your name first");
+  }
+
   async function joinGuest(name: string) {
     const clean = name.trim().replace(/\s+/g, " ");
 
     if (!clean) {
-      show("Enter a customer name first");
+      requireCustomerName();
       return;
     }
+
+    setNamePromptError(false);
 
     const immediateGuests = uniqueGuestNames([...state.guests, clean]);
 
@@ -6996,7 +7083,7 @@ export default function Page() {
 
   function addCartItem(menuId: string) {
     if (!state.currentGuest) {
-      show("Have a seat first");
+      requireCustomerName();
       return;
     }
 
@@ -7023,7 +7110,7 @@ export default function Page() {
 
   function beginOrderReview() {
     if (!state.currentGuest) {
-      show("Have a seat first");
+      requireCustomerName();
       return;
     }
 
@@ -7038,7 +7125,7 @@ export default function Page() {
 
   async function confirmOrderToKitchen() {
     if (!state.currentGuest) {
-      show("Have a seat first");
+      requireCustomerName();
       return;
     }
 
@@ -7134,7 +7221,7 @@ export default function Page() {
 
   function addRequest(type: string) {
     if (!state.currentGuest) {
-      show("Have a seat first");
+      requireCustomerName();
       return;
     }
 
@@ -8004,6 +8091,10 @@ export default function Page() {
                                   </div>
                                 </div>
 
+                                {namePromptError ? (
+                                  <div className="name-entry-error-text">Enter your name first to open the menu.</div>
+                                ) : null}
+
                                 <div className="guest-chips option-one-profile-chips">
                                   {seatedGuests.length ? (
                                     seatedGuests.map((guest) => (
@@ -8049,13 +8140,17 @@ export default function Page() {
                                   </div>
                                 </div>
 
-                                <div className="option-one-name-entry">
+                                <div className={`option-one-name-entry ${namePromptError ? "name-entry-error" : ""}`}>
                                   <span className="option-one-input-icon">♙</span>
                                   <input
+                                    ref={nameInputRef}
                                     value={guestName}
-                                    onChange={(e) => setGuestName(e.target.value)}
+                                    onChange={(e) => {
+                                      setGuestName(e.target.value);
+                                      if (namePromptError) setNamePromptError(false);
+                                    }}
                                     onKeyDown={(e) => e.key === "Enter" && joinGuest(guestName)}
-                                    placeholder="Enter your name"
+                                    placeholder={namePromptError ? "Enter your name first" : "Enter your name"}
                                     maxLength={24}
                                     autoFocus={!seatedGuests.length}
                                   />
@@ -8105,7 +8200,7 @@ export default function Page() {
                                 type="button"
                                 onClick={() => {
                                   if (!state.currentGuest) {
-                                    show("Enter your name first");
+                                    requireCustomerName();
                                     return;
                                   }
 
@@ -8133,7 +8228,7 @@ export default function Page() {
                                       type="button"
                                       onClick={() => {
                                         if (!state.currentGuest) {
-                                          show("Enter your name first");
+                                          requireCustomerName();
                                           return;
                                         }
 
@@ -8159,7 +8254,7 @@ export default function Page() {
                                   type="button"
                                   onClick={() => {
                                     if (!state.currentGuest) {
-                                      show("Enter your name first");
+                                      requireCustomerName();
                                       return;
                                     }
 
@@ -8181,7 +8276,7 @@ export default function Page() {
                                   type="button"
                                   onClick={() => {
                                     if (!state.currentGuest) {
-                                      show("Enter your name first");
+                                      requireCustomerName();
                                       return;
                                     }
 
@@ -8204,7 +8299,7 @@ export default function Page() {
                               type="button"
                               onClick={() => {
                                 if (!state.currentGuest) {
-                                  show("Enter your name first");
+                                  requireCustomerName();
                                   return;
                                 }
 
@@ -8225,7 +8320,7 @@ export default function Page() {
                               type="button"
                               onClick={() => {
                                 if (!state.currentGuest) {
-                                  show("Enter your name first");
+                                  requireCustomerName();
                                   return;
                                 }
 
