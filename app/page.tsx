@@ -2831,6 +2831,262 @@ body {
   }
 }
 
+
+
+/* =========================================================
+   PRESENTABLE LETTER PAPER QR PRINT LAYOUT
+   Designed for putting into a simple sleeve / table stand.
+   ========================================================= */
+
+.print-sheet {
+  position: fixed !important;
+  left: -99999px !important;
+  top: 0 !important;
+  width: 8.5in !important;
+  min-height: 11in !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+}
+
+.print-page {
+  width: 8.5in !important;
+  min-height: 11in !important;
+  padding: 0.42in !important;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(207, 95, 59, 0.10), transparent 24%),
+    radial-gradient(circle at 100% 0%, rgba(104, 112, 68, 0.10), transparent 28%),
+    linear-gradient(180deg, #fffcf7 0%, #f7eee2 100%) !important;
+}
+
+.print-page-frame {
+  min-height: calc(11in - 0.84in) !important;
+  border-radius: 26px !important;
+  border: 1px solid rgba(91, 71, 48, 0.14) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,252,247,0.93)) !important;
+  box-shadow: 0 20px 60px rgba(74, 45, 19, 0.12) !important;
+  padding: 0.42in 0.45in 0.36in !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+.print-page-header {
+  width: 100% !important;
+  padding-bottom: 0.20in !important;
+  border-bottom: 1px solid rgba(91, 71, 48, 0.10) !important;
+}
+
+.print-page-eyebrow {
+  display: inline-flex !important;
+  min-height: 28px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 12px !important;
+  border-radius: 999px !important;
+  background: #fff0e8 !important;
+  color: #c46542 !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.18em !important;
+  margin-bottom: 10px !important;
+}
+
+.print-page-header h1 {
+  margin: 0 !important;
+  color: #2f2a25 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 34px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.03em !important;
+}
+
+.print-page-header p {
+  margin: 8px 0 16px !important;
+  color: #7b7167 !important;
+  font-size: 14px !important;
+}
+
+.print-table-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 44px !important;
+  padding: 0 22px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #cf5f3b, #b84c2d) !important;
+  color: #fff !important;
+  font-size: 19px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.01em !important;
+  box-shadow: 0 14px 28px rgba(207, 95, 59, 0.20) !important;
+}
+
+.print-hero-copy {
+  max-width: 5.8in !important;
+  margin: 0.32in auto 0.24in !important;
+}
+
+.print-hero-copy h2 {
+  margin: 0 !important;
+  color: #2f2a25 !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.03em !important;
+}
+
+.print-hero-copy p {
+  margin: 10px 0 0 !important;
+  color: #6d6358 !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+}
+
+.print-qr-showcase {
+  width: 100% !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0.08in 0 0.24in !important;
+}
+
+.print-qr-wrap.prestigious-qr {
+  width: 4.55in !important;
+  max-width: 4.55in !important;
+  aspect-ratio: 1 / 1 !important;
+  padding: 0.20in !important;
+  border-radius: 30px !important;
+  background: #fff !important;
+  border: 1px solid rgba(91, 71, 48, 0.14) !important;
+  box-shadow: 0 20px 44px rgba(74, 45, 19, 0.13) !important;
+}
+
+.print-qr-wrap.prestigious-qr .print-qr {
+  border-radius: 20px !important;
+  background: #fff !important;
+}
+
+.print-qr-wrap.prestigious-qr .qr-logo-mark {
+  width: 20% !important;
+  height: 20% !important;
+  min-width: 0.86in !important;
+  min-height: 0.86in !important;
+  max-width: 1.04in !important;
+  max-height: 1.04in !important;
+  border-radius: 22px !important;
+  border: 5px solid #fff !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.16) !important;
+}
+
+.print-steps-grid {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  margin-top: auto !important;
+  padding-top: 0.10in !important;
+}
+
+.print-step-card {
+  min-height: 108px !important;
+  padding: 16px 14px !important;
+  border-radius: 22px !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,249,241,0.88)) !important;
+  display: grid !important;
+  justify-items: center !important;
+  align-content: center !important;
+  gap: 10px !important;
+  box-shadow: 0 12px 26px rgba(74, 45, 19, 0.07) !important;
+}
+
+.print-step-card strong {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  background: #eff4df !important;
+  color: #4f5a31 !important;
+  font-size: 18px !important;
+  font-weight: 950 !important;
+}
+
+.print-step-card span {
+  color: #2f2a25 !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  line-height: 1.25 !important;
+}
+
+.print-page-footer {
+  width: 100% !important;
+  margin-top: 0.20in !important;
+  padding-top: 0.18in !important;
+  border-top: 1px solid rgba(91, 71, 48, 0.10) !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.print-page-footer span {
+  color: #5f554b !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+}
+
+.print-page-footer em {
+  color: #9a8b7d !important;
+  font-style: normal !important;
+  font-size: 12px !important;
+}
+
+@page {
+  size: letter portrait;
+  margin: 0;
+}
+
+@media print {
+  html, body {
+    background: #fff !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .print-sheet,
+  .print-sheet * {
+    visibility: visible !important;
+  }
+
+  .print-sheet {
+    position: static !important;
+    left: auto !important;
+    top: auto !important;
+    width: auto !important;
+    min-height: auto !important;
+    opacity: 1 !important;
+    overflow: visible !important;
+    pointer-events: auto !important;
+  }
+
+  .print-page {
+    width: 8.5in !important;
+    min-height: 11in !important;
+    padding: 0.42in !important;
+    page-break-after: avoid !important;
+  }
+
+  .print-page-frame {
+    box-shadow: none !important;
+  }
+}
+
 `;
 
 
@@ -7454,22 +7710,56 @@ export default function Page() {
           </section>
 
           <section className="print-sheet">
-            <div className="print-card">
-              <h1>{businessName}</h1>
-              <p>{branchName}</p>
-              <div className="print-table">Table {selectedQrTable}</div>
-              <div className="print-qr-wrap prestigious-qr">
-                <img className="print-qr qr-base-image" src={selectedQrImage} alt={`Printable QR for table ${selectedQrTable}`} />
-                <div className="qr-logo-mark print-qr-logo-mark" aria-hidden="true">
-                  {state.profile.logoDataUrl ? (
-                    <img src={state.profile.logoDataUrl} alt="" />
-                  ) : (
-                    <span>{logoFallback}</span>
-                  )}
+            <div className="print-page">
+              <div className="print-page-frame">
+                <div className="print-page-header">
+                  <div className="print-page-eyebrow">TABLE ORDERING</div>
+                  <h1>{businessName}</h1>
+                  <p>{branchName}</p>
+                  <div className="print-table-badge">Table {selectedQrTable}</div>
+                </div>
+
+                <div className="print-hero-copy">
+                  <h2>Scan to order</h2>
+                  <p>
+                    Have a seat, enter your name, browse the menu, send your order, call a waiter,
+                    and view your bill directly from this table.
+                  </p>
+                </div>
+
+                <div className="print-qr-showcase">
+                  <div className="print-qr-wrap prestigious-qr">
+                    <img className="print-qr qr-base-image" src={selectedQrImage} alt={`Printable QR for table ${selectedQrTable}`} />
+                    <div className="qr-logo-mark print-qr-logo-mark" aria-hidden="true">
+                      {state.profile.logoDataUrl ? (
+                        <img src={state.profile.logoDataUrl} alt="" />
+                      ) : (
+                        <span>{logoFallback}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="print-steps-grid">
+                  <div className="print-step-card">
+                    <strong>1</strong>
+                    <span>Scan the QR code</span>
+                  </div>
+                  <div className="print-step-card">
+                    <strong>2</strong>
+                    <span>Enter your name</span>
+                  </div>
+                  <div className="print-step-card">
+                    <strong>3</strong>
+                    <span>Order from your table</span>
+                  </div>
+                </div>
+
+                <div className="print-page-footer">
+                  <span>No app download required</span>
+                  <em>Powered by Tawleh Manager</em>
                 </div>
               </div>
-              <h2>Scan to order</h2>
-              <p>Have a seat, enter your name, and order from this table.</p>
             </div>
           </section>
         </>
