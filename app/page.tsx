@@ -2905,6 +2905,38 @@ body {
   letter-spacing: -0.03em !important;
 }
 
+ .print-page-logo-card {
+  width: 118px !important;
+  height: 118px !important;
+  margin: 0 auto 12px !important;
+  border-radius: 30px !important;
+  background: linear-gradient(180deg, #ffffff, #fff9f2) !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  box-shadow: 0 14px 34px rgba(74, 45, 19, 0.10) !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+}
+
+.print-page-logo {
+  width: 78% !important;
+  height: 78% !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+.print-page-logo-fallback {
+  width: 78px !important;
+  height: 78px !important;
+  border-radius: 24px !important;
+  display: grid !important;
+  place-items: center !important;
+  background: linear-gradient(180deg, #fff0e8, #f8d8c6) !important;
+  color: #8f4f30 !important;
+  font-size: 28px !important;
+  font-weight: 1000 !important;
+}
+
 .print-page-header p {
   margin: 8px 0 16px !important;
   color: #7b7167 !important;
@@ -3194,6 +3226,20 @@ body {
 
   .print-page-header h1 {
     font-size: 30px !important;
+  }
+
+  .print-page-logo-card {
+    width: 96px !important;
+    height: 96px !important;
+    margin: 0 auto 9px !important;
+    border-radius: 24px !important;
+  }
+
+  .print-page-logo-fallback {
+    width: 66px !important;
+    height: 66px !important;
+    border-radius: 20px !important;
+    font-size: 24px !important;
   }
 
   .print-page-header p {
@@ -8014,7 +8060,13 @@ export default function Page() {
               <div className="print-page-frame">
                 <div className="print-page-header">
                   <div className="print-page-eyebrow">TABLE ORDERING</div>
-                  <h1>{businessName}</h1>
+                  <div className="print-page-logo-card">
+                    {state.profile.logoDataUrl ? (
+                      <img className="print-page-logo" src={state.profile.logoDataUrl} alt={`${businessName} logo`} />
+                    ) : (
+                      <div className="print-page-logo-fallback" aria-hidden="true">{logoFallback}</div>
+                    )}
+                  </div>
                   <p>{branchName}</p>
                   <div className="print-table-badge">Table {selectedQrTable}</div>
                 </div>
