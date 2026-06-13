@@ -1589,6 +1589,86 @@ main.customer-only-shell .customer-menu-photo-bg {
   pointer-events: none !important;
 }
 
+
+
+/* =========================================================
+   CUSTOMER RANDOM BACKGROUND VISIBLE LAYER FIX
+   The previous troubleshooting CSS accidentally allowed the inner photo layer
+   to be hidden. This makes the food photo layer obvious and visible inside
+   the actual customer phone screen.
+   ========================================================= */
+
+main.customer-only-shell .phone-screen {
+  position: relative !important;
+  overflow: hidden !important;
+  background: #f3dfc9 !important;
+}
+
+main.customer-only-shell .phone-screen > .customer-menu-photo-bg {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  transform: scale(1.03) !important;
+  filter: saturate(1.08) contrast(1.02) brightness(0.92) !important;
+  animation: tawlehCustomerBgFade 760ms ease both !important;
+}
+
+main.customer-only-shell .phone-screen > .customer-menu-photo-bg::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(255, 253, 248, 0.48) 0 24%, rgba(255, 247, 235, 0.32) 54%, rgba(238, 216, 192, 0.62) 100%),
+    linear-gradient(180deg, rgba(255, 252, 246, 0.38) 0%, rgba(244, 224, 201, 0.54) 100%) !important;
+}
+
+main.customer-only-shell .phone-status,
+main.customer-only-shell .option-one-customer-hero,
+main.customer-only-shell .phone-content,
+main.customer-only-shell .option-one-bottom-nav,
+main.customer-only-shell .fixed-send-order-bar {
+  position: relative !important;
+  z-index: 3 !important;
+}
+
+main.customer-only-shell .phone-screen::before {
+  display: none !important;
+}
+
+main.customer-only-shell .option-one-customer-hero {
+  background: rgba(255, 249, 239, 0.54) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+main.customer-only-shell .phone-content {
+  background: transparent !important;
+}
+
+main.customer-only-shell .option-one-seat-card,
+main.customer-only-shell .option-one-explore-card,
+main.customer-only-shell .option-one-table-card,
+main.customer-only-shell .option-one-category-card,
+main.customer-only-shell .menu-item,
+main.customer-only-shell .mini-card,
+main.customer-only-shell .seat-card {
+  background: rgba(255, 255, 255, 0.80) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-color: rgba(136, 94, 62, 0.16) !important;
+}
+
+/* If the menu has no uploaded image URLs, keep the original warm paper background. */
+main.customer-only-shell:not([style*="--customer-menu-bg"]) .phone-screen {
+  background: radial-gradient(circle at 50% -8%, #fffdf8 0 28%, #fff7ed 54%, #f2e4d3 100%) !important;
+}
+
 `;
 
 
@@ -5121,6 +5201,16 @@ export default function Page() {
       image.src = imageUrl;
     });
   }, [publicCustomerMode, customerBackgroundImages]);
+
+  useEffect(() => {
+    if (!publicCustomerMode) return;
+
+    console.info("[Tawleh customer background]", {
+      menuItems: state.menu.length,
+      backgroundImages: customerBackgroundImages.length,
+      activeBackground: customerBackgroundImage,
+    });
+  }, [publicCustomerMode, state.menu.length, customerBackgroundImages.length, customerBackgroundImage]);
 
   const orderCartLines = useMemo<CartLine[]>(() => {
     return Object.entries(orderCart)
