@@ -2205,6 +2205,140 @@ main.customer-only-shell .option-one-menu-back-row {
   }
 }
 
+
+
+/* =========================================================
+   CUSTOMER CATEGORY PHOTO CENTER + FIXED SEND ORDER BAR
+   - Category card photos are centered and cropped from the middle.
+   - Send Order stays locked to the screen while ordering.
+   - Bottom tabs stay locked above/below correctly without covering it.
+   ========================================================= */
+
+main.customer-only-shell .option-one-category-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+main.customer-only-shell .option-one-category-photo {
+  width: 100% !important;
+  height: 72px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  border-radius: 15px !important;
+  margin: 0 auto 7px !important;
+  background-position: center center !important;
+}
+
+main.customer-only-shell .option-one-category-photo img {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+  transform: scale(1.02) !important;
+}
+
+main.customer-only-shell .option-one-category-photo span {
+  width: 100% !important;
+  height: 100% !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+}
+
+main.customer-only-shell .option-one-category-card strong,
+main.customer-only-shell .option-one-category-card small {
+  width: 100% !important;
+  text-align: center !important;
+}
+
+/* Keep content clear of both fixed bars */
+main.customer-only-shell .phone-content {
+  padding-bottom: 176px !important;
+}
+
+main.customer-only-shell.customer-has-cart .phone-content {
+  padding-bottom: 286px !important;
+}
+
+/* Bottom tabs locked when no cart; move up when cart/send bar exists */
+main.customer-only-shell .option-one-bottom-nav {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: calc(14px + env(safe-area-inset-bottom)) !important;
+  transform: translateX(-50%) !important;
+  width: calc(100% - 28px) !important;
+  max-width: 520px !important;
+  z-index: 9998 !important;
+  margin: 0 !important;
+  pointer-events: auto !important;
+}
+
+main.customer-only-shell.customer-has-cart .option-one-bottom-nav {
+  bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+}
+
+/* Send Order bar must stay pinned to the viewport, not the scrolling phone content */
+main.customer-only-shell .fixed-send-order-bar,
+.fixed-send-order-bar {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  transform: translateX(-50%) !important;
+  width: calc(100% - 28px) !important;
+  max-width: 520px !important;
+  min-height: 66px !important;
+  z-index: 2147482000 !important;
+  margin: 0 !important;
+  pointer-events: auto !important;
+  will-change: transform !important;
+}
+
+/* When cart exists, keep the fixed bottom nav above Send Order and the Send Order at the bottom */
+main.customer-only-shell.customer-has-cart .fixed-send-order-bar,
+main.customer-only-shell.customer-has-cart .fixed-send-order-bar {
+  bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+}
+
+main.customer-only-shell.customer-has-cart .option-one-explore-card {
+  margin-bottom: 204px !important;
+}
+
+@media (max-width: 390px) {
+  main.customer-only-shell .option-one-category-photo {
+    height: 66px !important;
+  }
+
+  main.customer-only-shell .phone-content {
+    padding-bottom: 166px !important;
+  }
+
+  main.customer-only-shell.customer-has-cart .phone-content {
+    padding-bottom: 270px !important;
+  }
+
+  main.customer-only-shell .option-one-bottom-nav {
+    width: calc(100% - 20px) !important;
+    bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  }
+
+  main.customer-only-shell.customer-has-cart .option-one-bottom-nav {
+    bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+  }
+
+  main.customer-only-shell .fixed-send-order-bar,
+  .fixed-send-order-bar {
+    width: calc(100% - 20px) !important;
+    bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
 `;
 
 
