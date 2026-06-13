@@ -1344,6 +1344,546 @@ main.customer-only-shell,
 `;
 
 
+const MANAGER_DASHBOARD_OPTION2_CSS = `
+:root {
+  --dash-bg: #fbf7ef;
+  --dash-card: rgba(255, 253, 248, 0.92);
+  --dash-card-solid: #fffdf8;
+  --dash-line: rgba(97, 72, 48, 0.12);
+  --dash-ink: #2f2a25;
+  --dash-muted: #817466;
+  --dash-orange: #cf5f3b;
+  --dash-orange-soft: #fff0e9;
+  --dash-olive: #687044;
+  --dash-olive-soft: #eef3df;
+  --dash-gold: #bd8d47;
+  --dash-shadow: 0 18px 45px rgba(80, 52, 27, 0.10);
+}
+
+body {
+  background:
+    radial-gradient(circle at 15% 0%, rgba(207, 95, 59, 0.08), transparent 34%),
+    radial-gradient(circle at 100% 8%, rgba(104, 112, 68, 0.11), transparent 32%),
+    linear-gradient(180deg, #fffcf6 0%, var(--dash-bg) 100%) !important;
+}
+
+.app-shell:not(.customer-only-shell) {
+  min-height: 100vh !important;
+  padding: 24px 28px 18px !important;
+  background:
+    linear-gradient(90deg, rgba(104, 112, 68, 0.045) 0 16%, transparent 16%),
+    radial-gradient(circle at 96% 96%, rgba(104, 112, 68, 0.08), transparent 32%) !important;
+}
+
+.app-shell:not(.customer-only-shell)::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.78), rgba(255,255,255,0.20) 16%, transparent 16%),
+    radial-gradient(circle at 7% 88%, rgba(104, 112, 68, 0.15), transparent 24%);
+  z-index: -1;
+}
+
+.app-shell:not(.customer-only-shell) .topbar {
+  max-width: 1680px !important;
+  margin: 0 auto 22px !important;
+  padding: 18px 20px !important;
+  border-radius: 28px !important;
+  border: 1px solid var(--dash-line) !important;
+  background: rgba(255, 253, 248, 0.82) !important;
+  box-shadow: 0 14px 38px rgba(80, 52, 27, 0.08) !important;
+  backdrop-filter: blur(18px) !important;
+  top: 14px !important;
+}
+
+.app-shell:not(.customer-only-shell) .brand {
+  min-width: 320px !important;
+  gap: 14px !important;
+}
+
+.app-shell:not(.customer-only-shell) .topbar-logo-img {
+  width: 58px !important;
+  height: 58px !important;
+  min-width: 58px !important;
+  max-width: 58px !important;
+  max-height: 58px !important;
+  padding: 8px !important;
+  object-fit: contain !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  border: 1px solid var(--dash-line) !important;
+  box-shadow: 0 10px 24px rgba(80, 52, 27, 0.08) !important;
+}
+
+.app-shell:not(.customer-only-shell) .brand h1 {
+  font-size: 27px !important;
+  letter-spacing: -0.055em !important;
+  color: var(--dash-ink) !important;
+}
+
+.app-shell:not(.customer-only-shell) .brand p {
+  color: var(--dash-muted) !important;
+  font-size: 13px !important;
+  margin-top: 6px !important;
+  max-width: 380px !important;
+  white-space: normal !important;
+}
+
+.app-shell:not(.customer-only-shell) .top-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+}
+
+.app-shell:not(.customer-only-shell) .top-actions .pill {
+  min-height: 42px !important;
+  padding: 0 16px !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  border: 1px solid var(--dash-line) !important;
+  color: var(--dash-ink) !important;
+  box-shadow: 0 8px 18px rgba(80, 52, 27, 0.06) !important;
+  font-weight: 950 !important;
+}
+
+.app-shell:not(.customer-only-shell) .top-actions .btn {
+  min-height: 42px !important;
+  border-radius: 14px !important;
+  font-weight: 950 !important;
+  border: 1px solid var(--dash-line) !important;
+  box-shadow: 0 8px 18px rgba(80, 52, 27, 0.05) !important;
+}
+
+.app-shell:not(.customer-only-shell) .top-actions .btn.secondary {
+  background: var(--dash-orange-soft) !important;
+  color: var(--dash-orange) !important;
+}
+
+.app-shell:not(.customer-only-shell) .top-actions .btn.ghost {
+  background: #fff !important;
+  color: var(--dash-ink) !important;
+}
+
+.app-shell:not(.customer-only-shell) .top-actions .btn.danger {
+  background: #fff3ef !important;
+  color: #b63e2a !important;
+}
+
+.app-shell:not(.customer-only-shell) .grid.manager-only-grid {
+  max-width: 1680px !important;
+  margin: 0 auto !important;
+  display: block !important;
+}
+
+.app-shell:not(.customer-only-shell) .grid.manager-only-grid > .panel {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+.app-shell:not(.customer-only-shell) .grid.manager-only-grid > .panel > .panel-header {
+  display: none !important;
+}
+
+.app-shell:not(.customer-only-shell) .grid.manager-only-grid > .panel > .panel-body {
+  padding: 0 !important;
+}
+
+.app-shell:not(.customer-only-shell) .manager-layout {
+  gap: 18px !important;
+}
+
+.app-shell:not(.customer-only-shell) .stats {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+}
+
+.app-shell:not(.customer-only-shell) .stat-card {
+  position: relative !important;
+  min-height: 142px !important;
+  padding: 22px 22px 18px 98px !important;
+  border-radius: 24px !important;
+  border: 1px solid var(--dash-line) !important;
+  background: var(--dash-card) !important;
+  box-shadow: var(--dash-shadow) !important;
+  overflow: hidden !important;
+}
+
+.app-shell:not(.customer-only-shell) .stat-card::before {
+  content: "";
+  position: absolute;
+  left: 24px;
+  top: 24px;
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--dash-orange), #b84d2e);
+  box-shadow: 0 14px 26px rgba(207, 95, 59, 0.22);
+}
+
+.app-shell:not(.customer-only-shell) .stat-card::after {
+  position: absolute;
+  left: 24px;
+  top: 24px;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-size: 23px;
+  font-weight: 950;
+}
+
+.app-shell:not(.customer-only-shell) .stat-card:nth-child(1)::after { content: "▦"; }
+.app-shell:not(.customer-only-shell) .stat-card:nth-child(2)::before { background: linear-gradient(135deg, #d19a4c, #a87633); }
+.app-shell:not(.customer-only-shell) .stat-card:nth-child(2)::after { content: "▤"; }
+.app-shell:not(.customer-only-shell) .stat-card:nth-child(3)::before { background: linear-gradient(135deg, #c4953d, #8e6a2a); }
+.app-shell:not(.customer-only-shell) .stat-card:nth-child(3)::after { content: "◉"; }
+.app-shell:not(.customer-only-shell) .stat-card:nth-child(4)::before { background: linear-gradient(135deg, var(--dash-olive), #4c5632); }
+.app-shell:not(.customer-only-shell) .stat-card:nth-child(4)::after { content: "$"; }
+
+.app-shell:not(.customer-only-shell) .stat-card span {
+  color: var(--dash-muted) !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.08em !important;
+}
+
+.app-shell:not(.customer-only-shell) .stat-card strong {
+  margin-top: 10px !important;
+  color: var(--dash-ink) !important;
+  font-size: 36px !important;
+  line-height: 0.95 !important;
+  letter-spacing: -0.065em !important;
+}
+
+.app-shell:not(.customer-only-shell) .manager-tabs {
+  justify-content: space-between !important;
+  gap: 4px !important;
+  padding: 10px !important;
+  border-radius: 24px !important;
+  border: 1px solid var(--dash-line) !important;
+  background: rgba(255, 253, 248, 0.92) !important;
+  box-shadow: 0 14px 38px rgba(80, 52, 27, 0.07) !important;
+}
+
+.app-shell:not(.customer-only-shell) .manager-tab {
+  position: relative !important;
+  min-height: 50px !important;
+  flex: 1 1 auto !important;
+  border-radius: 17px !important;
+  padding: 0 14px !important;
+  color: #67594d !important;
+  font-size: 13px !important;
+  background: transparent !important;
+  border: 0 !important;
+  transition: transform 0.15s ease, background 0.15s ease !important;
+}
+
+.app-shell:not(.customer-only-shell) .manager-tab:hover {
+  background: #fff7ee !important;
+  transform: translateY(-1px) !important;
+}
+
+.app-shell:not(.customer-only-shell) .manager-tab.active {
+  background: linear-gradient(135deg, #cf5f3b, #b84d2e) !important;
+  color: white !important;
+  box-shadow: 0 14px 25px rgba(207, 95, 59, 0.23) !important;
+}
+
+.app-shell:not(.customer-only-shell) .two-col {
+  grid-template-columns: minmax(520px, 1.15fr) minmax(360px, 0.85fr) !important;
+  gap: 18px !important;
+  align-items: stretch !important;
+}
+
+.app-shell:not(.customer-only-shell) .manager-card {
+  border-radius: 25px !important;
+  border: 1px solid var(--dash-line) !important;
+  background: var(--dash-card) !important;
+  box-shadow: var(--dash-shadow) !important;
+  padding: 20px !important;
+  min-height: 100% !important;
+}
+
+.app-shell:not(.customer-only-shell) .manager-card h3 {
+  color: var(--dash-ink) !important;
+  font-size: 22px !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.045em !important;
+}
+
+.app-shell:not(.customer-only-shell) .sub {
+  color: var(--dash-muted) !important;
+  font-size: 13px !important;
+  margin: 6px 0 18px !important;
+}
+
+.app-shell:not(.customer-only-shell) .kitchen-screen-header {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  margin-bottom: 14px !important;
+}
+
+.app-shell:not(.customer-only-shell) .kitchen-bell-actions {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+}
+
+.app-shell:not(.customer-only-shell) .btn.small {
+  min-height: 38px !important;
+  border-radius: 13px !important;
+  font-weight: 950 !important;
+}
+
+.app-shell:not(.customer-only-shell) .btn.secondary,
+.app-shell:not(.customer-only-shell) .btn.success {
+  background: #fff4ec !important;
+  color: var(--dash-orange) !important;
+  border: 1px solid rgba(207, 95, 59, 0.22) !important;
+}
+
+.app-shell:not(.customer-only-shell) .btn.ghost {
+  background: #fff !important;
+  color: #5b5148 !important;
+  border: 1px solid var(--dash-line) !important;
+}
+
+.app-shell:not(.customer-only-shell) .kitchen-ticket-stack {
+  gap: 12px !important;
+  margin: 14px 0 0 !important;
+}
+
+.app-shell:not(.customer-only-shell) .kitchen-ticket-card {
+  border-radius: 20px !important;
+  background: #fffdf8 !important;
+  border: 1px solid rgba(104, 112, 68, 0.13) !important;
+  box-shadow: 0 10px 26px rgba(80, 52, 27, 0.07) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.app-shell:not(.customer-only-shell) .kitchen-ticket-card.not-printed {
+  border-left: 5px solid var(--dash-orange) !important;
+}
+
+.app-shell:not(.customer-only-shell) .kitchen-ticket-card.printed {
+  border-left: 5px solid var(--dash-olive) !important;
+}
+
+.app-shell:not(.customer-only-shell) .kitchen-ticket-top {
+  padding: 16px 18px 12px !important;
+  border-bottom: 1px solid var(--dash-line) !important;
+  background: linear-gradient(180deg, #fffaf2, #fffdf8) !important;
+}
+
+.app-shell:not(.customer-only-shell) .ticket-eyebrow {
+  color: var(--dash-orange) !important;
+}
+
+.app-shell:not(.customer-only-shell) .kitchen-ticket-top h4 {
+  color: var(--dash-ink) !important;
+  font-size: 23px !important;
+  letter-spacing: -0.055em !important;
+}
+
+.app-shell:not(.customer-only-shell) .kitchen-ticket-top p {
+  color: var(--dash-muted) !important;
+}
+
+.app-shell:not(.customer-only-shell) .print-status {
+  min-height: 30px !important;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+}
+
+.app-shell:not(.customer-only-shell) .print-status.pending {
+  color: var(--dash-orange) !important;
+  background: #fff0e9 !important;
+}
+
+.app-shell:not(.customer-only-shell) .print-status.printed {
+  color: var(--dash-olive) !important;
+  background: var(--dash-olive-soft) !important;
+}
+
+.app-shell:not(.customer-only-shell) .ticket-lines {
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+}
+
+.app-shell:not(.customer-only-shell) .ticket-line {
+  padding: 12px 18px !important;
+  border-top: 1px solid var(--dash-line) !important;
+  font-weight: 950 !important;
+  color: var(--dash-ink) !important;
+}
+
+.app-shell:not(.customer-only-shell) .ticket-line:first-child {
+  border-top: 0 !important;
+}
+
+.app-shell:not(.customer-only-shell) .ticket-line small {
+  color: var(--dash-olive) !important;
+}
+
+.app-shell:not(.customer-only-shell) .ticket-actions {
+  padding: 13px 18px 16px !important;
+  margin: 0 !important;
+  background: #fffaf2 !important;
+}
+
+.app-shell:not(.customer-only-shell) .empty {
+  border-radius: 20px !important;
+  background: rgba(255, 253, 248, 0.75) !important;
+  border: 1px dashed rgba(97, 72, 48, 0.18) !important;
+  color: var(--dash-muted) !important;
+  padding: 32px !important;
+}
+
+.app-shell:not(.customer-only-shell) .request-row {
+  background: #fffdf8 !important;
+  border: 1px solid var(--dash-line) !important;
+  border-radius: 20px !important;
+  padding: 15px !important;
+  box-shadow: 0 10px 24px rgba(80, 52, 27, 0.06) !important;
+}
+
+.app-shell:not(.customer-only-shell) .request-row strong {
+  color: var(--dash-ink) !important;
+  font-size: 16px !important;
+}
+
+.app-shell:not(.customer-only-shell) .request-row span {
+  color: var(--dash-muted) !important;
+}
+
+.app-shell:not(.customer-only-shell) .order-group {
+  border-color: var(--dash-line) !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  box-shadow: 0 10px 26px rgba(80, 52, 27, 0.06) !important;
+}
+
+.app-shell:not(.customer-only-shell) .order-group-header {
+  background: #fff4ec !important;
+  color: var(--dash-ink) !important;
+  border-bottom: 1px solid var(--dash-line) !important;
+}
+
+.app-shell:not(.customer-only-shell) .order-row {
+  background: #fffdf8 !important;
+  border-top: 1px solid var(--dash-line) !important;
+}
+
+.app-shell:not(.customer-only-shell) .status {
+  background: #fff3df !important;
+  color: #a86717 !important;
+}
+
+.app-shell:not(.customer-only-shell) .status.ready,
+.app-shell:not(.customer-only-shell) .status.served {
+  color: var(--dash-olive) !important;
+  background: var(--dash-olive-soft) !important;
+}
+
+.app-shell:not(.customer-only-shell) .status.waiting {
+  color: var(--dash-orange) !important;
+  background: #fff0e9 !important;
+}
+
+.app-shell:not(.customer-only-shell) .table-map {
+  gap: 14px !important;
+}
+
+.app-shell:not(.customer-only-shell) .table-card {
+  border-radius: 22px !important;
+  border: 1px solid var(--dash-line) !important;
+  background: #fffdf8 !important;
+  box-shadow: 0 10px 24px rgba(80, 52, 27, 0.06) !important;
+}
+
+.app-shell:not(.customer-only-shell) input,
+.app-shell:not(.customer-only-shell) textarea,
+.app-shell:not(.customer-only-shell) select {
+  background: #fff !important;
+  border: 1px solid var(--dash-line) !important;
+  border-radius: 15px !important;
+}
+
+.app-shell:not(.customer-only-shell) .toast {
+  border-radius: 18px !important;
+  border: 1px solid var(--dash-line) !important;
+  background: rgba(47, 42, 37, 0.96) !important;
+}
+
+@media (max-width: 1180px) {
+  .app-shell:not(.customer-only-shell) .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .two-col {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .topbar {
+    align-items: flex-start !important;
+    border-radius: 24px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell:not(.customer-only-shell) {
+    padding: 14px !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .topbar {
+    position: relative !important;
+    top: auto !important;
+    border-radius: 22px !important;
+    display: grid !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .brand {
+    min-width: 0 !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .stat-card {
+    min-height: 112px !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .manager-tabs {
+    overflow-x: auto !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .manager-tab {
+    min-width: 150px !important;
+  }
+}
+`;
+
+
+
 type Profile = {
   businessId: string;
   authUserId: string;
@@ -4200,7 +4740,11 @@ export default function Page() {
 
   return (
     <main className={publicCustomerMode ? `app-shell customer-only-shell ${Object.values(orderCart).some((qty) => Number(qty) > 0) ? "customer-has-cart" : ""}` : "app-shell"}>
-      {publicCustomerMode ? <style dangerouslySetInnerHTML={{ __html: OPTION_ONE_CUSTOMER_CRITICAL_CSS }} /> : null}
+      {publicCustomerMode ? (
+        <style dangerouslySetInnerHTML={{ __html: OPTION_ONE_CUSTOMER_CRITICAL_CSS }} />
+      ) : (
+        <style dangerouslySetInnerHTML={{ __html: MANAGER_DASHBOARD_OPTION2_CSS }} />
+      )}
       {!state.profileComplete && !publicTableMode ? (
         <section className="auth-page">
           <div className="auth-logo-wrap">
