@@ -1517,6 +1517,78 @@ main.customer-only-shell .seat-card {
   }
 }
 
+
+
+/* =========================================================
+   CUSTOMER RANDOM BACKGROUND FINAL FIX
+   The public-table API must send image_url, and the actual phone screen
+   must use the variable, not only the outside page shell.
+   ========================================================= */
+
+main.customer-only-shell .phone-screen {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 253, 248, 0.54) 0 24%, rgba(255, 246, 234, 0.42) 56%, rgba(239, 220, 198, 0.62) 100%),
+    linear-gradient(180deg, rgba(255, 252, 247, 0.36), rgba(243, 226, 207, 0.54)),
+    var(--customer-menu-bg, none),
+    #f6eadb !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  transition: background-image 760ms ease !important;
+}
+
+main.customer-only-shell .phone-screen::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255,255,255,0.36), transparent 40%),
+    linear-gradient(180deg, rgba(255,248,238,0.20), rgba(242,224,203,0.32)) !important;
+  backdrop-filter: blur(0.8px) saturate(1.02) !important;
+  -webkit-backdrop-filter: blur(0.8px) saturate(1.02) !important;
+}
+
+main.customer-only-shell .phone-status,
+main.customer-only-shell .option-one-customer-hero,
+main.customer-only-shell .phone-content,
+main.customer-only-shell .option-one-bottom-nav {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+main.customer-only-shell .option-one-customer-hero {
+  background: rgba(255, 250, 242, 0.46) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+
+main.customer-only-shell .phone-content {
+  background: transparent !important;
+}
+
+main.customer-only-shell .option-one-seat-card,
+main.customer-only-shell .option-one-explore-card,
+main.customer-only-shell .option-one-table-card,
+main.customer-only-shell .option-one-category-card,
+main.customer-only-shell .menu-item,
+main.customer-only-shell .mini-card,
+main.customer-only-shell .seat-card {
+  background: rgba(255, 255, 255, 0.78) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+}
+
+main.customer-only-shell .customer-menu-photo-bg {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 `;
 
 

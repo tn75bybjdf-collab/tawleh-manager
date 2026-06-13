@@ -13,7 +13,7 @@ function clean(value: string | null) {
 }
 
 const MENU_SELECT =
-  "id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, available_all_day, available_from, available_to, image_thumb_url, image_full_url, sort_order, created_at";
+  "id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, available_all_day, available_from, available_to, image_url, image_path, image_thumb_url, image_full_url, sort_order, created_at";
 
 export async function GET(request: NextRequest) {
   if (!supabaseUrl || !serviceRoleKey) {
