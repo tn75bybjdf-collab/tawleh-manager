@@ -1411,3 +1411,33 @@ img {
     max-width: 155px !important;
   }
 }
+
+
+/* =========================================================
+   TAWLEH MANAGER VIEW HOTFIX
+   Removes the customer phone preview from the manager dashboard.
+   Customer QR pages still show the customer menu normally.
+   ========================================================= */
+
+.manager-only-grid {
+  grid-template-columns: 1fr !important;
+  max-width: 1320px !important;
+}
+
+.manager-only-grid > .panel {
+  width: 100% !important;
+}
+
+.manager-only-grid .manager-layout {
+  width: 100% !important;
+}
+
+.manager-only-grid .two-col {
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+}
+
+@media (max-width: 980px) {
+  .manager-only-grid .two-col {
+    grid-template-columns: 1fr;
+  }
+}

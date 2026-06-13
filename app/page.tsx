@@ -3161,7 +3161,8 @@ export default function Page() {
             </div>
           </header>
 
-          <section className={publicCustomerMode ? "grid public-qr-grid" : "grid"}>
+          <section className={publicCustomerMode ? "grid public-qr-grid" : "grid manager-only-grid"}>
+            {publicCustomerMode && (
             <section className="panel customer-panel">
               <div className="panel-header">
                 <div>
@@ -3513,6 +3514,7 @@ export default function Page() {
                 </div>
               </div>
             </section>
+            )}
 
             {!publicCustomerMode && (
             <section className="panel">
