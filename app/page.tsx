@@ -7,7 +7,7 @@
 
 
 import { createClient } from "@supabase/supabase-js";
-import { ChangeEvent, FormEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, CSSProperties, FormEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 
 const OPTION_ONE_CUSTOMER_CRITICAL_CSS = `
 main.customer-only-shell,
@@ -1435,6 +1435,85 @@ main.customer-only-shell,
   .customer-menu-photo-bg {
     background-position: center top !important;
     filter: blur(1.2px) saturate(1.04) contrast(0.96) !important;
+  }
+}
+
+
+
+/* =========================================================
+   CUSTOMER QR MENU PHOTO BACKGROUND HOTFIX
+   This makes the rotating photo visible by putting it on the
+   customer page root, not only as an inner child layer.
+   ========================================================= */
+
+main.customer-only-shell {
+  min-height: 100dvh !important;
+  background:
+    radial-gradient(circle at 50% -8%, rgba(255, 253, 248, 0.66) 0 24%, rgba(255, 246, 234, 0.58) 52%, rgba(239, 220, 198, 0.78) 100%),
+    linear-gradient(180deg, rgba(255, 252, 247, 0.58), rgba(243, 226, 207, 0.76)),
+    var(--customer-menu-bg, none),
+    #f6eadb !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-attachment: fixed !important;
+  transition: background-image 760ms ease !important;
+}
+
+main.customer-only-shell::before {
+  content: "" !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.40), transparent 38%),
+    linear-gradient(180deg, rgba(255, 249, 241, 0.34), rgba(231, 210, 188, 0.42)) !important;
+  backdrop-filter: blur(1.2px) saturate(1.03) !important;
+  -webkit-backdrop-filter: blur(1.2px) saturate(1.03) !important;
+}
+
+main.customer-only-shell .grid,
+main.customer-only-shell .customer-panel,
+main.customer-only-shell .customer-phone,
+main.customer-only-shell .phone-screen,
+main.customer-only-shell .phone-content,
+main.customer-only-shell .option-one-customer-hero,
+main.customer-only-shell .option-one-bottom-nav {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+main.customer-only-shell .phone-screen {
+  background: transparent !important;
+}
+
+main.customer-only-shell .customer-menu-photo-bg {
+  display: none !important;
+}
+
+main.customer-only-shell .option-one-customer-hero {
+  background: linear-gradient(180deg, rgba(255, 250, 242, 0.52), rgba(255, 250, 242, 0.08)) !important;
+}
+
+main.customer-only-shell .option-one-seat-card,
+main.customer-only-shell .option-one-explore-card,
+main.customer-only-shell .option-one-table-card,
+main.customer-only-shell .option-one-category-card,
+main.customer-only-shell .menu-item,
+main.customer-only-shell .mini-card,
+main.customer-only-shell .seat-card {
+  background: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border-color: rgba(136, 94, 62, 0.16) !important;
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  main.customer-only-shell {
+    background:
+      radial-gradient(circle at 50% -8%, rgba(255, 253, 248, 0.80) 0 24%, rgba(255, 246, 234, 0.72) 52%, rgba(239, 220, 198, 0.88) 100%),
+      var(--customer-menu-bg, none),
+      #f6eadb !important;
   }
 }
 
@@ -4933,6 +5012,10 @@ export default function Page() {
     ? customerBackgroundImages[customerBgIndex % customerBackgroundImages.length]
     : "";
 
+  const customerBackgroundStyle = customerBackgroundImage
+    ? ({ "--customer-menu-bg": `url("${customerBackgroundImage}")` } as CSSProperties)
+    : undefined;
+
   useEffect(() => {
     if (!publicCustomerMode || !customerBackgroundImages.length) {
       setCustomerBgIndex(0);
@@ -6522,7 +6605,10 @@ export default function Page() {
   }
 
   return (
-    <main className={publicCustomerMode ? `app-shell customer-only-shell ${Object.values(orderCart).some((qty) => Number(qty) > 0) ? "customer-has-cart" : ""}` : "app-shell"}>
+    <main
+      className={publicCustomerMode ? `app-shell customer-only-shell ${Object.values(orderCart).some((qty) => Number(qty) > 0) ? "customer-has-cart" : ""}` : "app-shell"}
+      style={publicCustomerMode ? customerBackgroundStyle : undefined}
+    >
       {publicCustomerMode ? (
         <style dangerouslySetInnerHTML={{ __html: OPTION_ONE_CUSTOMER_CRITICAL_CSS }} />
       ) : (
