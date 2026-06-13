@@ -3433,6 +3433,95 @@ body {
   }
 }
 
+
+
+/* =========================================================
+   PRINT TOP LOGO CLEAN - NO BOX
+   Restaurant logo appears directly on the page, without card,
+   border, background, shadow, or container box.
+   ========================================================= */
+
+.print-page-logo-card {
+  width: 2.05in !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 auto 10px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: visible !important;
+}
+
+.print-page-logo {
+  width: 2.05in !important;
+  height: auto !important;
+  max-height: 1.10in !important;
+  object-fit: contain !important;
+  display: block !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.print-page-logo-fallback {
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #2f2a25 !important;
+  font-size: 34px !important;
+  font-weight: 1000 !important;
+  padding: 0 !important;
+}
+
+@media print {
+  .print-page-logo-card {
+    width: 1.85in !important;
+    height: auto !important;
+    margin: 0 auto 8px !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+  }
+
+  .print-page-logo {
+    width: 1.85in !important;
+    height: auto !important;
+    max-height: 0.96in !important;
+    object-fit: contain !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  .print-page-logo-fallback {
+    width: auto !important;
+    height: auto !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 30px !important;
+    padding: 0 !important;
+  }
+}
+
 `;
 
 
