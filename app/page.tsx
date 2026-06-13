@@ -2339,6 +2339,19 @@ main.customer-only-shell.customer-has-cart .option-one-explore-card {
   }
 }
 
+
+
+/* =========================================================
+   CUSTOMER QR REMOVE NAME SUGGESTIONS
+   New QR guests should only enter their own name.
+   No previous/suggested guest name chips under the name field.
+   ========================================================= */
+
+main.customer-only-shell .guest-chips,
+main.customer-only-shell .guest-chip {
+  display: none !important;
+}
+
 `;
 
 
