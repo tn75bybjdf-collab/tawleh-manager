@@ -1344,124 +1344,97 @@ main.customer-only-shell,
 
 
 /* =========================================================
-   CUSTOMER QR CATEGORY CAROUSEL - SHOW ALL CATEGORIES
-   Fixes the home screen only showing 4 categories and not sliding.
+   CUSTOMER QR RANDOM MENU PHOTO BACKGROUND
+   Uses real uploaded Supabase menu item photos only.
+   Rotates every 5 seconds from React state.
    ========================================================= */
 
-.customer-only-shell .option-one-explore-card {
-  overflow: visible !important;
+main.customer-only-shell,
+.customer-only-shell {
+  position: relative !important;
+  isolation: isolate !important;
+  background: #f6eadb !important;
 }
 
-.customer-only-shell .option-one-category-preview {
-  display: flex !important;
-  flex-wrap: nowrap !important;
-  grid-template-columns: none !important;
-  gap: 10px !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
-  padding: 2px 4px 13px !important;
-  margin: 0 -2px !important;
-  -webkit-overflow-scrolling: touch !important;
-  scroll-snap-type: x mandatory !important;
-  overscroll-behavior-x: contain !important;
-  touch-action: pan-x !important;
-  scrollbar-width: none !important;
+.customer-only-shell .phone-screen,
+.customer-phone:has(.option-one-customer-hero) .phone-screen {
+  position: relative !important;
+  isolation: isolate !important;
+  background: #f6eadb !important;
 }
 
-.customer-only-shell .option-one-category-preview::-webkit-scrollbar {
-  display: none !important;
+.customer-menu-photo-bg {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  opacity: 1 !important;
+  transform: scale(1.035) !important;
+  filter: blur(1.4px) saturate(1.05) contrast(0.96) !important;
+  animation: tawlehCustomerBgFade 760ms ease both !important;
+}
+
+.customer-menu-photo-bg::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background:
+    radial-gradient(circle at 50% -8%, rgba(255, 253, 248, 0.82) 0 26%, rgba(255, 248, 238, 0.68) 56%, rgba(242, 228, 211, 0.84) 100%),
+    linear-gradient(180deg, rgba(255, 252, 247, 0.78) 0%, rgba(255, 246, 232, 0.72) 46%, rgba(239, 220, 198, 0.90) 100%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.48), rgba(255, 255, 255, 0.20)) !important;
+}
+
+.customer-only-shell .customer-panel,
+.customer-only-shell .customer-phone,
+.customer-only-shell .phone-screen,
+.customer-only-shell .option-one-customer-hero,
+.customer-only-shell .phone-content {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.customer-only-shell .option-one-customer-hero {
+  background: linear-gradient(180deg, rgba(255, 250, 242, 0.76), rgba(255, 250, 242, 0.18)) !important;
+  border-bottom: 1px solid rgba(136, 94, 62, 0.08) !important;
+}
+
+.customer-only-shell .option-one-seat-card,
+.customer-only-shell .option-one-explore-card,
+.customer-only-shell .option-one-table-card,
+.customer-only-shell .mini-card,
+.customer-only-shell .seat-card,
+.customer-only-shell .menu-item {
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+  border-color: rgba(157, 117, 82, 0.18) !important;
 }
 
 .customer-only-shell .option-one-category-card {
-  flex: 0 0 112px !important;
-  width: 112px !important;
-  min-width: 112px !important;
-  max-width: 112px !important;
-  min-height: 132px !important;
-  scroll-snap-align: start !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
 }
 
-.customer-only-shell .option-one-category-photo {
-  height: 62px !important;
-  overflow: hidden !important;
-}
-
-.customer-only-shell .option-one-category-initials {
-  width: 100% !important;
-  height: 100% !important;
-  display: grid !important;
-  place-items: center !important;
-  border-radius: inherit !important;
-  background: linear-gradient(135deg, rgba(211, 109, 71, 0.16), rgba(104, 112, 68, 0.12)) !important;
-  color: #8f4f30 !important;
-  font-size: 20px !important;
-  font-weight: 1000 !important;
-  letter-spacing: -0.03em !important;
-}
-
-.customer-only-shell .option-one-category-card em {
-  display: block !important;
-  min-height: 13px !important;
-  margin-top: 2px !important;
-  color: #9a8c81 !important;
-  font-size: 10px !important;
-  line-height: 1.05 !important;
-  font-style: normal !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-.customer-only-shell .option-one-empty-categories {
-  flex: 1 0 100% !important;
-  min-height: 96px !important;
-  display: grid !important;
-  place-items: center !important;
-  border: 1px dashed rgba(157, 117, 82, 0.18) !important;
-  border-radius: 18px !important;
-  color: #8b796c !important;
-  font-size: 13px !important;
-  font-weight: 900 !important;
-  background: rgba(255,255,255,0.65) !important;
-}
-
-.customer-only-shell .option-one-section-row::after {
-  content: "Swipe →" !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  color: #c75f3f !important;
-  font-size: 11px !important;
-  font-weight: 950 !important;
-  opacity: 0.78 !important;
-  margin-left: auto !important;
-}
-
-.customer-only-shell .option-one-section-row button + .option-one-section-row::after {
-  display: none !important;
-}
-
-@media (max-width: 390px) {
-  .customer-only-shell .option-one-category-preview {
-    gap: 8px !important;
-    padding-bottom: 12px !important;
+@keyframes tawlehCustomerBgFade {
+  from {
+    opacity: 0;
+    transform: scale(1.055);
   }
 
-  .customer-only-shell .option-one-category-card {
-    flex-basis: 104px !important;
-    width: 104px !important;
-    min-width: 104px !important;
-    max-width: 104px !important;
-    min-height: 126px !important;
+  to {
+    opacity: 1;
+    transform: scale(1.035);
   }
+}
 
-  .customer-only-shell .option-one-category-photo {
-    height: 56px !important;
-  }
-
-  .customer-only-shell .option-one-category-card strong {
-    font-size: 10.6px !important;
+@media (max-width: 700px) {
+  .customer-menu-photo-bg {
+    background-position: center top !important;
+    filter: blur(1.2px) saturate(1.04) contrast(0.96) !important;
   }
 }
 
@@ -3557,430 +3530,6 @@ body {
   }
 }
 
-
-
-/* =========================================================
-   PRINT TOP LOGO CLEAN - NO BOX
-   Restaurant logo appears directly on the page, without card,
-   border, background, shadow, or container box.
-   ========================================================= */
-
-.print-page-logo-card {
-  width: 2.05in !important;
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  margin: 0 auto 10px !important;
-  padding: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  display: grid !important;
-  place-items: center !important;
-  overflow: visible !important;
-}
-
-.print-page-logo {
-  width: 2.05in !important;
-  height: auto !important;
-  max-height: 1.10in !important;
-  object-fit: contain !important;
-  display: block !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-}
-
-.print-page-logo-fallback {
-  width: auto !important;
-  height: auto !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  color: #2f2a25 !important;
-  font-size: 34px !important;
-  font-weight: 1000 !important;
-  padding: 0 !important;
-}
-
-@media print {
-  .print-page-logo-card {
-    width: 1.85in !important;
-    height: auto !important;
-    margin: 0 auto 8px !important;
-    padding: 0 !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-  }
-
-  .print-page-logo {
-    width: 1.85in !important;
-    height: auto !important;
-    max-height: 0.96in !important;
-    object-fit: contain !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-  }
-
-  .print-page-logo-fallback {
-    width: auto !important;
-    height: auto !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    font-size: 30px !important;
-    padding: 0 !important;
-  }
-}
-
-
-
-/* =========================================================
-   MENU BUILDER EXPANDED CATEGORY ITEM FACELIFT
-   Fixes the expanded category view where item text ran together.
-   ========================================================= */
-
-.manager-option2-shell .category-accordion-list {
-  display: grid !important;
-  gap: 14px !important;
-}
-
-.manager-option2-shell .category-accordion {
-  overflow: hidden !important;
-  border-radius: 28px !important;
-  border: 1px solid rgba(91, 71, 48, 0.12) !important;
-  background: rgba(255, 253, 248, 0.92) !important;
-  box-shadow: 0 16px 38px rgba(74, 45, 19, 0.07) !important;
-}
-
-.manager-option2-shell .category-accordion-header {
-  width: 100% !important;
-  min-height: 82px !important;
-  padding: 16px 18px !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 16px !important;
-  border: 0 !important;
-  border-bottom: 1px solid rgba(91, 71, 48, 0.10) !important;
-  background: linear-gradient(135deg, #fffdf8, #fff6ec) !important;
-  text-align: left !important;
-}
-
-.manager-option2-shell .category-accordion-header strong {
-  display: block !important;
-  color: #2f2a25 !important;
-  font-size: 23px !important;
-  line-height: 1 !important;
-  letter-spacing: -0.045em !important;
-  font-weight: 1000 !important;
-}
-
-.manager-option2-shell .category-accordion-header span[dir="rtl"] {
-  display: block !important;
-  margin-top: 5px !important;
-  color: #8f8175 !important;
-  font-size: 13px !important;
-  line-height: 1.15 !important;
-  font-weight: 800 !important;
-}
-
-.manager-option2-shell .category-accordion-meta {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  flex-shrink: 0 !important;
-}
-
-.manager-option2-shell .category-accordion-meta span {
-  min-height: 34px !important;
-  padding: 0 12px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  border-radius: 999px !important;
-  background: #eff4df !important;
-  color: #4f5a31 !important;
-  font-size: 12px !important;
-  font-weight: 1000 !important;
-}
-
-.manager-option2-shell .category-accordion-meta b {
-  min-height: 34px !important;
-  padding: 0 12px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  border-radius: 999px !important;
-  background: #fff0e8 !important;
-  color: #c46542 !important;
-  border: 1px solid rgba(207, 95, 59, 0.16) !important;
-  font-size: 12px !important;
-  font-weight: 1000 !important;
-}
-
-.manager-option2-shell .premium-expanded-menu-list {
-  display: grid !important;
-  gap: 12px !important;
-  padding: 16px !important;
-  background: rgba(255, 250, 244, 0.62) !important;
-}
-
-.manager-option2-shell .premium-expanded-menu-item {
-  display: grid !important;
-  grid-template-columns: 92px minmax(0, 1fr) 126px !important;
-  align-items: stretch !important;
-  gap: 15px !important;
-  padding: 14px !important;
-  border-radius: 23px !important;
-  border: 1px solid rgba(91, 71, 48, 0.12) !important;
-  background: #fffdf8 !important;
-  box-shadow: 0 12px 30px rgba(74, 45, 19, 0.06) !important;
-}
-
-.manager-option2-shell .premium-expanded-item-media {
-  min-width: 0 !important;
-}
-
-.manager-option2-shell .premium-menu-photo,
-.manager-option2-shell .premium-menu-photo.fallback {
-  width: 92px !important;
-  height: 92px !important;
-  min-width: 92px !important;
-  min-height: 92px !important;
-  border-radius: 21px !important;
-  overflow: hidden !important;
-  border: 1px solid rgba(91, 71, 48, 0.10) !important;
-  background: linear-gradient(135deg, rgba(207,95,59,0.12), rgba(104,112,68,0.10)), #f8ebdd !important;
-  display: grid !important;
-  place-items: center !important;
-  color: #8f4f30 !important;
-  font-size: 22px !important;
-  font-weight: 1000 !important;
-  letter-spacing: -0.04em !important;
-  padding: 0 !important;
-  cursor: pointer !important;
-}
-
-.manager-option2-shell .premium-menu-photo img {
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
-  display: block !important;
-}
-
-.manager-option2-shell .premium-expanded-item-main {
-  min-width: 0 !important;
-  display: grid !important;
-  align-content: start !important;
-  gap: 6px !important;
-}
-
-.manager-option2-shell .premium-expanded-item-top {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 10px !important;
-  margin-bottom: 2px !important;
-}
-
-.manager-option2-shell .premium-item-code {
-  display: inline-flex !important;
-  width: fit-content !important;
-  min-height: 28px !important;
-  align-items: center !important;
-  padding: 0 10px !important;
-  border-radius: 999px !important;
-  background: #fff0e8 !important;
-  color: #c46542 !important;
-  border: 1px solid rgba(207, 95, 59, 0.15) !important;
-  font-size: 11px !important;
-  font-weight: 1000 !important;
-  letter-spacing: 0.06em !important;
-}
-
-.manager-option2-shell .premium-expanded-item-main > strong {
-  display: block !important;
-  color: #2f2a25 !important;
-  font-size: 18px !important;
-  line-height: 1.12 !important;
-  font-weight: 1000 !important;
-  letter-spacing: -0.035em !important;
-  white-space: normal !important;
-}
-
-.manager-option2-shell .premium-expanded-item-main .arabic-item-name {
-  display: block !important;
-  color: #7e7166 !important;
-  font-size: 14px !important;
-  line-height: 1.25 !important;
-  font-weight: 850 !important;
-  white-space: normal !important;
-}
-
-.manager-option2-shell .premium-expanded-description {
-  margin: 2px 0 1px !important;
-  color: #5d534b !important;
-  font-size: 13px !important;
-  line-height: 1.36 !important;
-  font-weight: 650 !important;
-  white-space: normal !important;
-}
-
-.manager-option2-shell .premium-expanded-description.muted {
-  color: #a09184 !important;
-  font-style: italic !important;
-}
-
-.manager-option2-shell .premium-expanded-item-main em {
-  color: #2f2a25 !important;
-  font-size: 16px !important;
-  line-height: 1 !important;
-  font-style: normal !important;
-  font-weight: 1000 !important;
-  white-space: nowrap !important;
-}
-
-.manager-option2-shell .premium-expanded-meta-row {
-  display: flex !important;
-  align-items: center !important;
-  gap: 7px !important;
-  flex-wrap: wrap !important;
-  margin-top: 4px !important;
-}
-
-.manager-option2-shell .premium-meta-chip {
-  min-height: 27px !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  padding: 0 9px !important;
-  border-radius: 999px !important;
-  background: rgba(104, 112, 68, 0.10) !important;
-  color: #4f5a31 !important;
-  font-size: 11px !important;
-  font-weight: 950 !important;
-  line-height: 1 !important;
-}
-
-.manager-option2-shell .premium-meta-chip.available {
-  background: #eff4df !important;
-  color: #4f5a31 !important;
-}
-
-.manager-option2-shell .premium-meta-chip.unavailable {
-  background: #fff0e8 !important;
-  color: #c46542 !important;
-}
-
-.manager-option2-shell .premium-meta-chip.time {
-  background: #f8f0e6 !important;
-  color: #7a6a5d !important;
-}
-
-.manager-option2-shell .premium-expanded-actions {
-  display: grid !important;
-  grid-template-columns: 1fr !important;
-  gap: 8px !important;
-  align-content: center !important;
-  justify-items: stretch !important;
-}
-
-.manager-option2-shell .premium-expanded-actions .btn {
-  width: 100% !important;
-  min-height: 38px !important;
-  border-radius: 13px !important;
-  font-size: 12px !important;
-  font-weight: 1000 !important;
-  padding: 0 12px !important;
-}
-
-@media (max-width: 980px) {
-  .manager-option2-shell .premium-expanded-menu-item {
-    grid-template-columns: 74px minmax(0, 1fr) !important;
-  }
-
-  .manager-option2-shell .premium-menu-photo,
-  .manager-option2-shell .premium-menu-photo.fallback {
-    width: 74px !important;
-    height: 74px !important;
-    min-width: 74px !important;
-    min-height: 74px !important;
-  }
-
-  .manager-option2-shell .premium-expanded-actions {
-    grid-column: 1 / -1 !important;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-  }
-}
-
-@media (max-width: 620px) {
-  .manager-option2-shell .category-accordion-header {
-    align-items: flex-start !important;
-  }
-
-  .manager-option2-shell .category-accordion-meta {
-    display: grid !important;
-    justify-items: end !important;
-  }
-
-  .manager-option2-shell .premium-expanded-menu-item {
-    grid-template-columns: 1fr !important;
-  }
-
-  .manager-option2-shell .premium-menu-photo,
-  .manager-option2-shell .premium-menu-photo.fallback {
-    width: 100% !important;
-    height: 154px !important;
-  }
-
-  .manager-option2-shell .premium-expanded-actions {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-
-
-/* =========================================================
-   MENU BUILDER EDIT SCROLL TARGET
-   When pressing Edit in an expanded category, scroll smoothly
-   to the editor form and make it obvious where to edit.
-   ========================================================= */
-
-.manager-option2-shell .menu-builder-form {
-  scroll-margin-top: 26px !important;
-}
-
-.manager-option2-shell .menu-builder-form.editing-target {
-  position: relative !important;
-  border-radius: 24px !important;
-  outline: 3px solid rgba(207, 95, 59, 0.20) !important;
-  outline-offset: 8px !important;
-  animation: tawlehEditPulse 1.1s ease-out 1 !important;
-}
-
-@keyframes tawlehEditPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(207, 95, 59, 0.30);
-  }
-  70% {
-    box-shadow: 0 0 0 14px rgba(207, 95, 59, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(207, 95, 59, 0);
-  }
-}
-
 `;
 
 
@@ -5058,7 +4607,6 @@ export default function Page() {
   const [kitchenBellEnabled, setKitchenBellEnabled] = useState(false);
   const kitchenBellPrimedRef = useRef(false);
   const lastKitchenNewOrderIdsRef = useRef<Set<string>>(new Set());
-  const menuBuilderFormRef = useRef<HTMLDivElement | null>(null);
   const [signupProfile, setSignupProfile] = useState<Profile>(defaultState.profile);
   const [activeLocationTab, setActiveLocationTab] = useState(0);
   const [authBusy, setAuthBusy] = useState(false);
@@ -5076,6 +4624,7 @@ export default function Page() {
   const [imageBusy, setImageBusy] = useState(false);
   const [menuBusy, setMenuBusy] = useState(false);
   const [selectedMenuImage, setSelectedMenuImage] = useState<MenuItem | null>(null);
+  const [customerBgIndex, setCustomerBgIndex] = useState(0);
   const [toast, setToast] = useState("");
   const [publicTableMode, setPublicTableMode] = useState(false);
   const publicCustomerMode = publicTableMode;
@@ -5365,6 +4914,58 @@ export default function Page() {
     : activeMenuCategory === "uncategorized"
       ? state.menu.filter((item) => !item.categoryId)
       : state.menu.filter((item) => item.categoryId === activeMenuCategory);
+
+  const customerBackgroundImages = useMemo(() => {
+    const seen = new Set<string>();
+
+    state.menu.forEach((item) => {
+      const imageUrl = item.imageFullUrl || item.imageThumbUrl;
+
+      if (imageUrl && !imageUrl.startsWith("data:")) {
+        seen.add(imageUrl);
+      }
+    });
+
+    return Array.from(seen);
+  }, [state.menu]);
+
+  const customerBackgroundImage = publicCustomerMode && customerBackgroundImages.length
+    ? customerBackgroundImages[customerBgIndex % customerBackgroundImages.length]
+    : "";
+
+  useEffect(() => {
+    if (!publicCustomerMode || !customerBackgroundImages.length) {
+      setCustomerBgIndex(0);
+      return;
+    }
+
+    setCustomerBgIndex(Math.floor(Math.random() * customerBackgroundImages.length));
+
+    const timer = window.setInterval(() => {
+      setCustomerBgIndex((current) => {
+        if (customerBackgroundImages.length <= 1) return 0;
+
+        let next = Math.floor(Math.random() * customerBackgroundImages.length);
+
+        if (next === current) {
+          next = (current + 1) % customerBackgroundImages.length;
+        }
+
+        return next;
+      });
+    }, 5000);
+
+    return () => window.clearInterval(timer);
+  }, [publicCustomerMode, customerBackgroundImages.length]);
+
+  useEffect(() => {
+    if (!publicCustomerMode || !customerBackgroundImages.length) return;
+
+    customerBackgroundImages.slice(0, 24).forEach((imageUrl) => {
+      const image = new Image();
+      image.src = imageUrl;
+    });
+  }, [publicCustomerMode, customerBackgroundImages]);
 
   const orderCartLines = useMemo<CartLine[]>(() => {
     return Object.entries(orderCart)
@@ -6751,7 +6352,6 @@ export default function Page() {
   }
 
   function startEditingMenuItem(item: MenuItem) {
-    setManagerTab("menuBuilder");
     setEditingMenuItemId(item.id);
     setMenuDraft({
       name: item.name,
@@ -6767,17 +6367,6 @@ export default function Page() {
       imageThumbUrl: item.imageThumbUrl || "",
       imageFullUrl: item.imageFullUrl || "",
     });
-
-    window.setTimeout(() => {
-      menuBuilderFormRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-
-      const firstEditableField = menuBuilderFormRef.current?.querySelector("input, textarea, select") as HTMLElement | null;
-      firstEditableField?.focus({ preventScroll: true });
-    }, 80);
-
     show(`Editing ${item.name}`);
   }
 
@@ -7263,6 +6852,15 @@ export default function Page() {
                   <div className="phone-screen">
                     <div className="phone-status">9:41 &nbsp; Tawleh</div>
 
+                    {publicCustomerMode && customerBackgroundImage ? (
+                      <div
+                        key={customerBackgroundImage}
+                        className="customer-menu-photo-bg"
+                        style={{ backgroundImage: `url("${customerBackgroundImage}")` }}
+                        aria-hidden="true"
+                      />
+                    ) : null}
+
                     {publicCustomerMode ? (
                       <div className="option-one-customer-hero">
                         <div className="option-one-welcome-first">
@@ -7440,39 +7038,24 @@ export default function Page() {
                               </button>
                             </div>
 
-                            <div className="option-one-category-preview" aria-label="Swipe menu categories">
+                            <div className="option-one-category-preview">
                               {[
-                                ...menuCategoriesWithItems.map((category) => ({
-                                  id: category.id,
-                                  label: category.name,
-                                  labelAr: category.nameAr,
-                                  kind: "category",
-                                })),
-                                ...(hasUncategorizedItems
-                                  ? [{
-                                      id: "uncategorized",
-                                      label: "Other",
-                                      labelAr: "",
-                                      kind: "uncategorized",
-                                    }]
-                                  : []),
+                                { label: "Mezze", icon: "🥣" },
+                                { label: "Hot Mezze", icon: "🥟" },
+                                { label: "Grills", icon: "🔥" },
+                                { label: "Desserts", icon: "🍰" },
                               ].map((preview, index) => {
-                                const categoryItems = preview.kind === "uncategorized"
-                                  ? state.menu.filter((item) => !item.categoryId)
-                                  : state.menu.filter((item) => item.categoryId === preview.id);
+                                const category = menuCategoriesWithItems[index];
+                                const categoryItems = category
+                                  ? state.menu.filter((item) => item.categoryId === category.id)
+                                  : [];
                                 const itemCount = categoryItems.length;
                                 const firstPhotoItem = categoryItems.find((item) => item.imageThumbUrl || item.imageFullUrl);
                                 const categoryImageUrl = firstPhotoItem?.imageThumbUrl || firstPhotoItem?.imageFullUrl || "";
-                                const fallbackInitials = preview.label
-                                  .split(/\s+/)
-                                  .map((word) => word[0] || "")
-                                  .join("")
-                                  .slice(0, 2)
-                                  .toUpperCase() || String(index + 1).padStart(2, "0");
 
                                 return (
                                   <button
-                                    key={`${preview.id}-${index}`}
+                                    key={`${preview.label}-${index}`}
                                     className="option-one-category-card"
                                     type="button"
                                     onClick={() => {
@@ -7481,28 +7064,22 @@ export default function Page() {
                                         return;
                                       }
 
-                                      setActiveMenuCategory(preview.id);
+                                      setActiveMenuCategory(category?.id || "all");
                                       setPhoneTab("menu");
                                     }}
                                   >
                                     <div className="option-one-category-photo">
                                       {categoryImageUrl ? (
-                                        <img src={categoryImageUrl} alt={preview.label} />
+                                        <img src={categoryImageUrl} alt={category?.name || preview.label} />
                                       ) : (
-                                        <span className="option-one-category-initials">{fallbackInitials}</span>
+                                        <span>{preview.icon}</span>
                                       )}
                                     </div>
-                                    <strong>{preview.label}</strong>
-                                    {preview.labelAr ? <em dir="rtl">{preview.labelAr}</em> : null}
-                                    <small>{itemCount} item{itemCount === 1 ? "" : "s"}</small>
+                                    <strong>{category?.name || preview.label}</strong>
+                                    <small>{itemCount || " "} {itemCount ? "items" : ""}</small>
                                   </button>
                                 );
                               })}
-                              {!menuCategoriesWithItems.length && !hasUncategorizedItems ? (
-                                <div className="option-one-empty-categories">
-                                  No menu categories yet.
-                                </div>
-                              ) : null}
                             </div>
                           </div>
 
@@ -8255,11 +7832,7 @@ export default function Page() {
                         </div>
                       </div>
 
-                      <div
-                        id="menu-builder-editor"
-                        ref={menuBuilderFormRef}
-                        className={`menu-builder-form ${editingMenuItemId ? "editing-target" : ""}`}
-                      >
+                      <div className="menu-builder-form">
                         {editingMenuItemId ? (
                           <div className="edit-banner">
                             Editing item. Change price, picture, stock, category, or daily serving hours, then save.
@@ -8475,51 +8048,32 @@ export default function Page() {
                               </button>
 
                               {isExpanded ? (
-                                <div className="menu-builder-list premium-expanded-menu-list">
+                                <div className="menu-builder-list">
                                   {group.items.map((item) => (
-                                    <div className="menu-builder-item premium-expanded-menu-item" key={item.id}>
-                                      <div className="premium-expanded-item-media">
-                                        {item.imageThumbUrl ? (
-                                          <button className="menu-builder-photo premium-menu-photo" type="button" onClick={() => setSelectedMenuImage(item)}>
-                                            <img src={item.imageThumbUrl} alt={item.name} />
-                                          </button>
-                                        ) : (
-                                          <div className="menu-builder-photo premium-menu-photo fallback">
-                                            {item.icon || item.name.slice(0, 2).toUpperCase()}
-                                          </div>
-                                        )}
-                                      </div>
+                                    <div className="menu-builder-item" key={item.id}>
+                                      {item.imageThumbUrl ? (
+                                        <button className="menu-builder-photo" type="button" onClick={() => setSelectedMenuImage(item)}>
+                                          <img src={item.imageThumbUrl} alt={item.name} />
+                                        </button>
+                                      ) : (
+                                        <div className="menu-builder-photo fallback">{item.icon}</div>
+                                      )}
 
-                                      <div className="menu-builder-main premium-expanded-item-main">
-                                        <div className="premium-expanded-item-top">
-                                          <span className="premium-item-code">{item.icon || "ITEM"}</span>
-                                          <em>{money(item.price)}</em>
-                                        </div>
-
+                                      <div className="menu-builder-main">
                                         <strong>{item.name}</strong>
                                         {item.nameAr ? <span className="arabic-item-name" dir="rtl">{item.nameAr}</span> : null}
-
-                                        {item.desc ? (
-                                          <p className="premium-expanded-description">{item.desc}</p>
-                                        ) : (
-                                          <p className="premium-expanded-description muted">No description yet.</p>
-                                        )}
-
-                                        <div className="premium-expanded-meta-row">
-                                          <span className="premium-meta-chip">{item.categoryName || "Uncategorized"}</span>
-                                          <span className={`premium-meta-chip ${item.available ? "available" : "unavailable"}`}>
-                                            {item.available ? "In stock" : "Out of stock"}
-                                          </span>
-                                          <span className="premium-meta-chip time">{formatItemAvailability(item)}</span>
-                                        </div>
+                                        <span className="category-line">{item.categoryName || "Uncategorized"}</span>
+                                        <span>{item.desc}</span>
+                                        <span className="availability-line">{formatItemAvailability(item)}</span>
+                                        <em>{money(item.price)}</em>
                                       </div>
 
-                                      <div className="menu-builder-actions premium-expanded-actions">
+                                      <div className="menu-builder-actions">
                                         <button className="btn small secondary" type="button" onClick={() => startEditingMenuItem(item)} disabled={menuBusy}>
                                           Edit
                                         </button>
                                         <button className={`btn small ${item.available ? "success" : "danger"}`} type="button" onClick={() => toggleItem(item.id)} disabled={menuBusy}>
-                                          {item.available ? "Set out" : "Set in"}
+                                          {item.available ? "In stock" : "Out"}
                                         </button>
                                         <button className="btn small danger" type="button" onClick={() => removeMenuItem(item.id)} disabled={menuBusy}>
                                           Remove
