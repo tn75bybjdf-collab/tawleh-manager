@@ -2368,6 +2368,326 @@ body {
   }
 }
 
+
+
+/* Menu Builder category facelift */
+.manager-option2-shell .category-builder-card {
+  padding: 22px !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(207, 95, 59, 0.10), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,250,242,0.92)) !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  box-shadow: 0 16px 38px rgba(74, 45, 19, 0.08) !important;
+  margin-bottom: 20px !important;
+}
+
+.manager-option2-shell .category-builder-card h4 {
+  margin: 0 !important;
+  color: #2f2a25 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.manager-option2-shell .category-builder-card > p {
+  margin: 7px 0 18px !important;
+  color: #817466 !important;
+  font-size: 13px !important;
+}
+
+.manager-option2-shell .premium-category-list {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  margin-top: 18px !important;
+}
+
+.manager-option2-shell .manager-category-card {
+  width: 100% !important;
+  min-height: 92px !important;
+  display: grid !important;
+  grid-template-columns: 66px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  box-shadow: 0 12px 28px rgba(74, 45, 19, 0.07) !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease !important;
+}
+
+.manager-option2-shell .manager-category-card:hover {
+  transform: translateY(-2px) !important;
+  border-color: rgba(207, 95, 59, 0.24) !important;
+  box-shadow: 0 18px 38px rgba(74, 45, 19, 0.10) !important;
+}
+
+.manager-option2-shell .manager-category-card.selected {
+  background: linear-gradient(135deg, #fff4ec, #fffdf8) !important;
+  border-color: rgba(207, 95, 59, 0.34) !important;
+  box-shadow: 0 16px 36px rgba(207, 95, 59, 0.12) !important;
+}
+
+.manager-option2-shell .manager-category-photo {
+  width: 66px !important;
+  height: 66px !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  display: grid !important;
+  place-items: center !important;
+  background:
+    linear-gradient(135deg, rgba(207, 95, 59, 0.14), rgba(104, 112, 68, 0.11)),
+    #f7eadb !important;
+  color: #c46542 !important;
+  font-weight: 950 !important;
+  font-size: 18px !important;
+}
+
+.manager-option2-shell .manager-category-photo img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.manager-option2-shell .manager-category-copy {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 3px !important;
+}
+
+.manager-option2-shell .manager-category-copy strong {
+  display: block !important;
+  color: #2f2a25 !important;
+  font-size: 16px !important;
+  line-height: 1.08 !important;
+  font-weight: 950 !important;
+  white-space: normal !important;
+}
+
+.manager-option2-shell .manager-category-copy em {
+  display: block !important;
+  color: #817466 !important;
+  font-size: 12px !important;
+  line-height: 1.12 !important;
+  font-style: normal !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.manager-option2-shell .manager-category-copy small {
+  display: inline-flex !important;
+  width: fit-content !important;
+  margin-top: 4px !important;
+  padding: 4px 8px !important;
+  border-radius: 999px !important;
+  background: #eff4df !important;
+  color: #4f5a31 !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+}
+
+.manager-option2-shell .manager-category-card b {
+  min-width: 58px !important;
+  min-height: 32px !important;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  background: #fff3e8 !important;
+  color: #c46542 !important;
+  border: 1px solid rgba(207, 95, 59, 0.16) !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+}
+
+.manager-option2-shell .manager-category-card.selected b {
+  background: linear-gradient(135deg, #cf5f3b, #b84c2d) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+.manager-option2-shell .premium-empty-category {
+  grid-column: 1 / -1 !important;
+  min-height: 100px !important;
+  display: grid !important;
+  place-items: center !important;
+  text-align: center !important;
+  padding: 18px !important;
+  border-radius: 22px !important;
+  border: 1px dashed rgba(91, 71, 48, 0.20) !important;
+  background: rgba(255,255,255,0.55) !important;
+}
+
+.manager-option2-shell .premium-empty-category strong {
+  color: #2f2a25 !important;
+  font-size: 18px !important;
+}
+
+.manager-option2-shell .premium-empty-category span {
+  color: #817466 !important;
+  font-size: 13px !important;
+}
+
+/* Also upgrade the category accordion headers on the right side */
+.manager-option2-shell .category-accordion {
+  border-radius: 22px !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  background: rgba(255, 253, 248, 0.88) !important;
+  box-shadow: 0 12px 28px rgba(74, 45, 19, 0.06) !important;
+  overflow: hidden !important;
+  margin-bottom: 12px !important;
+}
+
+.manager-option2-shell .category-accordion-header {
+  min-height: 72px !important;
+  padding: 14px 16px !important;
+  border: 0 !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.96), rgba(255,247,238,0.88)) !important;
+}
+
+.manager-option2-shell .category-accordion-header.expanded {
+  background:
+    linear-gradient(135deg, rgba(207, 95, 59, 0.10), rgba(255,253,248,0.96)) !important;
+}
+
+.manager-option2-shell .category-accordion-header strong {
+  color: #2f2a25 !important;
+  font-size: 18px !important;
+  line-height: 1.05 !important;
+}
+
+.manager-option2-shell .category-accordion-header span {
+  color: #817466 !important;
+  font-size: 12px !important;
+}
+
+.manager-option2-shell .category-accordion-meta span {
+  background: #eff4df !important;
+  color: #4f5a31 !important;
+  border-radius: 999px !important;
+  padding: 6px 10px !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+}
+
+.manager-option2-shell .category-accordion-meta b {
+  background: #fff3e8 !important;
+  color: #c46542 !important;
+  border: 1px solid rgba(207, 95, 59, 0.16) !important;
+  border-radius: 999px !important;
+  padding: 7px 11px !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+}
+
+@media (max-width: 980px) {
+  .manager-option2-shell .premium-category-list {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+
+/* Restaurant logo restore/fix */
+.manager-option2-shell .restaurant-brand-logo-block {
+  align-items: center !important;
+  padding-bottom: 18px !important;
+}
+
+.manager-option2-shell .restaurant-brand-logo-block .logo-box {
+  width: 70px !important;
+  height: 70px !important;
+  min-width: 70px !important;
+  min-height: 70px !important;
+  max-width: 70px !important;
+  max-height: 70px !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  border: 1px solid rgba(91, 71, 48, 0.14) !important;
+  box-shadow: 0 14px 32px rgba(74, 45, 19, 0.10) !important;
+  overflow: hidden !important;
+}
+
+.manager-option2-shell .restaurant-brand-logo-block .logo-box img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  padding: 8px !important;
+}
+
+.manager-option2-shell .restaurant-brand-logo-block .logo-box span {
+  font-size: 24px !important;
+  font-weight: 1000 !important;
+  color: #c46542 !important;
+}
+
+.manager-option2-shell .restaurant-brand-logo-block strong {
+  font-size: 24px !important;
+  max-width: 170px !important;
+  white-space: normal !important;
+  line-height: 1.02 !important;
+}
+
+.manager-option2-shell .restaurant-brand-logo-block span {
+  letter-spacing: 0.08em !important;
+}
+
+.manager-option2-shell .restaurant-logo-upload-card {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 14px !important;
+  margin: 0 0 18px !important;
+  padding: 15px !important;
+  border-radius: 20px !important;
+  background: linear-gradient(135deg, #fff4ec, #fffdf8) !important;
+  border: 1px solid rgba(207, 95, 59, 0.18) !important;
+  box-shadow: 0 12px 28px rgba(74, 45, 19, 0.07) !important;
+}
+
+.manager-option2-shell .restaurant-logo-upload-card strong {
+  display: block !important;
+  color: #2f2a25 !important;
+  font-size: 16px !important;
+  font-weight: 950 !important;
+}
+
+.manager-option2-shell .restaurant-logo-upload-card span {
+  display: block !important;
+  margin-top: 4px !important;
+  color: #817466 !important;
+  font-size: 12px !important;
+  line-height: 1.3 !important;
+}
+
+.manager-option2-shell .restaurant-logo-upload-button {
+  position: relative !important;
+  overflow: hidden !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+}
+
+.manager-option2-shell .restaurant-logo-upload-button input {
+  position: absolute !important;
+  inset: 0 !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+}
+
+.qr-logo-mark img,
+.print-logo img,
+.logo-box img {
+  object-fit: contain !important;
+}
+
 `;
 
 
@@ -4234,6 +4554,59 @@ export default function Page() {
       show("Restaurant logo loaded");
     };
     reader.readAsDataURL(file);
+  }
+
+  async function handleRestaurantLogoUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      show("Please upload an image file");
+      return;
+    }
+
+    if (!state.profile.businessId) {
+      show("Login again before uploading a restaurant logo");
+      return;
+    }
+
+    try {
+      show("Uploading restaurant logo...");
+
+      const headers = await getManagerAuthHeaders();
+      const formData = new FormData();
+      formData.append("businessId", state.profile.businessId);
+      formData.append("username", state.profile.username || "");
+      formData.append("logo", file);
+
+      const response = await fetch("/api/business-logo", {
+        method: "POST",
+        headers,
+        body: formData,
+      });
+
+      const result = await readApiJson(response);
+      const logoUrl = String(result.logoUrl || "");
+
+      if (!logoUrl) {
+        show("Logo uploaded but no URL came back");
+        return;
+      }
+
+      updateState((current) => ({
+        ...current,
+        profile: {
+          ...current.profile,
+          logoDataUrl: logoUrl,
+        },
+      }));
+
+      show("Restaurant logo saved");
+    } catch (error) {
+      show(error instanceof Error ? error.message : "Restaurant logo upload failed");
+    }
   }
 
   function updateLocationCount(nextCount: number) {
@@ -6159,11 +6532,11 @@ export default function Page() {
             {!publicCustomerMode && (
             <section className="panel manager-option2-shell">
               <aside className="manager-option2-sidebar">
-                <div className="sidebar-logo-block">
-                  <img className="sidebar-app-logo" src={APP_LOGO_SRC} alt="Tawleh Manager" />
+                <div className="sidebar-logo-block restaurant-brand-logo-block">
+                  <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} customer />
                   <div>
-                    <strong>Tawleh</strong>
-                    <span>Manager</span>
+                    <strong>{businessName}</strong>
+                    <span>{branchName}</span>
                   </div>
                 </div>
 
@@ -6171,7 +6544,7 @@ export default function Page() {
                   <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} customer />
                   <div>
                     <strong>{businessName}</strong>
-                    <span>{branchName}</span>
+                    <span>Restaurant logo for dashboard and QR</span>
                   </div>
                 </div>
 
@@ -6488,12 +6861,43 @@ export default function Page() {
                           </button>
                         </div>
 
-                        <div className="manager-category-list">
-                          {state.categories.length ? state.categories.map((category) => (
-                            <span className="manager-category-pill" key={category.id}>
-                              {category.name}{category.nameAr ? ` / ${category.nameAr}` : ""}
-                            </span>
-                          )) : <span className="helper">No categories yet. Items can still be saved as Uncategorized.</span>}
+                        <div className="manager-category-list premium-category-list">
+                          {state.categories.length ? state.categories.map((category, index) => {
+                            const categoryItems = state.menu.filter((item) => item.categoryId === category.id);
+                            const firstPhotoItem = categoryItems.find((item) => item.imageThumbUrl || item.imageFullUrl);
+                            const previewImage = firstPhotoItem?.imageThumbUrl || firstPhotoItem?.imageFullUrl || "";
+                            const selected = menuDraft.categoryId === category.id;
+
+                            return (
+                              <button
+                                className={`manager-category-card ${selected ? "selected" : ""}`}
+                                key={category.id}
+                                type="button"
+                                onClick={() => setMenuDraft({ ...menuDraft, categoryId: category.id })}
+                              >
+                                <div className="manager-category-photo">
+                                  {previewImage ? (
+                                    <img src={previewImage} alt={category.name} />
+                                  ) : (
+                                    <span>{String(index + 1).padStart(2, "0")}</span>
+                                  )}
+                                </div>
+
+                                <div className="manager-category-copy">
+                                  <strong>{category.name}</strong>
+                                  {category.nameAr ? <em dir="rtl">{category.nameAr}</em> : <em>No Arabic name yet</em>}
+                                  <small>{categoryItems.length} item{categoryItems.length === 1 ? "" : "s"}</small>
+                                </div>
+
+                                <b>{selected ? "Selected" : "Use"}</b>
+                              </button>
+                            );
+                          }) : (
+                            <div className="premium-empty-category">
+                              <strong>No categories yet</strong>
+                              <span>Add categories like Mashawi, Main Course, Drinks, or Desserts.</span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -6835,6 +7239,17 @@ export default function Page() {
                           <h3>{businessName}</h3>
                           <p>{branchName}  {state.profile.location}</p>
                         </div>
+                      </div>
+
+                      <div className="restaurant-logo-upload-card">
+                        <div>
+                          <strong>Restaurant logo</strong>
+                          <span>This logo appears on the dashboard, customer QR page, and printable QR cards.</span>
+                        </div>
+                        <label className="btn secondary small restaurant-logo-upload-button">
+                          Upload logo
+                          <input type="file" accept="image/*" onChange={handleRestaurantLogoUpload} />
+                        </label>
                       </div>
 
                       <div className="bill-list">
