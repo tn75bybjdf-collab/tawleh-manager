@@ -1341,6 +1341,130 @@ main.customer-only-shell,
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   }
 }
+
+
+/* =========================================================
+   CUSTOMER QR CATEGORY CAROUSEL - SHOW ALL CATEGORIES
+   Fixes the home screen only showing 4 categories and not sliding.
+   ========================================================= */
+
+.customer-only-shell .option-one-explore-card {
+  overflow: visible !important;
+}
+
+.customer-only-shell .option-one-category-preview {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  grid-template-columns: none !important;
+  gap: 10px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 2px 4px 13px !important;
+  margin: 0 -2px !important;
+  -webkit-overflow-scrolling: touch !important;
+  scroll-snap-type: x mandatory !important;
+  overscroll-behavior-x: contain !important;
+  touch-action: pan-x !important;
+  scrollbar-width: none !important;
+}
+
+.customer-only-shell .option-one-category-preview::-webkit-scrollbar {
+  display: none !important;
+}
+
+.customer-only-shell .option-one-category-card {
+  flex: 0 0 112px !important;
+  width: 112px !important;
+  min-width: 112px !important;
+  max-width: 112px !important;
+  min-height: 132px !important;
+  scroll-snap-align: start !important;
+}
+
+.customer-only-shell .option-one-category-photo {
+  height: 62px !important;
+  overflow: hidden !important;
+}
+
+.customer-only-shell .option-one-category-initials {
+  width: 100% !important;
+  height: 100% !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: inherit !important;
+  background: linear-gradient(135deg, rgba(211, 109, 71, 0.16), rgba(104, 112, 68, 0.12)) !important;
+  color: #8f4f30 !important;
+  font-size: 20px !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.03em !important;
+}
+
+.customer-only-shell .option-one-category-card em {
+  display: block !important;
+  min-height: 13px !important;
+  margin-top: 2px !important;
+  color: #9a8c81 !important;
+  font-size: 10px !important;
+  line-height: 1.05 !important;
+  font-style: normal !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.customer-only-shell .option-one-empty-categories {
+  flex: 1 0 100% !important;
+  min-height: 96px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px dashed rgba(157, 117, 82, 0.18) !important;
+  border-radius: 18px !important;
+  color: #8b796c !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  background: rgba(255,255,255,0.65) !important;
+}
+
+.customer-only-shell .option-one-section-row::after {
+  content: "Swipe →" !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  color: #c75f3f !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  opacity: 0.78 !important;
+  margin-left: auto !important;
+}
+
+.customer-only-shell .option-one-section-row button + .option-one-section-row::after {
+  display: none !important;
+}
+
+@media (max-width: 390px) {
+  .customer-only-shell .option-one-category-preview {
+    gap: 8px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .customer-only-shell .option-one-category-card {
+    flex-basis: 104px !important;
+    width: 104px !important;
+    min-width: 104px !important;
+    max-width: 104px !important;
+    min-height: 126px !important;
+  }
+
+  .customer-only-shell .option-one-category-photo {
+    height: 56px !important;
+  }
+
+  .customer-only-shell .option-one-category-card strong {
+    font-size: 10.6px !important;
+  }
+}
+
 `;
 
 
@@ -6968,24 +7092,39 @@ export default function Page() {
                               </button>
                             </div>
 
-                            <div className="option-one-category-preview">
+                            <div className="option-one-category-preview" aria-label="Swipe menu categories">
                               {[
-                                { label: "Mezze", icon: "🥣" },
-                                { label: "Hot Mezze", icon: "🥟" },
-                                { label: "Grills", icon: "🔥" },
-                                { label: "Desserts", icon: "🍰" },
+                                ...menuCategoriesWithItems.map((category) => ({
+                                  id: category.id,
+                                  label: category.name,
+                                  labelAr: category.nameAr,
+                                  kind: "category",
+                                })),
+                                ...(hasUncategorizedItems
+                                  ? [{
+                                      id: "uncategorized",
+                                      label: "Other",
+                                      labelAr: "",
+                                      kind: "uncategorized",
+                                    }]
+                                  : []),
                               ].map((preview, index) => {
-                                const category = menuCategoriesWithItems[index];
-                                const categoryItems = category
-                                  ? state.menu.filter((item) => item.categoryId === category.id)
-                                  : [];
+                                const categoryItems = preview.kind === "uncategorized"
+                                  ? state.menu.filter((item) => !item.categoryId)
+                                  : state.menu.filter((item) => item.categoryId === preview.id);
                                 const itemCount = categoryItems.length;
                                 const firstPhotoItem = categoryItems.find((item) => item.imageThumbUrl || item.imageFullUrl);
                                 const categoryImageUrl = firstPhotoItem?.imageThumbUrl || firstPhotoItem?.imageFullUrl || "";
+                                const fallbackInitials = preview.label
+                                  .split(/\s+/)
+                                  .map((word) => word[0] || "")
+                                  .join("")
+                                  .slice(0, 2)
+                                  .toUpperCase() || String(index + 1).padStart(2, "0");
 
                                 return (
                                   <button
-                                    key={`${preview.label}-${index}`}
+                                    key={`${preview.id}-${index}`}
                                     className="option-one-category-card"
                                     type="button"
                                     onClick={() => {
@@ -6994,22 +7133,28 @@ export default function Page() {
                                         return;
                                       }
 
-                                      setActiveMenuCategory(category?.id || "all");
+                                      setActiveMenuCategory(preview.id);
                                       setPhoneTab("menu");
                                     }}
                                   >
                                     <div className="option-one-category-photo">
                                       {categoryImageUrl ? (
-                                        <img src={categoryImageUrl} alt={category?.name || preview.label} />
+                                        <img src={categoryImageUrl} alt={preview.label} />
                                       ) : (
-                                        <span>{preview.icon}</span>
+                                        <span className="option-one-category-initials">{fallbackInitials}</span>
                                       )}
                                     </div>
-                                    <strong>{category?.name || preview.label}</strong>
-                                    <small>{itemCount || " "} {itemCount ? "items" : ""}</small>
+                                    <strong>{preview.label}</strong>
+                                    {preview.labelAr ? <em dir="rtl">{preview.labelAr}</em> : null}
+                                    <small>{itemCount} item{itemCount === 1 ? "" : "s"}</small>
                                   </button>
                                 );
                               })}
+                              {!menuCategoriesWithItems.length && !hasUncategorizedItems ? (
+                                <div className="option-one-empty-categories">
+                                  No menu categories yet.
+                                </div>
+                              ) : null}
                             </div>
                           </div>
 
