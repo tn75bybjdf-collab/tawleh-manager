@@ -2688,6 +2688,149 @@ body {
   object-fit: contain !important;
 }
 
+
+
+/* =========================================================
+   QR LOGO CENTER + REMOVE GENERIC DASHBOARD ICONS
+   - Logo sits inside the QR code, centered.
+   - No generic clip-art icons beside dashboard/sidebar tabs.
+   ========================================================= */
+
+.manager-option2-shell .sidebar-nav-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  grid-template-columns: none !important;
+  gap: 0 !important;
+  padding: 0 17px !important;
+}
+
+.manager-option2-shell .sidebar-nav-item span {
+  display: none !important;
+}
+
+.manager-option2-shell .stat-card {
+  padding-left: 24px !important;
+}
+
+.manager-option2-shell .stat-card::before,
+.manager-option2-shell .stat-card::after,
+.app-shell:not(.customer-only-shell) .stat-card::before,
+.app-shell:not(.customer-only-shell) .stat-card::after {
+  display: none !important;
+  content: none !important;
+}
+
+.manager-option2-shell .manager-tab::before,
+.manager-option2-shell .manager-tab::after,
+.app-shell:not(.customer-only-shell) .manager-tab::before,
+.app-shell:not(.customer-only-shell) .manager-tab::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* QR preview and printed QR card */
+.real-qr-wrap.prestigious-qr,
+.print-qr-wrap.prestigious-qr {
+  position: relative !important;
+  width: min(100%, 360px) !important;
+  max-width: 360px !important;
+  aspect-ratio: 1 / 1 !important;
+  display: grid !important;
+  place-items: center !important;
+  margin: 0 auto !important;
+  padding: 14px !important;
+  border-radius: 28px !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(91, 71, 48, 0.14) !important;
+  box-shadow: 0 18px 45px rgba(74, 45, 19, 0.12) !important;
+  overflow: hidden !important;
+}
+
+.real-qr-wrap.prestigious-qr .qr-base-image,
+.print-qr-wrap.prestigious-qr .qr-base-image,
+.real-qr-wrap.prestigious-qr .print-qr,
+.print-qr-wrap.prestigious-qr .print-qr {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  object-fit: contain !important;
+  border-radius: 20px !important;
+  background: #ffffff !important;
+}
+
+.real-qr-wrap.prestigious-qr .qr-logo-mark,
+.print-qr-wrap.prestigious-qr .qr-logo-mark,
+.print-qr-logo-mark {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translate(-50%, -50%) !important;
+  width: 22% !important;
+  height: 22% !important;
+  min-width: 66px !important;
+  min-height: 66px !important;
+  max-width: 96px !important;
+  max-height: 96px !important;
+  z-index: 5 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 8px !important;
+  border-radius: 22px !important;
+  background: #ffffff !important;
+  border: 4px solid #ffffff !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16) !important;
+  pointer-events: none !important;
+}
+
+.real-qr-wrap.prestigious-qr .qr-logo-mark img,
+.print-qr-wrap.prestigious-qr .qr-logo-mark img,
+.print-qr-logo-mark img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+.real-qr-wrap.prestigious-qr .qr-logo-mark span,
+.print-qr-wrap.prestigious-qr .qr-logo-mark span {
+  color: #2f2a25 !important;
+  font-weight: 1000 !important;
+  font-size: 24px !important;
+}
+
+.print-card > .logo-box,
+.print-card > .print-logo,
+.print-card > .qr-logo-mark:not(.print-qr-logo-mark) {
+  display: none !important;
+}
+
+/* Remove remaining generic clip-art circles on the dashboard, but keep restaurant logos and menu item photos. */
+.manager-option2-shell [class*="icon"]:not(.logo-box):not(.sidebar-app-logo):not(.manager-category-photo):not(.item-icon):not(.auth-feature-icon) {
+  display: none !important;
+}
+
+@media print {
+  .print-qr-wrap.prestigious-qr {
+    width: 330px !important;
+    max-width: 330px !important;
+    padding: 12px !important;
+    box-shadow: none !important;
+  }
+
+  .print-qr-wrap.prestigious-qr .qr-logo-mark {
+    width: 22% !important;
+    height: 22% !important;
+    min-width: 64px !important;
+    min-height: 64px !important;
+    max-width: 86px !important;
+    max-height: 86px !important;
+    border: 4px solid #ffffff !important;
+  }
+}
+
 `;
 
 
@@ -6576,13 +6719,13 @@ export default function Page() {
                 </div>
 
                 <nav className="sidebar-nav">
-                  <button className={`sidebar-nav-item ${managerTab === "kitchen" ? "active" : ""}`} type="button" onClick={() => setManagerTab("kitchen")}><span>🍳</span>Kitchen</button>
-                  <button className={`sidebar-nav-item ${managerTab === "waiter" ? "active" : ""}`} type="button" onClick={() => setManagerTab("waiter")}><span>🔔</span>Waiter Calls</button>
-                  <button className={`sidebar-nav-item ${managerTab === "tables" ? "active" : ""}`} type="button" onClick={() => setManagerTab("tables")}><span>▦</span>Tables</button>
-                  <button className={`sidebar-nav-item ${managerTab === "menu" ? "active" : ""}`} type="button" onClick={() => setManagerTab("menu")}><span>▤</span>Menu</button>
-                  <button className={`sidebar-nav-item ${managerTab === "menuBuilder" ? "active" : ""}`} type="button" onClick={() => setManagerTab("menuBuilder")}><span>✎</span>Builder</button>
-                  <button className={`sidebar-nav-item ${managerTab === "qr" ? "active" : ""}`} type="button" onClick={() => setManagerTab("qr")}><span>▣</span>QR Tables</button>
-                  <button className={`sidebar-nav-item ${managerTab === "profile" ? "active" : ""}`} type="button" onClick={() => setManagerTab("profile")}><span>⚙</span>Profile</button>
+                  <button className={`sidebar-nav-item ${managerTab === "kitchen" ? "active" : ""}`} type="button" onClick={() => setManagerTab("kitchen")}>Kitchen</button>
+                  <button className={`sidebar-nav-item ${managerTab === "waiter" ? "active" : ""}`} type="button" onClick={() => setManagerTab("waiter")}>Waiter Calls</button>
+                  <button className={`sidebar-nav-item ${managerTab === "tables" ? "active" : ""}`} type="button" onClick={() => setManagerTab("tables")}>Tables</button>
+                  <button className={`sidebar-nav-item ${managerTab === "menu" ? "active" : ""}`} type="button" onClick={() => setManagerTab("menu")}>Menu</button>
+                  <button className={`sidebar-nav-item ${managerTab === "menuBuilder" ? "active" : ""}`} type="button" onClick={() => setManagerTab("menuBuilder")}>Builder</button>
+                  <button className={`sidebar-nav-item ${managerTab === "qr" ? "active" : ""}`} type="button" onClick={() => setManagerTab("qr")}>QR Tables</button>
+                  <button className={`sidebar-nav-item ${managerTab === "profile" ? "active" : ""}`} type="button" onClick={() => setManagerTab("profile")}>Profile</button>
                 </nav>
 
                 <div className="sidebar-summary-card">
@@ -7312,7 +7455,6 @@ export default function Page() {
 
           <section className="print-sheet">
             <div className="print-card">
-              <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} print />
               <h1>{businessName}</h1>
               <p>{branchName}</p>
               <div className="print-table">Table {selectedQrTable}</div>
