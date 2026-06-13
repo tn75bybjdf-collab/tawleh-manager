@@ -1276,6 +1276,66 @@ main.customer-only-shell,
   }
 }
 
+
+/* Hard fix: bottom nav must never sit underneath the fixed Send Order bar */
+.customer-only-shell .option-one-bottom-nav {
+  position: fixed !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  width: calc(100% - 28px) !important;
+  max-width: 520px !important;
+  z-index: 9998 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 9px !important;
+  pointer-events: auto !important;
+}
+
+.customer-only-shell.customer-has-cart .option-one-bottom-nav {
+  bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+}
+
+.customer-only-shell .fixed-send-order-bar,
+.fixed-send-order-bar {
+  z-index: 9999 !important;
+  bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+}
+
+.customer-only-shell .phone-content {
+  padding-bottom: 156px !important;
+}
+
+.customer-only-shell.customer-has-cart .phone-content {
+  padding-bottom: 230px !important;
+}
+
+.customer-only-shell .option-one-bottom-nav button {
+  min-height: 56px !important;
+  box-shadow: 0 14px 34px rgba(73, 49, 30, 0.16) !important;
+}
+
+@media (max-width: 390px) {
+  .customer-only-shell .option-one-bottom-nav {
+    width: calc(100% - 20px) !important;
+    gap: 7px !important;
+  }
+
+  .customer-only-shell.customer-has-cart .option-one-bottom-nav {
+    bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .customer-only-shell .phone-content {
+    padding-bottom: 148px !important;
+  }
+
+  .customer-only-shell.customer-has-cart .phone-content {
+    padding-bottom: 218px !important;
+  }
+}
+
 @media (min-width: 431px) {
   .option-one-profile-chips {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
@@ -4139,7 +4199,7 @@ export default function Page() {
   }
 
   return (
-    <main className={publicCustomerMode ? "app-shell customer-only-shell" : "app-shell"}>
+    <main className={publicCustomerMode ? `app-shell customer-only-shell ${Object.values(orderCart).some((qty) => Number(qty) > 0) ? "customer-has-cart" : ""}` : "app-shell"}>
       {publicCustomerMode ? <style dangerouslySetInnerHTML={{ __html: OPTION_ONE_CUSTOMER_CRITICAL_CSS }} /> : null}
       {!state.profileComplete && !publicTableMode ? (
         <section className="auth-page">
