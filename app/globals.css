@@ -1349,3 +1349,65 @@ img {
   color: #6b4b00;
   background: rgba(245, 158, 11, 0.14);
 }
+
+
+/* =========================================================
+   TAWLEH LOGO SIZE HOTFIX
+   Fixes giant header/auth logo after kitchen print UI update.
+   ========================================================= */
+
+.topbar-logo-img {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  max-width: 48px !important;
+  max-height: 48px !important;
+  object-fit: contain !important;
+  border-radius: 14px;
+  display: block;
+  flex: 0 0 48px;
+}
+
+.brand > .topbar-logo-img {
+  width: 48px !important;
+  height: 48px !important;
+}
+
+.auth-logo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 18px;
+  width: 100%;
+}
+
+.main-auth-logo {
+  width: 190px !important;
+  height: auto !important;
+  max-width: min(70vw, 190px) !important;
+  max-height: 130px !important;
+  object-fit: contain !important;
+  display: block;
+}
+
+.login-card .main-auth-logo,
+.auth-card .main-auth-logo {
+  width: 190px !important;
+  max-width: 190px !important;
+}
+
+@media (max-width: 760px) {
+  .topbar-logo-img {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    max-width: 42px !important;
+    max-height: 42px !important;
+    flex-basis: 42px;
+  }
+
+  .main-auth-logo {
+    width: 155px !important;
+    max-width: 155px !important;
+  }
+}
