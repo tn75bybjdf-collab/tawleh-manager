@@ -907,6 +907,213 @@ main.customer-only-shell,
   }
 }
 
+
+/* Final customer bill/service + premium quantity + fixed send bar */
+.customer-only-shell .option-one-utility-screen {
+  display: grid !important;
+  gap: 12px !important;
+  padding-bottom: 90px !important;
+}
+
+.customer-only-shell .option-one-bill-card,
+.customer-only-shell .option-one-service-card,
+.customer-only-shell .bill-stack .seat-card {
+  background: rgba(255, 255, 255, 0.90) !important;
+  border: 1px solid rgba(157, 117, 82, 0.13) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 12px 30px rgba(73, 49, 30, 0.08) !important;
+  padding: 14px !important;
+}
+
+.customer-only-shell .option-one-bill-card h4,
+.customer-only-shell .option-one-service-card h4,
+.customer-only-shell .bill-stack .seat-card h4 {
+  margin: 0 0 4px !important;
+  color: #3e2d26 !important;
+  font-size: 20px !important;
+  line-height: 1.1 !important;
+}
+
+.customer-only-shell .option-one-bill-card p,
+.customer-only-shell .option-one-service-card p,
+.customer-only-shell .bill-stack .seat-card p {
+  margin: 0 0 12px !important;
+  color: #7d746d !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+.customer-only-shell .bill-total {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 12px !important;
+  margin-top: 10px !important;
+  border-radius: 16px !important;
+  background: #fff7ef !important;
+  color: #3e2d26 !important;
+  font-weight: 950 !important;
+}
+
+.customer-only-shell .request-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  margin: 12px 0 !important;
+}
+
+.customer-only-shell .request-btn {
+  min-height: 78px !important;
+  border: 1px solid rgba(157, 117, 82, 0.13) !important;
+  border-radius: 18px !important;
+  background: #fffaf4 !important;
+  color: #4a3227 !important;
+  font-weight: 950 !important;
+  box-shadow: 0 10px 22px rgba(73, 49, 30, 0.07) !important;
+}
+
+.customer-only-shell .request-btn span {
+  display: block !important;
+  margin-bottom: 4px !important;
+  color: #bd5338 !important;
+  font-size: 17px !important;
+}
+
+.customer-only-shell .menu-list {
+  padding-bottom: 92px !important;
+}
+
+.customer-only-shell .cart-quantity-control {
+  display: grid !important;
+  grid-template-columns: 34px 30px 34px !important;
+  align-items: center !important;
+  justify-items: center !important;
+  gap: 0 !important;
+  width: 98px !important;
+  height: 42px !important;
+  padding: 4px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #fffaf4, #f4e6d8) !important;
+  border: 1px solid rgba(157, 117, 82, 0.18) !important;
+  box-shadow: 0 10px 24px rgba(73, 49, 30, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+}
+
+.customer-only-shell .cart-quantity-control button {
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  min-height: 32px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  background: linear-gradient(135deg, #d36d47, #bd5338) !important;
+  color: #fff !important;
+  font-size: 20px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  box-shadow: 0 8px 16px rgba(203, 94, 61, 0.23) !important;
+}
+
+.customer-only-shell .cart-quantity-control button:first-child {
+  background: #fff !important;
+  color: #bd5338 !important;
+  border: 1px solid rgba(189, 83, 56, 0.20) !important;
+  box-shadow: none !important;
+}
+
+.customer-only-shell .cart-quantity-control strong {
+  min-width: 26px !important;
+  text-align: center !important;
+  color: #3e2d26 !important;
+  font-size: 15px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+}
+
+.customer-only-shell .fixed-send-order-bar,
+.fixed-send-order-bar {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  transform: translateX(-50%) !important;
+  z-index: 9999 !important;
+  width: calc(100% - 28px) !important;
+  max-width: 520px !important;
+  min-height: 66px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 10px 10px 10px 16px !important;
+  border-radius: 24px !important;
+  background: rgba(41, 31, 27, 0.94) !important;
+  border: 1px solid rgba(255, 255, 255, 0.13) !important;
+  box-shadow: 0 18px 46px rgba(30, 20, 14, 0.30) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+.fixed-send-order-summary {
+  display: grid !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+}
+
+.fixed-send-order-summary strong {
+  color: #fff !important;
+  font-size: 15px !important;
+  line-height: 1.1 !important;
+  font-weight: 950 !important;
+}
+
+.fixed-send-order-summary span {
+  color: #f4c99f !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+}
+
+.fixed-send-order-button {
+  min-height: 46px !important;
+  padding: 0 18px !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, #d36d47, #bd5338) !important;
+  color: #fff !important;
+  font-size: 15px !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.02em !important;
+  box-shadow: 0 12px 24px rgba(203, 94, 61, 0.30) !important;
+}
+
+@media (max-width: 390px) {
+  .customer-only-shell .cart-quantity-control {
+    grid-template-columns: 30px 26px 30px !important;
+    width: 88px !important;
+    height: 38px !important;
+  }
+
+  .customer-only-shell .cart-quantity-control button {
+    width: 28px !important;
+    height: 28px !important;
+    min-width: 28px !important;
+    min-height: 28px !important;
+    font-size: 18px !important;
+  }
+
+  .fixed-send-order-bar {
+    width: calc(100% - 22px) !important;
+    min-height: 62px !important;
+    border-radius: 22px !important;
+  }
+
+  .fixed-send-order-button {
+    min-height: 42px !important;
+    padding: 0 14px !important;
+    font-size: 14px !important;
+  }
+}
+
 @media (min-width: 431px) {
   .option-one-profile-chips {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
@@ -4139,7 +4346,7 @@ export default function Page() {
                     )}
 
                     <div className="phone-content">
-                      {(!state.currentGuest || (publicCustomerMode && activeMenuCategory === "__home")) ? (
+                      {(!state.currentGuest || (publicCustomerMode && phoneTab === "menu" && activeMenuCategory === "__home")) ? (
                         publicCustomerMode ? (
                           <>
                           <div className="option-one-seat-card">
@@ -4319,7 +4526,17 @@ export default function Page() {
                           </div>
 
                           <div className="option-one-bottom-nav">
-                            <button type="button" onClick={() => setPhoneTab("bill")}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!state.currentGuest) {
+                                  show("Enter your name first");
+                                  return;
+                                }
+
+                                setPhoneTab("bill");
+                              }}
+                            >
                               <span>▤</span>
                               My Bill
                             </button>
@@ -4330,7 +4547,17 @@ export default function Page() {
                               <span>⌂</span>
                               Menu
                             </button>
-                            <button type="button" onClick={() => setPhoneTab("service")}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (!state.currentGuest) {
+                                  show("Enter your name first");
+                                  return;
+                                }
+
+                                setPhoneTab("service");
+                              }}
+                            >
                               <span>◉</span>
                               Call Waiter
                             </button>
@@ -4596,8 +4823,21 @@ export default function Page() {
                           )}
 
                           {phoneTab === "bill" && (
-                            <div className="bill-stack">
-                              <div className="seat-card">
+                            <div className="bill-stack option-one-utility-screen">
+                              <div className="option-one-menu-back-row">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveMenuCategory("__home");
+                                    setPhoneTab("menu");
+                                  }}
+                                >
+                                  ← Back
+                                </button>
+                                <strong>My bill</strong>
+                              </div>
+
+                              <div className="seat-card option-one-bill-card">
                                 <h4>My bill</h4>
                                 <p>Items ordered under your name.</p>
                                 <BillRows orders={state.orders.filter((order) => order.guest === state.currentGuest)} />
@@ -4615,8 +4855,22 @@ export default function Page() {
                           )}
 
                           {phoneTab === "service" && (
-                            <div className="seat-card">
-                              <h4>Need something?</h4>
+                            <div className="option-one-utility-screen">
+                              <div className="option-one-menu-back-row">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveMenuCategory("__home");
+                                    setPhoneTab("menu");
+                                  }}
+                                >
+                                  ← Back
+                                </button>
+                                <strong>Call waiter</strong>
+                              </div>
+
+                              <div className="seat-card option-one-service-card">
+                                <h4>Need something?</h4>
                               <p>Your request appears in Tawleh Manager with your name and table number.</p>
                               <div className="request-grid">
                                 {[
@@ -4635,6 +4889,7 @@ export default function Page() {
                                 setOrderReviewOpen(false);
                                 updateState((current) => ({ ...current, currentGuest: "" }));
                               }}>Switch customer</button>
+                              </div>
                             </div>
                           )}
                         </>
