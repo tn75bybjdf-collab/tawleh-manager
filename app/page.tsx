@@ -3646,6 +3646,309 @@ body {
   }
 }
 
+
+
+/* =========================================================
+   MENU BUILDER EXPANDED CATEGORY ITEM FACELIFT
+   Fixes the expanded category view where item text ran together.
+   ========================================================= */
+
+.manager-option2-shell .category-accordion-list {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+.manager-option2-shell .category-accordion {
+  overflow: hidden !important;
+  border-radius: 28px !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  background: rgba(255, 253, 248, 0.92) !important;
+  box-shadow: 0 16px 38px rgba(74, 45, 19, 0.07) !important;
+}
+
+.manager-option2-shell .category-accordion-header {
+  width: 100% !important;
+  min-height: 82px !important;
+  padding: 16px 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(91, 71, 48, 0.10) !important;
+  background: linear-gradient(135deg, #fffdf8, #fff6ec) !important;
+  text-align: left !important;
+}
+
+.manager-option2-shell .category-accordion-header strong {
+  display: block !important;
+  color: #2f2a25 !important;
+  font-size: 23px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.045em !important;
+  font-weight: 1000 !important;
+}
+
+.manager-option2-shell .category-accordion-header span[dir="rtl"] {
+  display: block !important;
+  margin-top: 5px !important;
+  color: #8f8175 !important;
+  font-size: 13px !important;
+  line-height: 1.15 !important;
+  font-weight: 800 !important;
+}
+
+.manager-option2-shell .category-accordion-meta {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+}
+
+.manager-option2-shell .category-accordion-meta span {
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  border-radius: 999px !important;
+  background: #eff4df !important;
+  color: #4f5a31 !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+}
+
+.manager-option2-shell .category-accordion-meta b {
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  border-radius: 999px !important;
+  background: #fff0e8 !important;
+  color: #c46542 !important;
+  border: 1px solid rgba(207, 95, 59, 0.16) !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+}
+
+.manager-option2-shell .premium-expanded-menu-list {
+  display: grid !important;
+  gap: 12px !important;
+  padding: 16px !important;
+  background: rgba(255, 250, 244, 0.62) !important;
+}
+
+.manager-option2-shell .premium-expanded-menu-item {
+  display: grid !important;
+  grid-template-columns: 92px minmax(0, 1fr) 126px !important;
+  align-items: stretch !important;
+  gap: 15px !important;
+  padding: 14px !important;
+  border-radius: 23px !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  background: #fffdf8 !important;
+  box-shadow: 0 12px 30px rgba(74, 45, 19, 0.06) !important;
+}
+
+.manager-option2-shell .premium-expanded-item-media {
+  min-width: 0 !important;
+}
+
+.manager-option2-shell .premium-menu-photo,
+.manager-option2-shell .premium-menu-photo.fallback {
+  width: 92px !important;
+  height: 92px !important;
+  min-width: 92px !important;
+  min-height: 92px !important;
+  border-radius: 21px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+  background: linear-gradient(135deg, rgba(207,95,59,0.12), rgba(104,112,68,0.10)), #f8ebdd !important;
+  display: grid !important;
+  place-items: center !important;
+  color: #8f4f30 !important;
+  font-size: 22px !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.04em !important;
+  padding: 0 !important;
+  cursor: pointer !important;
+}
+
+.manager-option2-shell .premium-menu-photo img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.manager-option2-shell .premium-expanded-item-main {
+  min-width: 0 !important;
+  display: grid !important;
+  align-content: start !important;
+  gap: 6px !important;
+}
+
+.manager-option2-shell .premium-expanded-item-top {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin-bottom: 2px !important;
+}
+
+.manager-option2-shell .premium-item-code {
+  display: inline-flex !important;
+  width: fit-content !important;
+  min-height: 28px !important;
+  align-items: center !important;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+  background: #fff0e8 !important;
+  color: #c46542 !important;
+  border: 1px solid rgba(207, 95, 59, 0.15) !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  letter-spacing: 0.06em !important;
+}
+
+.manager-option2-shell .premium-expanded-item-main > strong {
+  display: block !important;
+  color: #2f2a25 !important;
+  font-size: 18px !important;
+  line-height: 1.12 !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.035em !important;
+  white-space: normal !important;
+}
+
+.manager-option2-shell .premium-expanded-item-main .arabic-item-name {
+  display: block !important;
+  color: #7e7166 !important;
+  font-size: 14px !important;
+  line-height: 1.25 !important;
+  font-weight: 850 !important;
+  white-space: normal !important;
+}
+
+.manager-option2-shell .premium-expanded-description {
+  margin: 2px 0 1px !important;
+  color: #5d534b !important;
+  font-size: 13px !important;
+  line-height: 1.36 !important;
+  font-weight: 650 !important;
+  white-space: normal !important;
+}
+
+.manager-option2-shell .premium-expanded-description.muted {
+  color: #a09184 !important;
+  font-style: italic !important;
+}
+
+.manager-option2-shell .premium-expanded-item-main em {
+  color: #2f2a25 !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  font-style: normal !important;
+  font-weight: 1000 !important;
+  white-space: nowrap !important;
+}
+
+.manager-option2-shell .premium-expanded-meta-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  flex-wrap: wrap !important;
+  margin-top: 4px !important;
+}
+
+.manager-option2-shell .premium-meta-chip {
+  min-height: 27px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 0 9px !important;
+  border-radius: 999px !important;
+  background: rgba(104, 112, 68, 0.10) !important;
+  color: #4f5a31 !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+}
+
+.manager-option2-shell .premium-meta-chip.available {
+  background: #eff4df !important;
+  color: #4f5a31 !important;
+}
+
+.manager-option2-shell .premium-meta-chip.unavailable {
+  background: #fff0e8 !important;
+  color: #c46542 !important;
+}
+
+.manager-option2-shell .premium-meta-chip.time {
+  background: #f8f0e6 !important;
+  color: #7a6a5d !important;
+}
+
+.manager-option2-shell .premium-expanded-actions {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+  align-content: center !important;
+  justify-items: stretch !important;
+}
+
+.manager-option2-shell .premium-expanded-actions .btn {
+  width: 100% !important;
+  min-height: 38px !important;
+  border-radius: 13px !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+  padding: 0 12px !important;
+}
+
+@media (max-width: 980px) {
+  .manager-option2-shell .premium-expanded-menu-item {
+    grid-template-columns: 74px minmax(0, 1fr) !important;
+  }
+
+  .manager-option2-shell .premium-menu-photo,
+  .manager-option2-shell .premium-menu-photo.fallback {
+    width: 74px !important;
+    height: 74px !important;
+    min-width: 74px !important;
+    min-height: 74px !important;
+  }
+
+  .manager-option2-shell .premium-expanded-actions {
+    grid-column: 1 / -1 !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .manager-option2-shell .category-accordion-header {
+    align-items: flex-start !important;
+  }
+
+  .manager-option2-shell .category-accordion-meta {
+    display: grid !important;
+    justify-items: end !important;
+  }
+
+  .manager-option2-shell .premium-expanded-menu-item {
+    grid-template-columns: 1fr !important;
+  }
+
+  .manager-option2-shell .premium-menu-photo,
+  .manager-option2-shell .premium-menu-photo.fallback {
+    width: 100% !important;
+    height: 154px !important;
+  }
+
+  .manager-option2-shell .premium-expanded-actions {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 `;
 
 
@@ -8123,32 +8426,51 @@ export default function Page() {
                               </button>
 
                               {isExpanded ? (
-                                <div className="menu-builder-list">
+                                <div className="menu-builder-list premium-expanded-menu-list">
                                   {group.items.map((item) => (
-                                    <div className="menu-builder-item" key={item.id}>
-                                      {item.imageThumbUrl ? (
-                                        <button className="menu-builder-photo" type="button" onClick={() => setSelectedMenuImage(item)}>
-                                          <img src={item.imageThumbUrl} alt={item.name} />
-                                        </button>
-                                      ) : (
-                                        <div className="menu-builder-photo fallback">{item.icon}</div>
-                                      )}
-
-                                      <div className="menu-builder-main">
-                                        <strong>{item.name}</strong>
-                                        {item.nameAr ? <span className="arabic-item-name" dir="rtl">{item.nameAr}</span> : null}
-                                        <span className="category-line">{item.categoryName || "Uncategorized"}</span>
-                                        <span>{item.desc}</span>
-                                        <span className="availability-line">{formatItemAvailability(item)}</span>
-                                        <em>{money(item.price)}</em>
+                                    <div className="menu-builder-item premium-expanded-menu-item" key={item.id}>
+                                      <div className="premium-expanded-item-media">
+                                        {item.imageThumbUrl ? (
+                                          <button className="menu-builder-photo premium-menu-photo" type="button" onClick={() => setSelectedMenuImage(item)}>
+                                            <img src={item.imageThumbUrl} alt={item.name} />
+                                          </button>
+                                        ) : (
+                                          <div className="menu-builder-photo premium-menu-photo fallback">
+                                            {item.icon || item.name.slice(0, 2).toUpperCase()}
+                                          </div>
+                                        )}
                                       </div>
 
-                                      <div className="menu-builder-actions">
+                                      <div className="menu-builder-main premium-expanded-item-main">
+                                        <div className="premium-expanded-item-top">
+                                          <span className="premium-item-code">{item.icon || "ITEM"}</span>
+                                          <em>{money(item.price)}</em>
+                                        </div>
+
+                                        <strong>{item.name}</strong>
+                                        {item.nameAr ? <span className="arabic-item-name" dir="rtl">{item.nameAr}</span> : null}
+
+                                        {item.desc ? (
+                                          <p className="premium-expanded-description">{item.desc}</p>
+                                        ) : (
+                                          <p className="premium-expanded-description muted">No description yet.</p>
+                                        )}
+
+                                        <div className="premium-expanded-meta-row">
+                                          <span className="premium-meta-chip">{item.categoryName || "Uncategorized"}</span>
+                                          <span className={`premium-meta-chip ${item.available ? "available" : "unavailable"}`}>
+                                            {item.available ? "In stock" : "Out of stock"}
+                                          </span>
+                                          <span className="premium-meta-chip time">{formatItemAvailability(item)}</span>
+                                        </div>
+                                      </div>
+
+                                      <div className="menu-builder-actions premium-expanded-actions">
                                         <button className="btn small secondary" type="button" onClick={() => startEditingMenuItem(item)} disabled={menuBusy}>
                                           Edit
                                         </button>
                                         <button className={`btn small ${item.available ? "success" : "danger"}`} type="button" onClick={() => toggleItem(item.id)} disabled={menuBusy}>
-                                          {item.available ? "In stock" : "Out"}
+                                          {item.available ? "Set out" : "Set in"}
                                         </button>
                                         <button className="btn small danger" type="button" onClick={() => removeMenuItem(item.id)} disabled={menuBusy}>
                                           Remove
