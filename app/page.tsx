@@ -451,6 +451,259 @@ main.customer-only-shell,
   display: none !important;
 }
 
+
+/* One-screen customer welcome mode + real category photos */
+.customer-only-shell .phone-content {
+  padding: 0 14px 10px !important;
+}
+
+.option-one-customer-hero {
+  padding: 14px 14px 9px !important;
+}
+
+.option-one-welcome-first {
+  margin: 0 auto 8px !important;
+}
+
+.option-one-welcome-first span {
+  font-size: clamp(34px, 10vw, 44px) !important;
+  line-height: 0.96 !important;
+}
+
+.option-one-logo-proud {
+  margin-bottom: 10px !important;
+}
+
+.option-one-logo-proud .logo-box {
+  width: 92px !important;
+  height: 92px !important;
+  min-width: 92px !important;
+  min-height: 92px !important;
+  max-width: 92px !important;
+  max-height: 92px !important;
+  border-radius: 28px !important;
+  box-shadow: 0 14px 34px rgba(76, 48, 31, 0.10) !important;
+}
+
+.option-one-logo-proud .logo-box img {
+  padding: 8px !important;
+}
+
+.option-one-logo-proud .option-one-wordmark {
+  margin-top: 9px !important;
+  font-size: 27px !important;
+  letter-spacing: 0.15em !important;
+}
+
+.option-one-logo-proud .option-one-submark {
+  font-size: 8px !important;
+  letter-spacing: 0.22em !important;
+}
+
+.option-one-welcome-copy p {
+  max-width: 310px !important;
+  margin: 0 auto 12px !important;
+  font-size: 14px !important;
+  line-height: 1.28 !important;
+}
+
+.option-one-table-card {
+  grid-template-columns: 54px minmax(0, 1fr) 14px !important;
+  gap: 10px !important;
+  padding: 11px 13px !important;
+  border-radius: 19px !important;
+  box-shadow: 0 12px 30px rgba(73, 49, 30, 0.09) !important;
+}
+
+.option-one-table-icon {
+  width: 44px !important;
+  height: 44px !important;
+  font-size: 20px !important;
+}
+
+.option-one-table-card span {
+  font-size: 11px !important;
+}
+
+.option-one-table-card strong {
+  font-size: 22px !important;
+}
+
+.option-one-table-card em {
+  font-size: 15px !important;
+  margin-top: 1px !important;
+}
+
+.option-one-table-card b {
+  font-size: 26px !important;
+}
+
+.option-one-seat-card,
+.option-one-explore-card {
+  padding: 12px !important;
+  margin-bottom: 10px !important;
+  border-radius: 20px !important;
+  box-shadow: 0 12px 30px rgba(73, 49, 30, 0.08) !important;
+}
+
+.option-one-card-head h4,
+.option-one-section-row h4 {
+  font-size: 19px !important;
+  line-height: 1 !important;
+}
+
+.option-one-card-head p {
+  margin-top: 4px !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+}
+
+.option-one-name-entry {
+  grid-template-columns: 34px minmax(0, 1fr) 46px !important;
+  min-height: 48px !important;
+  margin-top: 10px !important;
+}
+
+.option-one-input-icon {
+  font-size: 18px !important;
+}
+
+.option-one-name-entry input {
+  height: 48px !important;
+  font-size: 16px !important;
+}
+
+.option-one-arrow-button {
+  width: 38px !important;
+  height: 38px !important;
+  margin-right: 5px !important;
+  font-size: 23px !important;
+}
+
+.option-one-profile-chips {
+  margin-top: 10px !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+.option-one-profile-chip {
+  min-height: 34px !important;
+  font-size: 12px !important;
+  padding: 6px 8px !important;
+  gap: 4px !important;
+}
+
+.option-one-section-row {
+  margin-bottom: 10px !important;
+}
+
+.option-one-section-row button {
+  font-size: 12px !important;
+}
+
+.option-one-category-preview {
+  grid-template-columns: repeat(4, minmax(76px, 1fr)) !important;
+  gap: 7px !important;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+
+.option-one-category-card {
+  padding: 6px !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 18px rgba(73, 49, 30, 0.07) !important;
+}
+
+.option-one-category-photo {
+  height: 48px !important;
+  border-radius: 11px !important;
+  overflow: hidden !important;
+  background: #f6eee6 !important;
+}
+
+.option-one-category-photo img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.option-one-category-photo span {
+  font-size: 22px !important;
+}
+
+.option-one-category-card strong {
+  margin-top: 6px !important;
+  font-size: 10.5px !important;
+  line-height: 1.05 !important;
+}
+
+.option-one-category-card small {
+  font-size: 10px !important;
+  margin-top: 2px !important;
+  min-height: 11px !important;
+}
+
+.option-one-bottom-nav {
+  position: static !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 7px !important;
+  margin-top: 0 !important;
+  padding: 0 !important;
+}
+
+.option-one-bottom-nav button {
+  min-height: 46px !important;
+  border-radius: 15px !important;
+  font-size: 11px !important;
+  box-shadow: 0 8px 18px rgba(73, 49, 30, 0.08) !important;
+}
+
+.option-one-bottom-nav button span {
+  font-size: 16px !important;
+  margin-bottom: 1px !important;
+}
+
+.option-one-secure-row {
+  display: none !important;
+}
+
+@media (max-width: 390px) {
+  .option-one-customer-hero {
+    padding-top: 10px !important;
+  }
+
+  .option-one-logo-proud .logo-box {
+    width: 82px !important;
+    height: 82px !important;
+    min-width: 82px !important;
+    min-height: 82px !important;
+    max-width: 82px !important;
+    max-height: 82px !important;
+  }
+
+  .option-one-logo-proud .option-one-wordmark {
+    font-size: 24px !important;
+  }
+
+  .option-one-welcome-copy p {
+    font-size: 12px !important;
+    margin-bottom: 9px !important;
+  }
+
+  .option-one-category-preview {
+    grid-template-columns: repeat(4, minmax(70px, 1fr)) !important;
+  }
+
+  .option-one-category-photo {
+    height: 42px !important;
+  }
+
+  .option-one-category-card strong {
+    font-size: 9.5px !important;
+  }
+}
+
 @media (min-width: 431px) {
   .option-one-profile-chips {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
@@ -3631,15 +3884,17 @@ export default function Page() {
 
                     {publicCustomerMode ? (
                       <div className="option-one-customer-hero">
-                        <div className="option-one-logo-center">
+                        <div className="option-one-welcome-first">
+                          <span>Welcome</span>
+                        </div>
+
+                        <div className="option-one-logo-center option-one-logo-proud">
                           <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} large customer />
                           <div className="option-one-wordmark">{businessName}</div>
                           <div className="option-one-submark">Lebanese Cuisine</div>
                         </div>
 
                         <div className="option-one-welcome-copy">
-                          <span>Welcome to</span>
-                          <h3>{businessName}</h3>
                           <p>{state.profile.welcomeMessage || "Sit back, relax, and enjoy. We'll take care of the rest."}</p>
                         </div>
 
@@ -3748,9 +4003,12 @@ export default function Page() {
                                 { label: "Desserts", icon: "🍰" },
                               ].map((preview, index) => {
                                 const category = menuCategoriesWithItems[index];
-                                const itemCount = category
-                                  ? state.menu.filter((item) => item.categoryId === category.id).length
-                                  : 0;
+                                const categoryItems = category
+                                  ? state.menu.filter((item) => item.categoryId === category.id)
+                                  : [];
+                                const itemCount = categoryItems.length;
+                                const firstPhotoItem = categoryItems.find((item) => item.imageThumbUrl || item.imageFullUrl);
+                                const categoryImageUrl = firstPhotoItem?.imageThumbUrl || firstPhotoItem?.imageFullUrl || "";
 
                                 return (
                                   <button
@@ -3763,7 +4021,11 @@ export default function Page() {
                                     }}
                                   >
                                     <div className="option-one-category-photo">
-                                      <span>{preview.icon}</span>
+                                      {categoryImageUrl ? (
+                                        <img src={categoryImageUrl} alt={category?.name || preview.label} />
+                                      ) : (
+                                        <span>{preview.icon}</span>
+                                      )}
                                     </div>
                                     <strong>{category?.name || preview.label}</strong>
                                     <small>{itemCount || " "} {itemCount ? "items" : ""}</small>
