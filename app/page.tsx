@@ -704,6 +704,209 @@ main.customer-only-shell,
   }
 }
 
+
+/* Final customer category flow fixes */
+.option-one-table-logo {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  background: #fff !important;
+  border: 1px solid rgba(157, 117, 82, 0.14) !important;
+  box-shadow: 0 8px 18px rgba(73, 49, 30, 0.07) !important;
+  overflow: hidden !important;
+}
+
+.option-one-table-logo .logo-box {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.option-one-table-logo .logo-box img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  padding: 5px !important;
+  display: block !important;
+}
+
+.option-one-current-guest-card {
+  display: grid !important;
+  grid-template-columns: 46px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px !important;
+  margin-top: 10px !important;
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, rgba(211, 109, 71, 0.11), rgba(255, 255, 255, 0.88)) !important;
+  border: 1px solid rgba(211, 109, 71, 0.13) !important;
+}
+
+.option-one-current-guest-card > span {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  background: linear-gradient(135deg, #d36d47, #bd5338) !important;
+  color: #fff !important;
+  font-weight: 950 !important;
+  font-size: 18px !important;
+}
+
+.option-one-current-guest-card strong {
+  display: block !important;
+  color: #3e2d26 !important;
+  font-size: 20px !important;
+  line-height: 1.05 !important;
+}
+
+.option-one-current-guest-card small {
+  display: block !important;
+  color: #88766b !important;
+  font-size: 12px !important;
+  margin-top: 2px !important;
+}
+
+.option-one-add-name-chip {
+  border-style: dashed !important;
+}
+
+.option-one-menu-back-row {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 0 12px !important;
+  padding: 12px !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid rgba(157, 117, 82, 0.13) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 10px 24px rgba(73, 49, 30, 0.08) !important;
+}
+
+.option-one-menu-back-row button {
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #f5e6d8 !important;
+  color: #bd5338 !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+  padding: 10px 12px !important;
+}
+
+.option-one-menu-back-row strong {
+  color: #3e2d26 !important;
+  font-size: 18px !important;
+  line-height: 1.05 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.customer-only-shell .category-scroll {
+  display: none !important;
+}
+
+.customer-only-shell .mini-card {
+  display: none !important;
+}
+
+.customer-only-shell .menu-list {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.customer-only-shell .menu-item {
+  display: grid !important;
+  grid-template-columns: 76px minmax(0, 1fr) auto !important;
+  gap: 11px !important;
+  align-items: center !important;
+  padding: 10px !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.90) !important;
+  border: 1px solid rgba(157, 117, 82, 0.12) !important;
+  box-shadow: 0 10px 24px rgba(73, 49, 30, 0.07) !important;
+}
+
+.customer-only-shell .item-photo-button,
+.customer-only-shell .item-icon {
+  width: 76px !important;
+  height: 76px !important;
+  border-radius: 14px !important;
+  overflow: hidden !important;
+}
+
+.customer-only-shell .item-photo-button img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.customer-only-shell .menu-item h5 {
+  margin: 0 !important;
+  font-size: 15px !important;
+  line-height: 1.08 !important;
+}
+
+.customer-only-shell .menu-item p {
+  margin: 3px 0 !important;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+}
+
+.customer-only-shell .menu-item .price {
+  margin-top: 4px !important;
+  font-size: 14px !important;
+  font-weight: 950 !important;
+}
+
+.customer-only-shell .menu-item .btn.small {
+  min-width: 52px !important;
+  min-height: 36px !important;
+  padding: 7px 10px !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+}
+
+.customer-only-shell .cart-quantity-control {
+  display: grid !important;
+  grid-template-columns: 28px 26px 28px !important;
+  align-items: center !important;
+  border-radius: 999px !important;
+}
+
+.customer-only-shell .cart-quantity-control button {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+@media (max-width: 390px) {
+  .option-one-table-logo {
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  .customer-only-shell .menu-item {
+    grid-template-columns: 68px minmax(0, 1fr) auto !important;
+  }
+
+  .customer-only-shell .item-photo-button,
+  .customer-only-shell .item-icon {
+    width: 68px !important;
+    height: 68px !important;
+  }
+}
+
 @media (min-width: 431px) {
   .option-one-profile-chips {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
@@ -2880,6 +3083,11 @@ export default function Page() {
     setOrderCart({});
     setOrderReviewOpen(false);
 
+    if (publicCustomerMode) {
+      setPhoneTab("menu");
+      setActiveMenuCategory("__home");
+    }
+
     if (publicCustomerMode && state.profile.businessId) {
       try {
         const savedGuests = await joinTableGuestInSupabase(
@@ -2925,6 +3133,12 @@ export default function Page() {
 
     setOrderCart({});
     setOrderReviewOpen(false);
+
+    if (publicCustomerMode) {
+      setPhoneTab("menu");
+      setActiveMenuCategory("__home");
+    }
+
     show(`Welcome back, ${clean}`);
   }
 
@@ -3899,7 +4113,9 @@ export default function Page() {
                         </div>
 
                         <div className="option-one-table-card">
-                          <div className="option-one-table-icon">▦</div>
+                          <div className="option-one-table-logo">
+                            <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} customer />
+                          </div>
                           <div>
                             <span>You’re at</span>
                             <strong>Table {activeTable}</strong>
@@ -3923,62 +4139,119 @@ export default function Page() {
                     )}
 
                     <div className="phone-content">
-                      {!state.currentGuest ? (
+                      {(!state.currentGuest || (publicCustomerMode && activeMenuCategory === "__home")) ? (
                         publicCustomerMode ? (
                           <>
                           <div className="option-one-seat-card">
-                            <div className="option-one-card-head">
-                              <div>
-                                <h4>Who’s dining today?</h4>
-                                <p>Enter your name or select your profile.</p>
-                              </div>
-                            </div>
+                            {state.currentGuest ? (
+                              <>
+                                <div className="option-one-card-head">
+                                  <div>
+                                    <h4>You’re ordering as</h4>
+                                    <p>Stay on this screen, choose a category, then add items.</p>
+                                  </div>
+                                </div>
 
-                            <div className="option-one-name-entry">
-                              <span className="option-one-input-icon">♙</span>
-                              <input
-                                value={guestName}
-                                onChange={(e) => setGuestName(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && joinGuest(guestName)}
-                                placeholder="Enter your name"
-                                maxLength={24}
-                                autoFocus={!seatedGuests.length}
-                              />
-                              <button
-                                className="option-one-arrow-button"
-                                type="button"
-                                onClick={() => joinGuest(guestName)}
-                                aria-label="Begin ordering"
-                              >
-                                →
-                              </button>
-                            </div>
+                                <div className="option-one-current-guest-card">
+                                  <span>{state.currentGuest.slice(0, 1).toUpperCase()}</span>
+                                  <div>
+                                    <strong>{state.currentGuest}</strong>
+                                    <small>Table {activeTable} • Current guest</small>
+                                  </div>
+                                </div>
 
-                            <div className="guest-chips option-one-profile-chips">
-                              {seatedGuests.length ? (
-                                seatedGuests.map((guest) => (
+                                <div className="guest-chips option-one-profile-chips">
+                                  {seatedGuests.length ? (
+                                    seatedGuests.map((guest) => (
+                                      <button
+                                        key={guest}
+                                        className={`guest-chip option-one-profile-chip ${guest === state.currentGuest ? "active" : ""}`}
+                                        type="button"
+                                        onClick={() => chooseSeatedGuest(guest)}
+                                      >
+                                        <span>♙</span>{guest}
+                                      </button>
+                                    ))
+                                  ) : (
+                                    state.guests.map((guest) => (
+                                      <button
+                                        key={guest}
+                                        className={`guest-chip option-one-profile-chip ${guest === state.currentGuest ? "active" : ""}`}
+                                        type="button"
+                                        onClick={() => chooseSeatedGuest(guest)}
+                                      >
+                                        <span>♙</span>{guest}
+                                      </button>
+                                    ))
+                                  )}
                                   <button
-                                    key={guest}
-                                    className="guest-chip option-one-profile-chip active"
+                                    className="guest-chip option-one-profile-chip option-one-add-name-chip"
                                     type="button"
-                                    onClick={() => chooseSeatedGuest(guest)}
+                                    onClick={() => {
+                                      setGuestName("");
+                                      updateState((current) => ({ ...current, currentGuest: "" }));
+                                    }}
                                   >
-                                    <span>♙</span>{guest}
+                                    <span>+</span>Add name
                                   </button>
-                                ))
-                              ) : (
-                                ["Jihad", "Rami", "Lina", "Sara"].map((name) => (
+                                </div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="option-one-card-head">
+                                  <div>
+                                    <h4>Who’s dining today?</h4>
+                                    <p>Enter your name or select your profile.</p>
+                                  </div>
+                                </div>
+
+                                <div className="option-one-name-entry">
+                                  <span className="option-one-input-icon">♙</span>
+                                  <input
+                                    value={guestName}
+                                    onChange={(e) => setGuestName(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && joinGuest(guestName)}
+                                    placeholder="Enter your name"
+                                    maxLength={24}
+                                    autoFocus={!seatedGuests.length}
+                                  />
                                   <button
-                                    key={name}
-                                    className="guest-chip option-one-profile-chip"
+                                    className="option-one-arrow-button"
                                     type="button"
-                                    onClick={() => joinGuest(name)}
+                                    onClick={() => joinGuest(guestName)}
+                                    aria-label="Begin ordering"
                                   >
-                                    <span>♙</span>{name}
+                                    →
                                   </button>
-                                ))
-                              )}
-                            </div>
+                                </div>
+
+                                <div className="guest-chips option-one-profile-chips">
+                                  {seatedGuests.length ? (
+                                    seatedGuests.map((guest) => (
+                                      <button
+                                        key={guest}
+                                        className="guest-chip option-one-profile-chip active"
+                                        type="button"
+                                        onClick={() => chooseSeatedGuest(guest)}
+                                      >
+                                        <span>♙</span>{guest}
+                                      </button>
+                                    ))
+                                  ) : (
+                                    ["Jihad", "Rami", "Lina", "Sara"].map((name) => (
+                                      <button
+                                        key={name}
+                                        className="guest-chip option-one-profile-chip"
+                                        type="button"
+                                        onClick={() => joinGuest(name)}
+                                      >
+                                        <span>♙</span>{name}
+                                      </button>
+                                    ))
+                                  )}
+                                </div>
+                              </>
+                            )}
                           </div>
 
                           <div className="option-one-explore-card">
@@ -3987,6 +4260,11 @@ export default function Page() {
                               <button
                                 type="button"
                                 onClick={() => {
+                                  if (!state.currentGuest) {
+                                    show("Enter your name first");
+                                    return;
+                                  }
+
                                   setActiveMenuCategory("all");
                                   setPhoneTab("menu");
                                 }}
@@ -4016,6 +4294,11 @@ export default function Page() {
                                     className="option-one-category-card"
                                     type="button"
                                     onClick={() => {
+                                      if (!state.currentGuest) {
+                                        show("Enter your name first");
+                                        return;
+                                      }
+
                                       setActiveMenuCategory(category?.id || "all");
                                       setPhoneTab("menu");
                                     }}
@@ -4040,7 +4323,10 @@ export default function Page() {
                               <span>▤</span>
                               My Bill
                             </button>
-                            <button className="active" type="button" onClick={() => setPhoneTab("menu")}>
+                            <button className="active" type="button" onClick={() => {
+                              setPhoneTab("menu");
+                              setActiveMenuCategory("__home");
+                            }}>
                               <span>⌂</span>
                               Menu
                             </button>
@@ -4210,6 +4496,27 @@ export default function Page() {
 
                           {phoneTab === "menu" && (
                             <>
+                              {publicCustomerMode && activeMenuCategory !== "__home" ? (
+                                <div className="option-one-menu-back-row">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setActiveMenuCategory("__home");
+                                      setPhoneTab("menu");
+                                    }}
+                                  >
+                                    ← Back to categories
+                                  </button>
+                                  <strong>
+                                    {activeMenuCategory === "all"
+                                      ? "All menu items"
+                                      : activeMenuCategory === "uncategorized"
+                                        ? "Other"
+                                        : menuCategoriesWithItems.find((category) => category.id === activeMenuCategory)?.name || "Menu"}
+                                  </strong>
+                                </div>
+                              ) : null}
+
                               {state.menu.length ? (
                                 <div className="category-scroll">
                                   <button
