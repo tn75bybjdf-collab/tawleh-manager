@@ -1245,6 +1245,37 @@ main.customer-only-shell,
   }
 }
 
+
+/* Keep bottom customer navigation visible when fixed Send Order bar appears */
+.customer-only-shell .phone-content {
+  padding-bottom: 112px !important;
+}
+
+.customer-only-shell .option-one-bottom-nav {
+  position: relative !important;
+  z-index: 30 !important;
+  margin-bottom: 82px !important;
+}
+
+.customer-only-shell .option-one-secure-row {
+  display: none !important;
+}
+
+.customer-only-shell .fixed-send-order-bar,
+.fixed-send-order-bar {
+  bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+}
+
+@media (max-width: 390px) {
+  .customer-only-shell .phone-content {
+    padding-bottom: 104px !important;
+  }
+
+  .customer-only-shell .option-one-bottom-nav {
+    margin-bottom: 76px !important;
+  }
+}
+
 @media (min-width: 431px) {
   .option-one-profile-chips {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
