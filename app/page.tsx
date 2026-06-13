@@ -3949,6 +3949,38 @@ body {
   }
 }
 
+
+
+/* =========================================================
+   MENU BUILDER EDIT SCROLL TARGET
+   When pressing Edit in an expanded category, scroll smoothly
+   to the editor form and make it obvious where to edit.
+   ========================================================= */
+
+.manager-option2-shell .menu-builder-form {
+  scroll-margin-top: 26px !important;
+}
+
+.manager-option2-shell .menu-builder-form.editing-target {
+  position: relative !important;
+  border-radius: 24px !important;
+  outline: 3px solid rgba(207, 95, 59, 0.20) !important;
+  outline-offset: 8px !important;
+  animation: tawlehEditPulse 1.1s ease-out 1 !important;
+}
+
+@keyframes tawlehEditPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(207, 95, 59, 0.30);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(207, 95, 59, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(207, 95, 59, 0);
+  }
+}
+
 `;
 
 
@@ -5026,6 +5058,7 @@ export default function Page() {
   const [kitchenBellEnabled, setKitchenBellEnabled] = useState(false);
   const kitchenBellPrimedRef = useRef(false);
   const lastKitchenNewOrderIdsRef = useRef<Set<string>>(new Set());
+  const menuBuilderFormRef = useRef<HTMLDivElement | null>(null);
   const [signupProfile, setSignupProfile] = useState<Profile>(defaultState.profile);
   const [activeLocationTab, setActiveLocationTab] = useState(0);
   const [authBusy, setAuthBusy] = useState(false);
@@ -6718,6 +6751,7 @@ export default function Page() {
   }
 
   function startEditingMenuItem(item: MenuItem) {
+    setManagerTab("menuBuilder");
     setEditingMenuItemId(item.id);
     setMenuDraft({
       name: item.name,
@@ -6733,6 +6767,17 @@ export default function Page() {
       imageThumbUrl: item.imageThumbUrl || "",
       imageFullUrl: item.imageFullUrl || "",
     });
+
+    window.setTimeout(() => {
+      menuBuilderFormRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
+      const firstEditableField = menuBuilderFormRef.current?.querySelector("input, textarea, select") as HTMLElement | null;
+      firstEditableField?.focus({ preventScroll: true });
+    }, 80);
+
     show(`Editing ${item.name}`);
   }
 
@@ -8210,7 +8255,11 @@ export default function Page() {
                         </div>
                       </div>
 
-                      <div className="menu-builder-form">
+                      <div
+                        id="menu-builder-editor"
+                        ref={menuBuilderFormRef}
+                        className={`menu-builder-form ${editingMenuItemId ? "editing-target" : ""}`}
+                      >
                         {editingMenuItemId ? (
                           <div className="edit-banner">
                             Editing item. Change price, picture, stock, category, or daily serving hours, then save.
