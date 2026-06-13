@@ -1669,6 +1669,161 @@ main.customer-only-shell:not([style*="--customer-menu-bg"]) .phone-screen {
   background: radial-gradient(circle at 50% -8%, #fffdf8 0 28%, #fff7ed 54%, #f2e4d3 100%) !important;
 }
 
+
+
+/* =========================================================
+   CUSTOMER SCROLL + BOTTOM NAV + SMOOTH BACKGROUND FINAL
+   - scrolling stays available immediately
+   - bottom tabs no longer cover the Explore menu card
+   - image changes only after the next image has fully loaded in React
+   - the photo layer no longer remounts/flickers on each switch
+   ========================================================= */
+
+main.customer-only-shell,
+main.customer-only-shell * {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+main.customer-only-shell {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  touch-action: pan-y !important;
+}
+
+main.customer-only-shell .customer-panel,
+main.customer-only-shell .customer-phone {
+  min-height: 100dvh !important;
+  overflow: visible !important;
+}
+
+main.customer-only-shell .phone-screen {
+  min-height: 100dvh !important;
+  height: auto !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-y: contain !important;
+  touch-action: pan-y !important;
+  scroll-behavior: auto !important;
+  position: relative !important;
+  background: #f3dfc9 !important;
+}
+
+main.customer-only-shell .phone-screen > .customer-menu-photo-bg {
+  display: block !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  transform: translateZ(0) scale(1.025) !important;
+  filter: saturate(1.06) contrast(1.01) brightness(0.93) !important;
+  animation: none !important;
+  transition: none !important;
+  will-change: background-image !important;
+}
+
+main.customer-only-shell .phone-screen > .customer-menu-photo-bg::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(255, 253, 248, 0.52) 0 24%, rgba(255, 247, 235, 0.36) 54%, rgba(238, 216, 192, 0.64) 100%),
+    linear-gradient(180deg, rgba(255, 252, 246, 0.40) 0%, rgba(244, 224, 201, 0.56) 100%) !important;
+}
+
+main.customer-only-shell .phone-status,
+main.customer-only-shell .option-one-customer-hero,
+main.customer-only-shell .phone-content,
+main.customer-only-shell .option-one-bottom-nav,
+main.customer-only-shell .fixed-send-order-bar {
+  position: relative !important;
+  z-index: 3 !important;
+}
+
+main.customer-only-shell .phone-content {
+  min-height: calc(100dvh - 196px) !important;
+  padding-bottom: 190px !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+main.customer-only-shell.customer-has-cart .phone-content {
+  padding-bottom: 270px !important;
+}
+
+main.customer-only-shell .option-one-explore-card {
+  margin-bottom: 112px !important;
+}
+
+main.customer-only-shell.customer-has-cart .option-one-explore-card {
+  margin-bottom: 190px !important;
+}
+
+main.customer-only-shell .option-one-bottom-nav {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: calc(14px + env(safe-area-inset-bottom)) !important;
+  transform: translateX(-50%) !important;
+  width: calc(100% - 28px) !important;
+  max-width: 520px !important;
+  z-index: 9998 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 9px !important;
+  pointer-events: auto !important;
+}
+
+main.customer-only-shell.customer-has-cart .option-one-bottom-nav {
+  bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+}
+
+main.customer-only-shell .option-one-bottom-nav button {
+  min-height: 56px !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+}
+
+main.customer-only-shell .fixed-send-order-bar,
+.fixed-send-order-bar {
+  z-index: 9999 !important;
+}
+
+@media (max-width: 390px) {
+  main.customer-only-shell .phone-content {
+    padding-bottom: 176px !important;
+  }
+
+  main.customer-only-shell.customer-has-cart .phone-content {
+    padding-bottom: 252px !important;
+  }
+
+  main.customer-only-shell .option-one-explore-card {
+    margin-bottom: 104px !important;
+  }
+
+  main.customer-only-shell.customer-has-cart .option-one-explore-card {
+    margin-bottom: 176px !important;
+  }
+
+  main.customer-only-shell .option-one-bottom-nav {
+    width: calc(100% - 20px) !important;
+    gap: 7px !important;
+  }
+
+  main.customer-only-shell.customer-has-cart .option-one-bottom-nav {
+    bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+  }
+}
+
 `;
 
 
@@ -4855,7 +5010,7 @@ export default function Page() {
   const [imageBusy, setImageBusy] = useState(false);
   const [menuBusy, setMenuBusy] = useState(false);
   const [selectedMenuImage, setSelectedMenuImage] = useState<MenuItem | null>(null);
-  const [customerBgIndex, setCustomerBgIndex] = useState(0);
+  const [customerBgImageUrl, setCustomerBgImageUrl] = useState("");
   const [toast, setToast] = useState("");
   const [publicTableMode, setPublicTableMode] = useState(false);
   const publicCustomerMode = publicTableMode;
@@ -5150,7 +5305,7 @@ export default function Page() {
     const seen = new Set<string>();
 
     state.menu.forEach((item) => {
-      const imageUrl = item.imageFullUrl || item.imageThumbUrl;
+      const imageUrl = cleanPersistedImageUrl(item.imageFullUrl || item.imageThumbUrl || "");
 
       if (imageUrl && !imageUrl.startsWith("data:")) {
         seen.add(imageUrl);
@@ -5160,9 +5315,7 @@ export default function Page() {
     return Array.from(seen);
   }, [state.menu]);
 
-  const customerBackgroundImage = publicCustomerMode && customerBackgroundImages.length
-    ? customerBackgroundImages[customerBgIndex % customerBackgroundImages.length]
-    : "";
+  const customerBackgroundImage = publicCustomerMode ? customerBgImageUrl : "";
 
   const customerBackgroundStyle = customerBackgroundImage
     ? ({ "--customer-menu-bg": `url("${customerBackgroundImage}")` } as CSSProperties)
@@ -5170,28 +5323,73 @@ export default function Page() {
 
   useEffect(() => {
     if (!publicCustomerMode || !customerBackgroundImages.length) {
-      setCustomerBgIndex(0);
+      setCustomerBgImageUrl("");
       return;
     }
 
-    setCustomerBgIndex(Math.floor(Math.random() * customerBackgroundImages.length));
+    let cancelled = false;
+    let activeIndex = -1;
+
+    const chooseNextIndex = () => {
+      if (customerBackgroundImages.length <= 1) return 0;
+
+      let nextIndex = Math.floor(Math.random() * customerBackgroundImages.length);
+
+      if (nextIndex === activeIndex) {
+        nextIndex = (activeIndex + 1) % customerBackgroundImages.length;
+      }
+
+      return nextIndex;
+    };
+
+    const loadThenSet = (index: number) => {
+      const nextUrl = customerBackgroundImages[index];
+
+      if (!nextUrl) return;
+
+      const image = new Image();
+
+      image.onload = () => {
+        if (cancelled) return;
+
+        activeIndex = index;
+        setCustomerBgImageUrl(nextUrl);
+      };
+
+      image.onerror = () => {
+        if (cancelled || customerBackgroundImages.length <= 1) return;
+
+        const retryIndex = (index + 1) % customerBackgroundImages.length;
+        const retryUrl = customerBackgroundImages[retryIndex];
+
+        if (!retryUrl || retryUrl === nextUrl) return;
+
+        const retryImage = new Image();
+
+        retryImage.onload = () => {
+          if (cancelled) return;
+
+          activeIndex = retryIndex;
+          setCustomerBgImageUrl(retryUrl);
+        };
+
+        retryImage.src = retryUrl;
+      };
+
+      image.src = nextUrl;
+    };
+
+    loadThenSet(chooseNextIndex());
 
     const timer = window.setInterval(() => {
-      setCustomerBgIndex((current) => {
-        if (customerBackgroundImages.length <= 1) return 0;
-
-        let next = Math.floor(Math.random() * customerBackgroundImages.length);
-
-        if (next === current) {
-          next = (current + 1) % customerBackgroundImages.length;
-        }
-
-        return next;
-      });
+      loadThenSet(chooseNextIndex());
     }, 5000);
 
-    return () => window.clearInterval(timer);
-  }, [publicCustomerMode, customerBackgroundImages.length]);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [publicCustomerMode, customerBackgroundImages]);
 
   useEffect(() => {
     if (!publicCustomerMode || !customerBackgroundImages.length) return;
@@ -5201,16 +5399,6 @@ export default function Page() {
       image.src = imageUrl;
     });
   }, [publicCustomerMode, customerBackgroundImages]);
-
-  useEffect(() => {
-    if (!publicCustomerMode) return;
-
-    console.info("[Tawleh customer background]", {
-      menuItems: state.menu.length,
-      backgroundImages: customerBackgroundImages.length,
-      activeBackground: customerBackgroundImage,
-    });
-  }, [publicCustomerMode, state.menu.length, customerBackgroundImages.length, customerBackgroundImage]);
 
   const orderCartLines = useMemo<CartLine[]>(() => {
     return Object.entries(orderCart)
@@ -7102,7 +7290,6 @@ export default function Page() {
 
                     {publicCustomerMode && customerBackgroundImage ? (
                       <div
-                        key={customerBackgroundImage}
                         className="customer-menu-photo-bg"
                         style={{ backgroundImage: `url("${customerBackgroundImage}")` }}
                         aria-hidden="true"
