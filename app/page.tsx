@@ -4464,9 +4464,10 @@ export default function Page() {
     if (!loadedState.profile.businessId && !loadedState.profile.username) return;
 
     try {
-      const repairedProfile = loadedState.profile.businessId
-        ? loadedState.profile
-        : await fetchBusinessProfileFromServer(loadedState.profile);
+      // Always reload the business profile from Supabase.
+      // The restaurant logo is now stored in Supabase Storage, so localStorage can be stale.
+      // This fixes the dashboard / QR card showing the generic fallback while the customer QR page shows the real logo.
+      const repairedProfile = await fetchBusinessProfileFromServer(loadedState.profile);
 
       const [savedMenu, savedCategories] = repairedProfile.businessId
         ? await Promise.all([
@@ -4477,12 +4478,20 @@ export default function Page() {
 
       updateState((current) => ({
         ...current,
-        profile: repairedProfile,
+        profile: {
+          ...current.profile,
+          ...repairedProfile,
+          logoDataUrl: repairedProfile.logoDataUrl || current.profile.logoDataUrl,
+        },
         menu: savedMenu.length ? savedMenu : current.menu,
         categories: savedCategories,
       }));
+
+      if (repairedProfile.brandColor) {
+        document.documentElement.style.setProperty("--brand", repairedProfile.brandColor);
+      }
     } catch (error) {
-      console.error("Menu restore failed", error);
+      console.error("Menu/profile restore failed", error);
     }
   }
 
@@ -4602,6 +4611,24 @@ export default function Page() {
           logoDataUrl: logoUrl,
         },
       }));
+
+      try {
+        const repairedProfile = await fetchBusinessProfileFromServer({
+          ...state.profile,
+          logoDataUrl: logoUrl,
+        });
+
+        updateState((current) => ({
+          ...current,
+          profile: {
+            ...current.profile,
+            ...repairedProfile,
+            logoDataUrl: repairedProfile.logoDataUrl || logoUrl,
+          },
+        }));
+      } catch {
+        // The upload already succeeded; keep the returned logo URL.
+      }
 
       show("Restaurant logo saved");
     } catch (error) {

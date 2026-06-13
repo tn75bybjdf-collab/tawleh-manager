@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
+export const runtime = "nodejs";
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -10,6 +12,10 @@ function isUuid(value: string) {
 
 function clean(value: string | null) {
   return String(value || "").trim();
+}
+
+function normalizeUsername(value: string | null) {
+  return clean(value).toLowerCase().replace(/[^a-z0-9_]/g, "");
 }
 
 export async function GET(request: NextRequest) {
@@ -22,7 +28,7 @@ export async function GET(request: NextRequest) {
 
   const searchParams = request.nextUrl.searchParams;
   const businessId = clean(searchParams.get("businessId") || searchParams.get("business"));
-  const username = clean(searchParams.get("username")).toLowerCase();
+  const username = normalizeUsername(searchParams.get("username"));
 
   if (!businessId && !username) {
     return NextResponse.json({ error: "Missing restaurant account" }, { status: 400 });
@@ -41,7 +47,26 @@ export async function GET(request: NextRequest) {
 
   let query = admin
     .from("business_accounts")
-    .select("id, auth_user_id, email, username, restaurant_name, branch_name, business_type, business_phone, table_count, location_count, location, locations, signup_ip, welcome_message, brand_color, logo_data_url");
+    .select(`
+      id,
+      auth_user_id,
+      email,
+      username,
+      restaurant_name,
+      branch_name,
+      business_type,
+      business_phone,
+      table_count,
+      location_count,
+      location,
+      locations,
+      signup_ip,
+      welcome_message,
+      brand_color,
+      logo_data_url,
+      logo_path,
+      logo_updated_at
+    `);
 
   if (businessId) {
     query = query.eq("id", businessId);
