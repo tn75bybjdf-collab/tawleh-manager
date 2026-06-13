@@ -3087,6 +3087,198 @@ body {
   }
 }
 
+
+
+/* =========================================================
+   FORCE QR PRINT TO EXACTLY ONE LETTER PAGE
+   Previous print CSS used visibility:hidden, which can still leave hidden
+   dashboard layout taking print space in some browsers. This removes
+   everything except the print sheet from print layout.
+   ========================================================= */
+
+@page {
+  size: letter portrait;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    width: 8.5in !important;
+    height: 11in !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #fff !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Remove dashboard/customer app from print layout completely. */
+  main > *:not(.print-sheet),
+  .app-shell > *:not(.print-sheet),
+  .manager-option2-shell,
+  .toast,
+  .image-modal,
+  .fixed-send-order-bar {
+    display: none !important;
+  }
+
+  /* Print only the QR sheet. */
+  .print-sheet {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 8.5in !important;
+    height: 11in !important;
+    min-height: 0 !important;
+    max-height: 11in !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: hidden !important;
+    pointer-events: auto !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    break-before: avoid !important;
+    break-after: avoid !important;
+  }
+
+  .print-sheet * {
+    visibility: visible !important;
+    box-sizing: border-box !important;
+  }
+
+  .print-page {
+    display: block !important;
+    width: 8.5in !important;
+    height: 11in !important;
+    min-height: 0 !important;
+    max-height: 11in !important;
+    margin: 0 !important;
+    padding: 0.34in !important;
+    overflow: hidden !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    break-before: avoid !important;
+    break-after: avoid !important;
+  }
+
+  .print-page-frame {
+    width: 100% !important;
+    height: 10.32in !important;
+    min-height: 0 !important;
+    max-height: 10.32in !important;
+    margin: 0 !important;
+    padding: 0.30in 0.36in 0.24in !important;
+    overflow: hidden !important;
+    box-shadow: none !important;
+    border-radius: 24px !important;
+  }
+
+  .print-page-header {
+    padding-bottom: 0.12in !important;
+  }
+
+  .print-page-eyebrow {
+    min-height: 24px !important;
+    margin-bottom: 7px !important;
+    font-size: 9px !important;
+  }
+
+  .print-page-header h1 {
+    font-size: 30px !important;
+  }
+
+  .print-page-header p {
+    margin: 6px 0 11px !important;
+    font-size: 12px !important;
+  }
+
+  .print-table-badge {
+    min-height: 38px !important;
+    padding: 0 18px !important;
+    font-size: 17px !important;
+  }
+
+  .print-hero-copy {
+    margin: 0.18in auto 0.15in !important;
+    max-width: 5.8in !important;
+  }
+
+  .print-hero-copy h2 {
+    font-size: 24px !important;
+  }
+
+  .print-hero-copy p {
+    margin-top: 7px !important;
+    font-size: 12px !important;
+    line-height: 1.32 !important;
+  }
+
+  .print-qr-showcase {
+    padding: 0.04in 0 0.14in !important;
+  }
+
+  .print-qr-wrap.prestigious-qr {
+    width: 3.95in !important;
+    max-width: 3.95in !important;
+    padding: 0.16in !important;
+    border-radius: 26px !important;
+    box-shadow: none !important;
+  }
+
+  .print-qr-wrap.prestigious-qr .qr-logo-mark {
+    width: 20% !important;
+    height: 20% !important;
+    min-width: 0.72in !important;
+    min-height: 0.72in !important;
+    max-width: 0.88in !important;
+    max-height: 0.88in !important;
+    border-radius: 18px !important;
+    border: 4px solid #fff !important;
+  }
+
+  .print-steps-grid {
+    gap: 9px !important;
+    padding-top: 0.04in !important;
+  }
+
+  .print-step-card {
+    min-height: 0.72in !important;
+    padding: 9px 10px !important;
+    border-radius: 18px !important;
+    gap: 6px !important;
+  }
+
+  .print-step-card strong {
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 15px !important;
+  }
+
+  .print-step-card span {
+    font-size: 12px !important;
+    line-height: 1.15 !important;
+  }
+
+  .print-page-footer {
+    margin-top: 0.11in !important;
+    padding-top: 0.11in !important;
+  }
+
+  .print-page-footer span,
+  .print-page-footer em {
+    font-size: 10px !important;
+  }
+}
+
 `;
 
 
