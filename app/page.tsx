@@ -2147,6 +2147,64 @@ main.customer-only-shell .option-one-bottom-nav button.active {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.18) !important;
 }
 
+
+
+/* =========================================================
+   CUSTOMER SHOW ALL CATEGORIES + NO CATEGORY SWITCH PILLS
+   Explore menu now shows every real saved category as wrapping cards.
+   Once inside a category, guests only see Back to categories, not the
+   horizontal text category switcher.
+   ========================================================= */
+
+main.customer-only-shell .option-one-category-preview {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-flow: row !important;
+  grid-auto-columns: unset !important;
+  gap: 9px !important;
+  overflow: visible !important;
+  max-width: 100% !important;
+  padding: 2px 0 6px !important;
+  margin: 0 !important;
+  scroll-snap-type: none !important;
+  touch-action: pan-y !important;
+}
+
+main.customer-only-shell .option-one-category-card {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  min-height: 124px !important;
+  scroll-snap-align: unset !important;
+}
+
+main.customer-only-shell .option-one-category-photo {
+  height: 66px !important;
+}
+
+main.customer-only-shell .category-scroll {
+  display: none !important;
+}
+
+main.customer-only-shell .option-one-menu-back-row {
+  margin-bottom: 12px !important;
+}
+
+@media (max-width: 390px) {
+  main.customer-only-shell .option-one-category-preview {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  main.customer-only-shell .option-one-category-card {
+    min-height: 118px !important;
+  }
+
+  main.customer-only-shell .option-one-category-photo {
+    height: 60px !important;
+  }
+}
+
 `;
 
 
@@ -7913,47 +7971,84 @@ export default function Page() {
                             </div>
 
                             <div className="option-one-category-preview">
-                              {[
-                                { label: "Mezze", icon: "🥣" },
-                                { label: "Hot Mezze", icon: "🥟" },
-                                { label: "Grills", icon: "🔥" },
-                                { label: "Desserts", icon: "🍰" },
-                              ].map((preview, index) => {
-                                const category = menuCategoriesWithItems[index];
-                                const categoryItems = category
-                                  ? state.menu.filter((item) => item.categoryId === category.id)
-                                  : [];
-                                const itemCount = categoryItems.length;
-                                const firstPhotoItem = categoryItems.find((item) => item.imageThumbUrl || item.imageFullUrl);
-                                const categoryImageUrl = firstPhotoItem?.imageThumbUrl || firstPhotoItem?.imageFullUrl || "";
+                              {menuCategoriesWithItems.length ? (
+                                menuCategoriesWithItems.map((category) => {
+                                  const categoryItems = state.menu.filter((item) => item.categoryId === category.id);
+                                  const itemCount = categoryItems.length;
+                                  const firstPhotoItem = categoryItems.find((item) => item.imageThumbUrl || item.imageFullUrl);
+                                  const categoryImageUrl = firstPhotoItem?.imageThumbUrl || firstPhotoItem?.imageFullUrl || "";
+                                  const categoryInitials = menuIconFromName(category.name || "Menu");
 
-                                return (
-                                  <button
-                                    key={`${preview.label}-${index}`}
-                                    className="option-one-category-card"
-                                    type="button"
-                                    onClick={() => {
-                                      if (!state.currentGuest) {
-                                        show("Enter your name first");
-                                        return;
-                                      }
+                                  return (
+                                    <button
+                                      key={category.id}
+                                      className="option-one-category-card"
+                                      type="button"
+                                      onClick={() => {
+                                        if (!state.currentGuest) {
+                                          show("Enter your name first");
+                                          return;
+                                        }
 
-                                      setActiveMenuCategory(category?.id || "all");
-                                      setPhoneTab("menu");
-                                    }}
-                                  >
-                                    <div className="option-one-category-photo">
-                                      {categoryImageUrl ? (
-                                        <img src={categoryImageUrl} alt={category?.name || preview.label} />
-                                      ) : (
-                                        <span>{preview.icon}</span>
-                                      )}
-                                    </div>
-                                    <strong>{category?.name || preview.label}</strong>
-                                    <small>{itemCount || " "} {itemCount ? "items" : ""}</small>
-                                  </button>
-                                );
-                              })}
+                                        setActiveMenuCategory(category.id);
+                                        setPhoneTab("menu");
+                                      }}
+                                    >
+                                      <div className="option-one-category-photo">
+                                        {categoryImageUrl ? (
+                                          <img src={categoryImageUrl} alt={category.name} />
+                                        ) : (
+                                          <span>{categoryInitials}</span>
+                                        )}
+                                      </div>
+                                      <strong>{category.name}</strong>
+                                      <small>{itemCount} {itemCount === 1 ? "item" : "items"}</small>
+                                    </button>
+                                  );
+                                })
+                              ) : (
+                                <button
+                                  className="option-one-category-card"
+                                  type="button"
+                                  onClick={() => {
+                                    if (!state.currentGuest) {
+                                      show("Enter your name first");
+                                      return;
+                                    }
+
+                                    setActiveMenuCategory("all");
+                                    setPhoneTab("menu");
+                                  }}
+                                >
+                                  <div className="option-one-category-photo">
+                                    <span>MN</span>
+                                  </div>
+                                  <strong>Menu</strong>
+                                  <small>{state.menu.length} items</small>
+                                </button>
+                              )}
+
+                              {hasUncategorizedItems ? (
+                                <button
+                                  className="option-one-category-card"
+                                  type="button"
+                                  onClick={() => {
+                                    if (!state.currentGuest) {
+                                      show("Enter your name first");
+                                      return;
+                                    }
+
+                                    setActiveMenuCategory("uncategorized");
+                                    setPhoneTab("menu");
+                                  }}
+                                >
+                                  <div className="option-one-category-photo">
+                                    <span>OT</span>
+                                  </div>
+                                  <strong>Other</strong>
+                                  <small>{state.menu.filter((item) => !item.categoryId).length} items</small>
+                                </button>
+                              ) : null}
                             </div>
                           </div>
 
@@ -8176,7 +8271,7 @@ export default function Page() {
                                 </div>
                               ) : null}
 
-                              {state.menu.length ? (
+                              {state.menu.length && !publicCustomerMode ? (
                                 <div className="category-scroll">
                                   <button
                                     className={`category-chip ${activeMenuCategory === "all" ? "active" : ""}`}
