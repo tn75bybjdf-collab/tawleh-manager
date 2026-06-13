@@ -129,8 +129,15 @@ type Order = {
   itemName: string;
   price: number;
   quantity: number;
-  status: "New" | "Preparing" | "Ready" | "Served";
+  status: "New" | "Preparing" | "Ready" | "Picked up" | "Served";
   createdAt: string;
+  orderTicketId: string;
+  ticketNumber: number | null;
+  kitchenPrintJobId: string;
+  customerBillPrintJobId: string;
+  kitchenPrintedAt: string;
+  customerBillPrintedAt: string;
+  printNote: string;
 };
 
 type CartLine = {
@@ -139,10 +146,27 @@ type CartLine = {
   lineTotal: number;
 };
 
+type KitchenTicketGroup = {
+  key: string;
+  orderTicketId: string;
+  ticketNumber: number | null;
+  table: number;
+  guest: string;
+  orders: Order[];
+  itemCount: number;
+  total: number;
+  createdAt: string;
+  kitchenPrintJobId: string;
+  kitchenPrintedAt: string;
+  printNote: string;
+};
+
 type TableOrderRow = {
   id: string;
   business_account_id: string;
   auth_user_id: string;
+  order_ticket_id?: string | null;
+  ticket_number?: number | string | null;
   table_number: number;
   guest_name: string;
   item_id: string;
@@ -151,6 +175,11 @@ type TableOrderRow = {
   price_jod: number | string;
   line_total_jod: number | string | null;
   status: Order["status"];
+  kitchen_print_job_id?: string | null;
+  customer_bill_print_job_id?: string | null;
+  kitchen_printed_at?: string | null;
+  customer_bill_printed_at?: string | null;
+  print_note?: string | null;
   created_at: string | null;
 };
 
@@ -558,6 +587,13 @@ function rowToOrder(row: TableOrderRow): Order {
     quantity,
     status: row.status || "New",
     createdAt: row.created_at || new Date().toISOString(),
+    orderTicketId: row.order_ticket_id || "",
+    ticketNumber: row.ticket_number ? Number(row.ticket_number) : null,
+    kitchenPrintJobId: row.kitchen_print_job_id || "",
+    customerBillPrintJobId: row.customer_bill_print_job_id || "",
+    kitchenPrintedAt: row.kitchen_printed_at || "",
+    customerBillPrintedAt: row.customer_bill_printed_at || "",
+    printNote: row.print_note || "",
   };
 }
 
@@ -1445,6 +1481,37 @@ export default function Page() {
   const readyOrders = state.orders.filter((order) => order.status === "Ready");
   const activeOrders = state.orders.filter((order) => order.status !== "Served");
 
+  const kitchenTickets = useMemo<KitchenTicketGroup[]>(() => {
+    const groups = activeOrders.reduce<Record<string, Order[]>>((acc, order) => {
+      const key = order.orderTicketId || `legacy-${order.table}-${order.guest}-${order.createdAt}`;
+      acc[key] = acc[key] || [];
+      acc[key].push(order);
+      return acc;
+    }, {});
+
+    return Object.entries(groups)
+      .map(([key, orders]) => {
+        const sortedOrders = [...orders].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        const first = sortedOrders[0];
+
+        return {
+          key,
+          orderTicketId: first.orderTicketId,
+          ticketNumber: first.ticketNumber,
+          table: first.table,
+          guest: first.guest,
+          orders: sortedOrders,
+          itemCount: sortedOrders.reduce((sum, order) => sum + Math.max(1, Number(order.quantity || 1)), 0),
+          total: sortedOrders.reduce((sum, order) => sum + orderLineTotal(order), 0),
+          createdAt: first.createdAt,
+          kitchenPrintJobId: first.kitchenPrintJobId,
+          kitchenPrintedAt: first.kitchenPrintedAt,
+          printNote: first.printNote,
+        };
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [activeOrders]);
+
   const selectedQrTable = Math.max(1, Math.min(999, Number(state.lastQrTable || DEMO_TABLE)));
   const selectedQrToken = state.qrTokens[String(selectedQrTable)] || "preview-token-create-qr-first";
   const selectedQrUrl = buildQrUrl(selectedQrTable, selectedQrToken);
@@ -1540,6 +1607,174 @@ export default function Page() {
   function testKitchenBell() {
     playDeliBellSound();
     show("Deli bell test");
+  }
+
+  function escapeReceiptHtml(value: string) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function buildKitchenTicketReceiptText(ticket: KitchenTicketGroup) {
+    const ticketLabel = ticket.ticketNumber ? `#${ticket.ticketNumber}` : ticket.orderTicketId ? ticket.orderTicketId.slice(0, 8).toUpperCase() : "NEW";
+
+    return [
+      businessName.toUpperCase(),
+      branchName ? branchName : "KITCHEN TICKET",
+      "KITCHEN TICKET",
+      `Ticket ${ticketLabel}`,
+      `Table ${ticket.table}`,
+      `Guest: ${ticket.guest}`,
+      new Date(ticket.createdAt).toLocaleString([], {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      "------------------------------",
+      ...ticket.orders.map((order) => `${Math.max(1, Number(order.quantity || 1))}x ${order.itemName}`),
+      "------------------------------",
+      "Kitchen copy",
+    ].join("\n");
+  }
+
+  function openBrowserPrintTicket(ticket: KitchenTicketGroup) {
+    const receiptText = buildKitchenTicketReceiptText(ticket);
+    const popup = window.open("", "_blank", "width=420,height=700");
+
+    if (!popup) {
+      show("Popup blocked. Allow popups, then try Print Ticket again.");
+      return false;
+    }
+
+    popup.document.open();
+    popup.document.write(`<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Kitchen Ticket</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 14px; background: #fff; color: #111; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+  .ticket { width: 280px; max-width: 100%; margin: 0 auto; white-space: pre-wrap; font-size: 13px; line-height: 1.35; }
+  .hint { margin: 16px auto 0; width: 280px; font-family: Arial, sans-serif; font-size: 11px; color: #666; }
+  @media print { body { padding: 0; } .hint { display: none; } .ticket { width: 72mm; margin: 0; padding: 2mm; } }
+</style>
+</head>
+<body>
+<pre class="ticket">${escapeReceiptHtml(receiptText)}</pre>
+<div class="hint">If this is a demo, choose any printer or Save as PDF. Production auto-print will use the local Tawleh Print Bridge.</div>
+<script>window.onload = function(){ setTimeout(function(){ window.print(); }, 200); };</script>
+</body>
+</html>`);
+    popup.document.close();
+
+    return true;
+  }
+
+  async function createPrintJobForTicket(ticket: KitchenTicketGroup, jobType: "kitchen_ticket" | "customer_bill") {
+    if (!state.profile.businessId) {
+      throw new Error("Login first, then print");
+    }
+
+    if (!ticket.orderTicketId) {
+      throw new Error("This old local order has no ticket id. Send a fresh test order.");
+    }
+
+    const response = await fetch("/api/table-print-jobs", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        businessId: state.profile.businessId,
+        authUserId: state.profile.authUserId,
+        username: state.profile.username,
+        orderTicketId: ticket.orderTicketId,
+        jobType,
+      }),
+    });
+
+    const result = await readApiJson(response);
+    return String(result.job?.id || "");
+  }
+
+  async function markPrintJobPrinted(jobId: string) {
+    if (!jobId) return;
+
+    const response = await fetch("/api/table-print-jobs", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        jobId,
+        action: "printed",
+      }),
+    });
+
+    await readApiJson(response);
+  }
+
+  async function printKitchenTicket(ticket: KitchenTicketGroup, forceNewPrintJob = false) {
+    try {
+      const opened = openBrowserPrintTicket(ticket);
+      if (!opened) return;
+
+      let jobId = forceNewPrintJob ? "" : ticket.kitchenPrintJobId;
+
+      if (!jobId) {
+        jobId = await createPrintJobForTicket(ticket, "kitchen_ticket");
+      }
+
+      if (jobId) {
+        await markPrintJobPrinted(jobId);
+
+        const printedAt = new Date().toISOString();
+        updateState((current) => ({
+          ...current,
+          orders: current.orders.map((order) =>
+            (ticket.orderTicketId && order.orderTicketId === ticket.orderTicketId) || ticket.orders.some((ticketOrder) => ticketOrder.id === order.id)
+              ? { ...order, kitchenPrintJobId: jobId, kitchenPrintedAt: printedAt, printNote: "" }
+              : order
+          ),
+        }));
+      }
+
+      show(forceNewPrintJob ? "Kitchen ticket reprinted" : "Kitchen ticket printed");
+    } catch (error) {
+      const message = `Print failed: ${getErrorMessage(error)}`;
+      console.error("Kitchen ticket print failed", error);
+      show(message);
+    }
+  }
+
+  async function refreshKitchenOrdersNow() {
+    if (!state.profile.businessId) {
+      show("Login first, then refresh kitchen orders");
+      return;
+    }
+
+    try {
+      const latestOrders = await fetchTableOrdersFromSupabase(
+        state.profile.businessId,
+        state.profile.authUserId,
+        null,
+        state.profile.username
+      );
+
+      updateState((current) => ({
+        ...current,
+        orders: latestOrders,
+      }));
+
+      show("Kitchen orders refreshed");
+    } catch (error) {
+      show(`Kitchen refresh failed: ${getErrorMessage(error)}`);
+    }
   }
 
   async function restoreSessionAndLoadMenu(loadedState: AppState) {
@@ -3327,8 +3562,55 @@ export default function Page() {
                           <button className="btn small ghost" type="button" onClick={testKitchenBell}>
                             Test bell
                           </button>
+                          <button className="btn small ghost" type="button" onClick={refreshKitchenOrdersNow}>
+                            Refresh
+                          </button>
                         </div>
                       </div>
+
+                      {kitchenTickets.length ? (
+                        <div className="kitchen-ticket-stack">
+                          {kitchenTickets.map((ticket) => {
+                            const ticketLabel = ticket.ticketNumber ? `#${ticket.ticketNumber}` : ticket.orderTicketId ? ticket.orderTicketId.slice(0, 8).toUpperCase() : "NEW";
+
+                            return (
+                              <div className={`kitchen-ticket-card ${ticket.kitchenPrintedAt ? "printed" : "not-printed"}`} key={ticket.key}>
+                                <div className="kitchen-ticket-top">
+                                  <div>
+                                    <span className="ticket-eyebrow">Kitchen Ticket {ticketLabel}</span>
+                                    <h4>Table {ticket.table} - {ticket.guest}</h4>
+                                    <p>{new Date(ticket.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - {ticket.itemCount} item{ticket.itemCount === 1 ? "" : "s"}</p>
+                                  </div>
+
+                                  <span className={`print-status ${ticket.kitchenPrintedAt ? "printed" : "pending"}`}>
+                                    {ticket.kitchenPrintedAt ? "Printed" : "Not printed"}
+                                  </span>
+                                </div>
+
+                                {ticket.printNote ? <div className="print-warning">{ticket.printNote}</div> : null}
+
+                                <div className="ticket-lines">
+                                  {ticket.orders.map((order) => (
+                                    <div className="ticket-line" key={order.id}>
+                                      <span>{Math.max(1, Number(order.quantity || 1))}x {order.itemName}</span>
+                                      <small>{order.status}</small>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <div className="ticket-actions">
+                                  <button className="btn small secondary" type="button" onClick={() => printKitchenTicket(ticket, false)}>
+                                    {ticket.kitchenPrintedAt ? "Print again" : "Print Ticket"}
+                                  </button>
+                                  <button className="btn small ghost" type="button" onClick={() => printKitchenTicket(ticket, true)}>
+                                    Reprint copy
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : null}
 
                       {!activeOrders.length ? (
                         <Empty text="No active kitchen orders yet. Add an item from the customer phone." />
@@ -4101,6 +4383,9 @@ function OrderRow({ order, onStatus }: { order: Order; onStatus: (id: string, st
             <button className="btn small success" onClick={() => onStatus(order.id, "Ready")}>Ready</button>
           )}
           {order.status === "Ready" && (
+            <button className="btn small ghost" onClick={() => onStatus(order.id, "Picked up")}>Picked up</button>
+          )}
+          {order.status === "Picked up" && (
             <button className="btn small ghost" onClick={() => onStatus(order.id, "Served")}>Served</button>
           )}
         </div>
