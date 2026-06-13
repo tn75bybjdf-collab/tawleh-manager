@@ -1114,6 +1114,137 @@ main.customer-only-shell,
   }
 }
 
+
+/* Customer home balance update:
+   - smaller "You're ordering as"
+   - bigger Explore menu section
+   - full category names */
+.customer-only-shell .option-one-seat-card:has(.option-one-current-guest-card) {
+  padding: 9px 12px !important;
+  margin-bottom: 8px !important;
+  border-radius: 18px !important;
+}
+
+.customer-only-shell .option-one-seat-card:has(.option-one-current-guest-card) .option-one-card-head h4 {
+  font-size: 15px !important;
+  line-height: 1 !important;
+}
+
+.customer-only-shell .option-one-seat-card:has(.option-one-current-guest-card) .option-one-card-head p {
+  display: none !important;
+}
+
+.customer-only-shell .option-one-current-guest-card {
+  grid-template-columns: 34px minmax(0, 1fr) !important;
+  gap: 9px !important;
+  padding: 7px 9px !important;
+  margin-top: 7px !important;
+  border-radius: 15px !important;
+}
+
+.customer-only-shell .option-one-current-guest-card > span {
+  width: 30px !important;
+  height: 30px !important;
+  font-size: 14px !important;
+}
+
+.customer-only-shell .option-one-current-guest-card strong {
+  font-size: 16px !important;
+  line-height: 1 !important;
+}
+
+.customer-only-shell .option-one-current-guest-card small {
+  font-size: 10.5px !important;
+  margin-top: 1px !important;
+}
+
+.customer-only-shell .option-one-seat-card:has(.option-one-current-guest-card) .option-one-profile-chips {
+  margin-top: 7px !important;
+  gap: 6px !important;
+}
+
+.customer-only-shell .option-one-seat-card:has(.option-one-current-guest-card) .option-one-profile-chip {
+  min-height: 29px !important;
+  padding: 4px 7px !important;
+  font-size: 10.5px !important;
+}
+
+.customer-only-shell .option-one-explore-card {
+  padding: 15px !important;
+  margin-bottom: 11px !important;
+  border-radius: 22px !important;
+}
+
+.customer-only-shell .option-one-section-row {
+  margin-bottom: 12px !important;
+}
+
+.customer-only-shell .option-one-section-row h4 {
+  font-size: 23px !important;
+  line-height: 1 !important;
+}
+
+.customer-only-shell .option-one-section-row button {
+  font-size: 13px !important;
+}
+
+.customer-only-shell .option-one-category-preview {
+  grid-template-columns: repeat(4, minmax(82px, 1fr)) !important;
+  gap: 8px !important;
+  overflow: visible !important;
+}
+
+.customer-only-shell .option-one-category-card {
+  min-height: 124px !important;
+  padding: 7px !important;
+  border-radius: 16px !important;
+}
+
+.customer-only-shell .option-one-category-photo {
+  height: 62px !important;
+  border-radius: 12px !important;
+}
+
+.customer-only-shell .option-one-category-card strong {
+  display: -webkit-box !important;
+  margin-top: 7px !important;
+  min-height: 27px !important;
+  color: #4a3227 !important;
+  font-size: 11.5px !important;
+  line-height: 1.15 !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+  text-overflow: clip !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+}
+
+.customer-only-shell .option-one-category-card small {
+  font-size: 10px !important;
+  margin-top: 3px !important;
+}
+
+@media (max-width: 390px) {
+  .customer-only-shell .option-one-category-preview {
+    grid-template-columns: repeat(4, minmax(74px, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .customer-only-shell .option-one-category-card {
+    min-height: 116px !important;
+    padding: 6px !important;
+  }
+
+  .customer-only-shell .option-one-category-photo {
+    height: 54px !important;
+  }
+
+  .customer-only-shell .option-one-category-card strong {
+    font-size: 10.2px !important;
+    min-height: 25px !important;
+  }
+}
+
 @media (min-width: 431px) {
   .option-one-profile-chips {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
