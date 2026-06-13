@@ -1940,6 +1940,93 @@ main.customer-only-shell .image-modal-card > img {
   }
 }
 
+
+
+/* =========================================================
+   CUSTOMER CATEGORY HORIZONTAL SCROLL RESTORE
+   Restores swipe-left/right category browsing without breaking
+   vertical page scroll, bottom nav spacing, photo modal, or random background.
+   ========================================================= */
+
+main.customer-only-shell .option-one-explore-card {
+  overflow: visible !important;
+}
+
+main.customer-only-shell .option-one-category-preview {
+  display: grid !important;
+  grid-auto-flow: column !important;
+  grid-auto-columns: minmax(96px, 118px) !important;
+  grid-template-columns: none !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  max-width: 100% !important;
+  padding: 2px 2px 12px !important;
+  margin: 0 -2px !important;
+  scroll-snap-type: x proximity !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-x: contain !important;
+  touch-action: pan-x pan-y !important;
+  scrollbar-width: none !important;
+}
+
+main.customer-only-shell .option-one-category-preview::-webkit-scrollbar {
+  display: none !important;
+}
+
+main.customer-only-shell .option-one-category-card {
+  width: auto !important;
+  min-width: 96px !important;
+  max-width: 118px !important;
+  scroll-snap-align: start !important;
+  touch-action: manipulation !important;
+}
+
+main.customer-only-shell .option-one-category-photo {
+  height: 62px !important;
+}
+
+/* Keep the old chip scroller usable if the customer is inside a category list */
+main.customer-only-shell .category-scroll {
+  display: flex !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  max-width: 100% !important;
+  padding: 0 2px 10px !important;
+  margin: 0 0 10px !important;
+  -webkit-overflow-scrolling: touch !important;
+  overscroll-behavior-x: contain !important;
+  touch-action: pan-x pan-y !important;
+  scrollbar-width: none !important;
+}
+
+main.customer-only-shell .category-scroll::-webkit-scrollbar {
+  display: none !important;
+}
+
+main.customer-only-shell .category-scroll .category-chip {
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 390px) {
+  main.customer-only-shell .option-one-category-preview {
+    grid-auto-columns: minmax(88px, 104px) !important;
+    gap: 7px !important;
+    padding-bottom: 12px !important;
+  }
+
+  main.customer-only-shell .option-one-category-card {
+    min-width: 88px !important;
+    max-width: 104px !important;
+  }
+
+  main.customer-only-shell .option-one-category-photo {
+    height: 56px !important;
+  }
+}
+
 `;
 
 
