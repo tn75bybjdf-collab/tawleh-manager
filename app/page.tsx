@@ -1880,6 +1880,494 @@ body {
     min-width: 150px !important;
   }
 }
+
+
+/* =========================================================
+   MANAGER DASHBOARD REAL FACELIFT - OPTION 2
+   Structural dashboard redesign with sidebar + premium cards.
+   ========================================================= */
+
+.app-shell:not(.customer-only-shell) {
+  padding: 18px !important;
+  min-height: 100vh !important;
+  background:
+    radial-gradient(circle at 8% 4%, rgba(208, 102, 62, 0.10), transparent 26%),
+    radial-gradient(circle at 94% 0%, rgba(103, 112, 69, 0.13), transparent 30%),
+    linear-gradient(180deg, #fffdf8 0%, #f8f0e5 100%) !important;
+  color: #2d2925 !important;
+}
+
+.app-shell:not(.customer-only-shell) > .topbar {
+  display: none !important;
+}
+
+.app-shell:not(.customer-only-shell) .grid.manager-only-grid {
+  max-width: 1860px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  display: block !important;
+}
+
+.manager-option2-shell {
+  display: grid !important;
+  grid-template-columns: 292px minmax(0, 1fr) !important;
+  grid-template-rows: auto 1fr !important;
+  gap: 0 !important;
+  min-height: calc(100vh - 36px) !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  border-radius: 32px !important;
+  background: rgba(255, 253, 248, 0.82) !important;
+  box-shadow: 0 28px 80px rgba(74, 45, 19, 0.12) !important;
+  overflow: hidden !important;
+  backdrop-filter: blur(18px) !important;
+}
+
+.manager-option2-sidebar {
+  grid-row: 1 / span 2 !important;
+  grid-column: 1 !important;
+  padding: 26px 22px !important;
+  background:
+    radial-gradient(circle at 35% 0%, rgba(255,255,255,0.16), transparent 28%),
+    linear-gradient(180deg, #fff9ef 0%, #f6eada 100%) !important;
+  border-right: 1px solid rgba(91, 71, 48, 0.12) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 18px !important;
+}
+
+.sidebar-logo-block {
+  display: flex !important;
+  align-items: center !important;
+  gap: 13px !important;
+  padding: 4px 2px 14px !important;
+}
+
+.sidebar-app-logo {
+  width: 54px !important;
+  height: 54px !important;
+  object-fit: contain !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  padding: 8px !important;
+  box-shadow: 0 12px 28px rgba(74, 45, 19, 0.09) !important;
+}
+
+.sidebar-logo-block strong {
+  display: block !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+  color: #2f2a25 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.sidebar-logo-block span {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #c46542 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.24em !important;
+  font-size: 10px !important;
+  font-weight: 950 !important;
+}
+
+.sidebar-restaurant-card {
+  display: grid !important;
+  grid-template-columns: 56px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  align-items: center !important;
+  padding: 14px !important;
+  border-radius: 22px !important;
+  background: rgba(255,255,255,0.78) !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  box-shadow: 0 14px 34px rgba(74, 45, 19, 0.08) !important;
+}
+
+.sidebar-restaurant-card .logo-box {
+  width: 54px !important;
+  height: 54px !important;
+  min-width: 54px !important;
+  min-height: 54px !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+.sidebar-restaurant-card strong {
+  display: block !important;
+  color: #2f2a25 !important;
+  font-size: 16px !important;
+  line-height: 1.05 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.sidebar-restaurant-card span {
+  display: block !important;
+  margin-top: 4px !important;
+  color: #817466 !important;
+  font-size: 12px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.sidebar-nav {
+  display: grid !important;
+  gap: 8px !important;
+  margin-top: 4px !important;
+}
+
+.sidebar-nav-item {
+  width: 100% !important;
+  min-height: 48px !important;
+  padding: 0 13px !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  display: grid !important;
+  grid-template-columns: 34px minmax(0, 1fr) !important;
+  align-items: center !important;
+  text-align: left !important;
+  background: transparent !important;
+  color: #5c5046 !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+}
+
+.sidebar-nav-item span {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 10px !important;
+  display: grid !important;
+  place-items: center !important;
+  background: rgba(104, 112, 68, 0.09) !important;
+  color: #687044 !important;
+  font-size: 15px !important;
+}
+
+.sidebar-nav-item.active {
+  background: linear-gradient(135deg, #cf5f3b, #b84c2d) !important;
+  color: white !important;
+  box-shadow: 0 14px 30px rgba(207, 95, 59, 0.24) !important;
+}
+
+.sidebar-nav-item.active span {
+  background: rgba(255,255,255,0.18) !important;
+  color: white !important;
+}
+
+.sidebar-summary-card {
+  margin-top: auto !important;
+  padding: 16px !important;
+  border-radius: 22px !important;
+  background: rgba(255,255,255,0.75) !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+}
+
+.sidebar-summary-card > span {
+  display: block !important;
+  margin-bottom: 12px !important;
+  color: #7c6f62 !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}
+
+.sidebar-summary-card div {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: baseline !important;
+  padding: 8px 0 !important;
+  border-top: 1px solid rgba(91, 71, 48, 0.08) !important;
+}
+
+.sidebar-summary-card div:first-of-type {
+  border-top: 0 !important;
+}
+
+.sidebar-summary-card strong {
+  color: #2f2a25 !important;
+  font-size: 20px !important;
+  font-weight: 950 !important;
+}
+
+.sidebar-summary-card em {
+  color: #817466 !important;
+  font-style: normal !important;
+  font-size: 12px !important;
+}
+
+.sidebar-primary-action {
+  min-height: 48px !important;
+  border: 0 !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #687044, #4f5a31) !important;
+  color: #fff !important;
+  font-weight: 950 !important;
+  box-shadow: 0 14px 30px rgba(79, 90, 49, 0.20) !important;
+}
+
+.manager-option2-header {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 22px !important;
+  padding: 28px 32px 22px !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(91, 71, 48, 0.10) !important;
+  background: rgba(255,253,248,0.72) !important;
+}
+
+.manager-option2-greeting span {
+  display: block !important;
+  color: #c46542 !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+  letter-spacing: 0.10em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 7px !important;
+}
+
+.manager-option2-greeting h2 {
+  margin: 0 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  color: #2f2a25 !important;
+  font-size: clamp(30px, 3vw, 46px) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.045em !important;
+}
+
+.manager-option2-greeting p {
+  margin: 8px 0 0 !important;
+  color: #817466 !important;
+  font-size: 13px !important;
+}
+
+.manager-option2-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+}
+
+.manager-live-pill {
+  min-height: 42px !important;
+  padding: 0 16px !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: #eff4df !important;
+  color: #4f5a31 !important;
+  border: 1px solid rgba(104, 112, 68, 0.18) !important;
+  font-weight: 950 !important;
+}
+
+.manager-option2-shell > .panel-body.manager-layout {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  padding: 24px 32px 32px !important;
+  display: grid !important;
+  gap: 20px !important;
+  overflow: visible !important;
+}
+
+.manager-option2-shell > .panel-header + .panel-body {
+  padding-top: 24px !important;
+}
+
+.manager-option2-shell .stats {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 18px !important;
+}
+
+.manager-option2-shell .stat-card {
+  min-height: 154px !important;
+  padding: 24px 22px 18px 106px !important;
+  border-radius: 26px !important;
+  background: linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,253,248,0.90)) !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  box-shadow: 0 18px 44px rgba(74, 45, 19, 0.09) !important;
+}
+
+.manager-option2-shell .stat-card::before {
+  left: 24px !important;
+  top: 26px !important;
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 20px !important;
+}
+
+.manager-option2-shell .stat-card span {
+  color: #7f7164 !important;
+  font-size: 12px !important;
+}
+
+.manager-option2-shell .stat-card strong {
+  font-size: 40px !important;
+}
+
+.manager-option2-shell .stat-card:nth-child(1) {
+  background-image:
+    linear-gradient(180deg, rgba(255,255,255,0.94), rgba(255,253,248,0.90)),
+    linear-gradient(90deg, transparent 0 58%, rgba(104,112,68,0.10) 58% 100%) !important;
+}
+
+.manager-option2-shell .manager-tabs {
+  display: none !important;
+}
+
+.manager-option2-shell .two-col {
+  display: grid !important;
+  grid-template-columns: minmax(600px, 1.1fr) minmax(390px, 0.9fr) !important;
+  gap: 20px !important;
+  align-items: stretch !important;
+}
+
+.manager-option2-shell .manager-card {
+  border-radius: 28px !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  background: rgba(255, 253, 248, 0.90) !important;
+  box-shadow: 0 18px 44px rgba(74, 45, 19, 0.09) !important;
+  padding: 24px !important;
+}
+
+.manager-option2-shell .kitchen-screen-header {
+  padding-bottom: 16px !important;
+  border-bottom: 1px solid rgba(91, 71, 48, 0.10) !important;
+  margin-bottom: 16px !important;
+}
+
+.manager-option2-shell .kitchen-screen-header h3,
+.manager-option2-shell .manager-card h3 {
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.04em !important;
+  color: #2f2a25 !important;
+}
+
+.manager-option2-shell .kitchen-ticket-card {
+  margin-bottom: 14px !important;
+  border-radius: 22px !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  background: #fffdf8 !important;
+  box-shadow: 0 12px 30px rgba(74, 45, 19, 0.07) !important;
+}
+
+.manager-option2-shell .kitchen-ticket-card.not-printed {
+  border-left: 6px solid #cf5f3b !important;
+}
+
+.manager-option2-shell .kitchen-ticket-card.printed {
+  border-left: 6px solid #687044 !important;
+}
+
+.manager-option2-shell .ticket-line {
+  font-size: 16px !important;
+}
+
+.manager-option2-shell .ticket-actions .btn {
+  min-height: 42px !important;
+  border-radius: 14px !important;
+}
+
+.manager-option2-shell .empty {
+  border-radius: 22px !important;
+  min-height: 120px !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.manager-option2-shell .table-card,
+.manager-option2-shell .order-group,
+.manager-option2-shell .request-row,
+.manager-option2-shell .menu-card,
+.manager-option2-shell .category-card {
+  border-radius: 22px !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  box-shadow: 0 12px 30px rgba(74, 45, 19, 0.06) !important;
+}
+
+.manager-option2-shell .btn {
+  border-radius: 14px !important;
+  font-weight: 950 !important;
+}
+
+.manager-option2-shell .btn:not(.danger) {
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+}
+
+@media (max-width: 1260px) {
+  .manager-option2-shell {
+    grid-template-columns: 1fr !important;
+  }
+
+  .manager-option2-sidebar {
+    grid-row: auto !important;
+    grid-column: 1 !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    overflow-x: auto !important;
+    padding: 16px !important;
+    border-right: 0 !important;
+    border-bottom: 1px solid rgba(91, 71, 48, 0.12) !important;
+  }
+
+  .sidebar-nav {
+    display: flex !important;
+    gap: 8px !important;
+  }
+
+  .sidebar-nav-item {
+    min-width: 130px !important;
+  }
+
+  .sidebar-summary-card,
+  .sidebar-primary-action {
+    display: none !important;
+  }
+
+  .manager-option2-header,
+  .manager-option2-shell > .panel-body.manager-layout {
+    grid-column: 1 !important;
+  }
+
+  .manager-option2-shell .two-col {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 880px) {
+  .app-shell:not(.customer-only-shell) {
+    padding: 10px !important;
+  }
+
+  .manager-option2-shell {
+    border-radius: 24px !important;
+  }
+
+  .manager-option2-header {
+    display: grid !important;
+    padding: 20px !important;
+  }
+
+  .manager-option2-shell > .panel-body.manager-layout {
+    padding: 18px !important;
+  }
+
+  .manager-option2-shell .stats {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 `;
 
 
@@ -5669,13 +6157,57 @@ export default function Page() {
             )}
 
             {!publicCustomerMode && (
-            <section className="panel">
-              <div className="panel-header">
-                <div>
-                  <h2>Restaurant backend website</h2>
-                  <p>Business login for kitchen, waiters, tables, bills, menu, and QR setup.</p>
+            <section className="panel manager-option2-shell">
+              <aside className="manager-option2-sidebar">
+                <div className="sidebar-logo-block">
+                  <img className="sidebar-app-logo" src={APP_LOGO_SRC} alt="Tawleh Manager" />
+                  <div>
+                    <strong>Tawleh</strong>
+                    <span>Manager</span>
+                  </div>
                 </div>
-                <span className="pill">Business Login: {businessName}</span>
+
+                <div className="sidebar-restaurant-card">
+                  <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} customer />
+                  <div>
+                    <strong>{businessName}</strong>
+                    <span>{branchName}</span>
+                  </div>
+                </div>
+
+                <nav className="sidebar-nav">
+                  <button className={`sidebar-nav-item ${managerTab === "kitchen" ? "active" : ""}`} type="button" onClick={() => setManagerTab("kitchen")}><span>🍳</span>Kitchen</button>
+                  <button className={`sidebar-nav-item ${managerTab === "waiter" ? "active" : ""}`} type="button" onClick={() => setManagerTab("waiter")}><span>🔔</span>Waiter Calls</button>
+                  <button className={`sidebar-nav-item ${managerTab === "tables" ? "active" : ""}`} type="button" onClick={() => setManagerTab("tables")}><span>▦</span>Tables</button>
+                  <button className={`sidebar-nav-item ${managerTab === "menu" ? "active" : ""}`} type="button" onClick={() => setManagerTab("menu")}><span>▤</span>Menu</button>
+                  <button className={`sidebar-nav-item ${managerTab === "menuBuilder" ? "active" : ""}`} type="button" onClick={() => setManagerTab("menuBuilder")}><span>✎</span>Builder</button>
+                  <button className={`sidebar-nav-item ${managerTab === "qr" ? "active" : ""}`} type="button" onClick={() => setManagerTab("qr")}><span>▣</span>QR Tables</button>
+                  <button className={`sidebar-nav-item ${managerTab === "profile" ? "active" : ""}`} type="button" onClick={() => setManagerTab("profile")}><span>⚙</span>Profile</button>
+                </nav>
+
+                <div className="sidebar-summary-card">
+                  <span>Today’s Summary</span>
+                  <div><strong>{openOrderCount}</strong><em>open orders</em></div>
+                  <div><strong>{waitingRequests.length}</strong><em>waiter calls</em></div>
+                  <div><strong>{tableTotal.toFixed(2)}</strong><em>table bill</em></div>
+                </div>
+
+                <button className="sidebar-primary-action" type="button" onClick={() => setManagerTab("qr")}>View QR Tables →</button>
+              </aside>
+
+              <div className="panel-header manager-option2-header">
+                <div className="manager-option2-greeting">
+                  <span>Restaurant Control Center</span>
+                  <h2>Good day, {businessName}</h2>
+                  <p>@{state.profile.username || "username"} • {branchName} • Live operations dashboard</p>
+                </div>
+
+                <div className="manager-option2-actions">
+                  <span className="manager-live-pill"><span className="dot" />Live</span>
+                  <button className="btn ghost small" onClick={openMenuBuilder}>Edit menu</button>
+                  <button className="btn secondary small" onClick={loadDemoTable}>Demo table</button>
+                  <button className="btn danger small" onClick={resetAll}>Reset</button>
+                </div>
               </div>
 
               <div className="panel-body manager-layout">
