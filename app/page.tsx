@@ -7754,6 +7754,191 @@ main.customer-only-shell .service-suspended-card {
   }
 }
 
+
+
+/* =========================================================
+   REPORT CENTER
+   Platform-level monthly/YTD report and salesperson commission table.
+   ========================================================= */
+
+.report-center-card {
+  display: grid !important;
+  gap: 14px !important;
+  padding: 16px !important;
+  border-radius: 28px !important;
+  background: rgba(255, 255, 255, 0.90) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+  box-shadow: 0 16px 34px rgba(80, 52, 27, 0.08) !important;
+}
+
+.report-center-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+}
+
+.report-center-head span,
+.report-summary-grid span,
+.report-company-mini span {
+  display: block !important;
+  color: #bd5338 !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.10em !important;
+}
+
+.report-center-head h3 {
+  margin: 5px 0 4px !important;
+  color: #2f2a25 !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.05em !important;
+  font-weight: 1000 !important;
+}
+
+.report-center-head p,
+.report-note {
+  margin: 0 !important;
+  color: #74685d !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  font-weight: 850 !important;
+}
+
+.report-center-controls {
+  width: min(520px, 100%) !important;
+  display: grid !important;
+  grid-template-columns: 1fr 120px auto !important;
+  gap: 10px !important;
+  align-items: end !important;
+}
+
+.report-summary-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.report-summary-grid div {
+  padding: 14px !important;
+  border-radius: 20px !important;
+  background: rgba(255, 247, 239, 0.82) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+}
+
+.report-summary-grid strong {
+  display: block !important;
+  margin-top: 6px !important;
+  color: #2f2a25 !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  font-weight: 1000 !important;
+}
+
+.report-company-mini {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.report-company-mini span {
+  min-height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  border-radius: 999px !important;
+  padding: 0 10px !important;
+  background: rgba(104, 112, 68, 0.10) !important;
+  color: #59613c !important;
+}
+
+.report-company-mini strong {
+  color: #2f2a25 !important;
+}
+
+.sales-report-table {
+  display: grid !important;
+  gap: 8px !important;
+  overflow-x: auto !important;
+}
+
+.sales-report-header,
+.sales-report-row {
+  min-width: 860px !important;
+  display: grid !important;
+  grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr 1fr !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+.sales-report-header {
+  padding: 0 10px !important;
+}
+
+.sales-report-header span {
+  color: #817466 !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}
+
+.sales-report-row {
+  padding: 12px !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+}
+
+.sales-report-row strong {
+  display: block !important;
+  color: #2f2a25 !important;
+  font-size: 14px !important;
+  font-weight: 1000 !important;
+}
+
+.sales-report-row em {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #817466 !important;
+  font-size: 11px !important;
+  font-style: normal !important;
+  font-weight: 850 !important;
+}
+
+.sales-report-row span {
+  color: #4e4339 !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+}
+
+.sales-report-row b {
+  width: fit-content !important;
+  min-height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  border-radius: 999px !important;
+  padding: 0 10px !important;
+  background: #2f2a25 !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+}
+
+@media (max-width: 900px) {
+  .report-center-head {
+    flex-direction: column !important;
+  }
+
+  .report-center-controls,
+  .report-summary-grid {
+    width: 100% !important;
+    grid-template-columns: 1fr !important;
+  }
+}
+
 `;
 
 
@@ -8072,6 +8257,46 @@ type PlatformSalesperson = {
   createdAt: string;
 };
 
+type CompanyReportSummary = {
+  month: string;
+  totalBusinesses: number;
+  activeBusinesses: number;
+  trialBusinesses: number;
+  suspendedBusinesses: number;
+  newAccountsMonth: number;
+  newAccountsYtd: number;
+  monthlyRecurringJod: number;
+  monthlyRecurringAddedJod: number;
+  ytdMonthlyRecurringAddedJod: number;
+  monthlyCollectedJod: number;
+  ytdCollectedJod: number;
+  totalBalanceDueJod: number;
+};
+
+type SalespersonMonthlyReport = {
+  salespersonId: string;
+  username: string;
+  fullName: string;
+  phone: string;
+  active: boolean;
+  newAccountsMonth: number;
+  newAccountsYtd: number;
+  portfolioBusinesses: number;
+  portfolioMonthlyRecurringJod: number;
+  monthlyRecurringAddedJod: number;
+  ytdMonthlyRecurringAddedJod: number;
+  monthlyCollectedJod: number;
+  ytdCollectedJod: number;
+  totalBalanceDueJod: number;
+};
+
+type PlatformReports = {
+  month: string;
+  generatedAt: string;
+  company: CompanyReportSummary;
+  salespeople: SalespersonMonthlyReport[];
+};
+
 type AppState = {
   profileComplete: boolean;
   profile: Profile;
@@ -8173,6 +8398,17 @@ function money(value: number) {
 
 function monthlyTableFee(tableCount: number) {
   return Math.max(25, Math.min(999, Number(tableCount || 25)));
+}
+
+function currentYearMonth() {
+  return new Date().toISOString().slice(0, 7);
+}
+
+function commissionAmount(baseAmount: number, rate: number) {
+  const safeBase = Number(baseAmount || 0);
+  const safeRate = Math.max(0, Math.min(100, Number(rate || 0)));
+
+  return Math.round(safeBase * safeRate * 10) / 1000;
 }
 
 function displayDate(value: string) {
@@ -9493,6 +9729,57 @@ function rowToPlatformSalesperson(row: Record<string, unknown>): PlatformSalespe
   };
 }
 
+function rowToCompanyReportSummary(row: Record<string, unknown>): CompanyReportSummary {
+  return {
+    month: String(row.month || currentYearMonth()),
+    totalBusinesses: Number(row.totalBusinesses || 0),
+    activeBusinesses: Number(row.activeBusinesses || 0),
+    trialBusinesses: Number(row.trialBusinesses || 0),
+    suspendedBusinesses: Number(row.suspendedBusinesses || 0),
+    newAccountsMonth: Number(row.newAccountsMonth || 0),
+    newAccountsYtd: Number(row.newAccountsYtd || 0),
+    monthlyRecurringJod: Number(row.monthlyRecurringJod || 0),
+    monthlyRecurringAddedJod: Number(row.monthlyRecurringAddedJod || 0),
+    ytdMonthlyRecurringAddedJod: Number(row.ytdMonthlyRecurringAddedJod || 0),
+    monthlyCollectedJod: Number(row.monthlyCollectedJod || 0),
+    ytdCollectedJod: Number(row.ytdCollectedJod || 0),
+    totalBalanceDueJod: Number(row.totalBalanceDueJod || 0),
+  };
+}
+
+function rowToSalespersonMonthlyReport(row: Record<string, unknown>): SalespersonMonthlyReport {
+  return {
+    salespersonId: String(row.salespersonId || ""),
+    username: String(row.username || ""),
+    fullName: String(row.fullName || ""),
+    phone: String(row.phone || ""),
+    active: row.active !== false,
+    newAccountsMonth: Number(row.newAccountsMonth || 0),
+    newAccountsYtd: Number(row.newAccountsYtd || 0),
+    portfolioBusinesses: Number(row.portfolioBusinesses || 0),
+    portfolioMonthlyRecurringJod: Number(row.portfolioMonthlyRecurringJod || 0),
+    monthlyRecurringAddedJod: Number(row.monthlyRecurringAddedJod || 0),
+    ytdMonthlyRecurringAddedJod: Number(row.ytdMonthlyRecurringAddedJod || 0),
+    monthlyCollectedJod: Number(row.monthlyCollectedJod || 0),
+    ytdCollectedJod: Number(row.ytdCollectedJod || 0),
+    totalBalanceDueJod: Number(row.totalBalanceDueJod || 0),
+  };
+}
+
+function rowToPlatformReports(row: Record<string, unknown>): PlatformReports {
+  const company = rowToCompanyReportSummary((row.company || {}) as Record<string, unknown>);
+  const salespeople = Array.isArray(row.salespeople)
+    ? (row.salespeople as Record<string, unknown>[]).map((item) => rowToSalespersonMonthlyReport(item))
+    : [];
+
+  return {
+    month: String(row.month || company.month || currentYearMonth()),
+    generatedAt: String(row.generatedAt || ""),
+    company,
+    salespeople,
+  };
+}
+
 async function getPlatformAdminHeaders() {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -9547,6 +9834,22 @@ async function fetchPlatformSalespeopleForAdmin() {
 
   const result = await readApiJson(response);
   return ((result.salespeople || []) as Record<string, unknown>[]).map((row) => rowToPlatformSalesperson(row));
+}
+
+async function fetchPlatformReportsForAdmin(month: string) {
+  const headers = await getPlatformAdminHeaders();
+  const params = new URLSearchParams();
+
+  if (month) params.set("month", month);
+
+  const response = await fetch(`/api/platform-admin/reports?${params.toString()}`, {
+    method: "GET",
+    headers,
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  return rowToPlatformReports(result.report as Record<string, unknown>);
 }
 
 async function createPlatformSalespersonInServer(payload: {
@@ -9646,6 +9949,10 @@ export default function Page() {
   const [platformAdminBusinesses, setPlatformAdminBusinesses] = useState<PlatformAdminBusiness[]>([]);
   const [platformAdminPayments, setPlatformAdminPayments] = useState<CliqPaymentRequest[]>([]);
   const [platformSalespeople, setPlatformSalespeople] = useState<PlatformSalesperson[]>([]);
+  const [platformReports, setPlatformReports] = useState<PlatformReports | null>(null);
+  const [reportMonth, setReportMonth] = useState(currentYearMonth());
+  const [reportCommissionRate, setReportCommissionRate] = useState(10);
+  const [platformReportBusy, setPlatformReportBusy] = useState(false);
   const [salespersonModalOpen, setSalespersonModalOpen] = useState(false);
   const [salespersonDraftUsername, setSalespersonDraftUsername] = useState("");
   const [salespersonDraftName, setSalespersonDraftName] = useState("");
@@ -11117,14 +11424,16 @@ export default function Page() {
     setPlatformAdminMessage("");
 
     try {
-      const [businesses, payments, salespeople] = await Promise.all([
+      const [businesses, payments, salespeople, reports] = await Promise.all([
         fetchPlatformBusinessesFromServer(),
         fetchCliqPaymentsForAdmin(),
         fetchPlatformSalespeopleForAdmin(),
+        fetchPlatformReportsForAdmin(reportMonth),
       ]);
       setPlatformAdminBusinesses(businesses);
       setPlatformAdminPayments(payments);
       setPlatformSalespeople(salespeople);
+      setPlatformReports(reports);
       setPlatformAdminLoggedIn(true);
       setPlatformAdminMessage(`${businesses.length} companies loaded • ${payments.length} CliQ payment notification${payments.length === 1 ? "" : "s"} • ${salespeople.length} salesperson${salespeople.length === 1 ? "" : "s"}`);
     } catch (error) {
@@ -11159,14 +11468,16 @@ export default function Page() {
 
       if (error) throw error;
 
-      const [businesses, payments, salespeople] = await Promise.all([
+      const [businesses, payments, salespeople, reports] = await Promise.all([
         fetchPlatformBusinessesFromServer(),
         fetchCliqPaymentsForAdmin(),
         fetchPlatformSalespeopleForAdmin(),
+        fetchPlatformReportsForAdmin(reportMonth),
       ]);
       setPlatformAdminBusinesses(businesses);
       setPlatformAdminPayments(payments);
       setPlatformSalespeople(salespeople);
+      setPlatformReports(reports);
       setPlatformAdminLoggedIn(true);
       setPlatformAdminMessage(`${businesses.length} companies loaded • ${payments.length} CliQ payment notification${payments.length === 1 ? "" : "s"} • ${salespeople.length} salesperson${salespeople.length === 1 ? "" : "s"}`);
       show("Platform admin logged in");
@@ -11211,6 +11522,23 @@ export default function Page() {
       show(`Admin save failed: ${getErrorMessage(error)}`);
     } finally {
       setPlatformAdminBusy(false);
+    }
+  }
+
+  async function loadPlatformReports() {
+    setPlatformReportBusy(true);
+    setPlatformAdminMessage("");
+
+    try {
+      const reports = await fetchPlatformReportsForAdmin(reportMonth);
+      setPlatformReports(reports);
+      setPlatformAdminMessage(`Report center updated for ${reports.month}`);
+      show(`Report center updated for ${reports.month}`);
+    } catch (error) {
+      setPlatformAdminMessage(getErrorMessage(error));
+      show(`Report load failed: ${getErrorMessage(error)}`);
+    } finally {
+      setPlatformReportBusy(false);
     }
   }
 
@@ -11366,6 +11694,7 @@ export default function Page() {
     setPlatformAdminBusinesses([]);
     setPlatformAdminPayments([]);
     setPlatformSalespeople([]);
+    setPlatformReports(null);
     setSalespersonModalOpen(false);
     setPlatformAdminPassword("");
     setPlatformAdminNewPassword("");
@@ -12784,6 +13113,116 @@ export default function Page() {
                             <span>Total due</span>
                             <strong>{money(platformAdminBusinesses.reduce((sum, business) => sum + Number(business.serviceBalanceDueJod || 0), 0))}</strong>
                           </div>
+                        </div>
+
+                        <div className="report-center-card">
+                          <div className="report-center-head">
+                            <div>
+                              <span>Report center</span>
+                              <h3>Company + salesperson reports</h3>
+                              <p>Monthly and year-to-date totals for Tawleh. Salesperson reports include every renewal payment from restaurants they signed up.</p>
+                            </div>
+
+                            <div className="report-center-controls">
+                              <Field label="Report month">
+                                <input
+                                  type="month"
+                                  value={reportMonth}
+                                  onChange={(event) => setReportMonth(event.target.value)}
+                                />
+                              </Field>
+
+                              <Field label="Commission %">
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={100}
+                                  step="0.1"
+                                  value={reportCommissionRate}
+                                  onChange={(event) => setReportCommissionRate(Number(event.target.value || 0))}
+                                />
+                              </Field>
+
+                              <button className="btn small dark" type="button" onClick={loadPlatformReports} disabled={platformReportBusy}>
+                                {platformReportBusy ? "Loading..." : "Refresh reports"}
+                              </button>
+                            </div>
+                          </div>
+
+                          {platformReports ? (
+                            <>
+                              <div className="report-summary-grid">
+                                <div>
+                                  <span>Monthly recurring</span>
+                                  <strong>{money(platformReports.company.monthlyRecurringJod)}</strong>
+                                </div>
+                                <div>
+                                  <span>Collected this month</span>
+                                  <strong>{money(platformReports.company.monthlyCollectedJod)}</strong>
+                                </div>
+                                <div>
+                                  <span>Collected YTD</span>
+                                  <strong>{money(platformReports.company.ytdCollectedJod)}</strong>
+                                </div>
+                                <div>
+                                  <span>Total balance due</span>
+                                  <strong>{money(platformReports.company.totalBalanceDueJod)}</strong>
+                                </div>
+                                <div>
+                                  <span>New accounts this month</span>
+                                  <strong>{platformReports.company.newAccountsMonth}</strong>
+                                </div>
+                                <div>
+                                  <span>New accounts YTD</span>
+                                  <strong>{platformReports.company.newAccountsYtd}</strong>
+                                </div>
+                              </div>
+
+                              <div className="report-company-mini">
+                                <span>Total companies: <strong>{platformReports.company.totalBusinesses}</strong></span>
+                                <span>Active: <strong>{platformReports.company.activeBusinesses}</strong></span>
+                                <span>Trial: <strong>{platformReports.company.trialBusinesses}</strong></span>
+                                <span>Suspended: <strong>{platformReports.company.suspendedBusinesses}</strong></span>
+                                <span>MRR added this month: <strong>{money(platformReports.company.monthlyRecurringAddedJod)}</strong></span>
+                                <span>MRR added YTD: <strong>{money(platformReports.company.ytdMonthlyRecurringAddedJod)}</strong></span>
+                              </div>
+
+                              <div className="sales-report-table">
+                                <div className="sales-report-header">
+                                  <span>Salesperson</span>
+                                  <span>Accounts</span>
+                                  <span>Portfolio MRR</span>
+                                  <span>Collected month</span>
+                                  <span>Collected YTD</span>
+                                  <span>Commission</span>
+                                </div>
+
+                                {platformReports.salespeople.length ? (
+                                  platformReports.salespeople.map((person) => (
+                                    <div className="sales-report-row" key={person.salespersonId || person.username}>
+                                      <div>
+                                        <strong>@{person.username}</strong>
+                                        <em>{person.fullName || "Salesperson"}{person.phone ? ` • ${person.phone}` : ""}</em>
+                                      </div>
+                                      <span>{person.newAccountsMonth} month / {person.newAccountsYtd} YTD</span>
+                                      <span>{money(person.portfolioMonthlyRecurringJod)}</span>
+                                      <span>{money(person.monthlyCollectedJod)}</span>
+                                      <span>{money(person.ytdCollectedJod)}</span>
+                                      <b>{money(commissionAmount(person.monthlyCollectedJod, reportCommissionRate))}</b>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <Empty text="No salesperson report data yet." />
+                                )}
+                              </div>
+
+                              <p className="report-note">
+                                Commission is calculated from collected CliQ payment notifications for the selected month at {reportCommissionRate}%. A restaurant stays attached to the salesperson who signed it up, so every renewal from that restaurant continues under that salesperson.
+                              </p>
+                            </>
+                          ) : (
+                            <Empty text="No reports loaded yet. Press Refresh reports." />
+                          )}
                         </div>
 
                         <div className="salespeople-admin-card">
