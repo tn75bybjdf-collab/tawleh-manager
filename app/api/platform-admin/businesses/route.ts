@@ -145,7 +145,7 @@ export async function PATCH(request: NextRequest) {
       service_expires_at: cleanDate(body.serviceExpiresAt),
       service_payment_due_date: cleanDate(body.servicePaymentDueDate),
       service_balance_due_jod: cleanMoney(body.serviceBalanceDueJod, 0),
-      service_monthly_fee_jod: cleanMoney(body.serviceMonthlyFeeJod, 100),
+      service_monthly_fee_jod: cleanMoney(body.serviceMonthlyFeeJod, 25),
       service_suspended_reason: cleanText(body.serviceSuspendedReason).slice(0, 500) || null,
       service_admin_note: cleanText(body.serviceAdminNote).slice(0, 1000) || null,
       service_updated_at: new Date().toISOString(),

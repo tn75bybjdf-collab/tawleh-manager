@@ -22,6 +22,19 @@ function cleanText(value: unknown) {
   return String(value || "").trim();
 }
 
+function cleanMoney(value: unknown, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0, Math.round(number * 1000) / 1000) : fallback;
+}
+
+function monthlyTableFee(tableCount: number) {
+  return Math.max(25, Math.min(999, Number(tableCount || 25)));
+}
+
+function toDateOnly(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
+
 export async function POST(request: NextRequest) {
   if (!supabaseUrl || !serviceRoleKey) {
     return NextResponse.json(
@@ -47,7 +60,10 @@ export async function POST(request: NextRequest) {
     const branchName = cleanText(body.branchName);
     const businessType = cleanText(body.businessType) || "Cafe";
     const businessPhone = cleanText(body.businessPhone);
-    const tableCount = Math.max(1, Math.min(999, Number(body.tableCount || 1)));
+    const tableCount = Math.max(25, Math.min(999, Number(body.tableCount || 25)));
+    const monthlyFeeJod = cleanMoney(body.serviceMonthlyFeeJod, monthlyTableFee(tableCount));
+    const tableBasedMonthlyFeeJod = monthlyTableFee(tableCount);
+    const finalMonthlyFeeJod = monthlyFeeJod > 0 ? tableBasedMonthlyFeeJod : tableBasedMonthlyFeeJod;
     const locationCount = Math.max(1, Math.min(25, Number(body.locationCount || 1)));
     const locations: string[] = Array.isArray(body.locations)
       ? body.locations.map((item: unknown) => cleanText(item)).filter(Boolean)
@@ -151,6 +167,14 @@ export async function POST(request: NextRequest) {
         trial_started_at: new Date().toISOString(),
         trial_ends_at: trialEndsAt.toISOString(),
         subscription_status: "trial",
+        service_status: "trial",
+        service_expires_at: toDateOnly(trialEndsAt),
+        service_payment_due_date: toDateOnly(trialEndsAt),
+        service_balance_due_jod: 0,
+        service_monthly_fee_jod: finalMonthlyFeeJod,
+        service_suspended_reason: null,
+        service_admin_note: `Signup pricing: ${tableCount} QR/table units x 1 JOD = ${finalMonthlyFeeJod.toFixed(3)} JOD/month. Minimum billing is 25 QR codes/month`,
+        service_updated_at: new Date().toISOString(),
       })
       .select("*")
       .single();
