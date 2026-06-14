@@ -6549,6 +6549,188 @@ main.customer-only-shell .image-modal-card > img {
   }
 }
 
+
+
+/* =========================================================
+   WAITER CALL BUTTON BUILDER
+   Manager can create Call Waiter buttons with optional photos.
+   ========================================================= */
+
+.waiter-manager-grid {
+  align-items: start !important;
+}
+
+.manager-card-heading-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  margin-bottom: 14px !important;
+}
+
+.service-item-form {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  padding: 14px !important;
+  border-radius: 20px !important;
+  background: rgba(255, 250, 243, 0.76) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+}
+
+.service-item-form .service-active-row,
+.service-item-form .service-draft-preview,
+.service-item-form .row-actions {
+  grid-column: 1 / -1 !important;
+}
+
+.service-draft-preview {
+  display: grid !important;
+  grid-template-columns: 74px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 10px !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+}
+
+.service-draft-preview img {
+  width: 74px !important;
+  height: 74px !important;
+  object-fit: cover !important;
+  border-radius: 16px !important;
+}
+
+.service-draft-preview button {
+  width: fit-content !important;
+  min-height: 36px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  padding: 0 12px !important;
+  background: rgba(189, 83, 56, 0.10) !important;
+  color: #a33a2b !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+}
+
+.service-items-list {
+  display: grid !important;
+  gap: 10px !important;
+  margin-top: 14px !important;
+}
+
+.service-item-row {
+  display: grid !important;
+  grid-template-columns: 58px minmax(0, 1fr) auto !important;
+  gap: 12px !important;
+  align-items: center !important;
+  padding: 10px !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.80) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+}
+
+.service-item-row.inactive {
+  opacity: 0.55 !important;
+}
+
+.service-item-avatar {
+  width: 58px !important;
+  height: 58px !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, rgba(211, 109, 71, 0.12), rgba(151, 114, 77, 0.10)), #fff7ef !important;
+  color: #bd5338 !important;
+  font-size: 14px !important;
+  font-weight: 1000 !important;
+}
+
+.service-item-avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.service-item-row strong {
+  display: block !important;
+  color: #2f2a25 !important;
+  font-size: 14px !important;
+  font-weight: 1000 !important;
+}
+
+.service-item-row span {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #7a6b5e !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+}
+
+.service-item-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  gap: 7px !important;
+}
+
+main.customer-only-shell .service-request-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+main.customer-only-shell .service-request-btn {
+  min-height: 100px !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 5px !important;
+  text-align: center !important;
+}
+
+main.customer-only-shell .service-request-btn img {
+  width: 48px !important;
+  height: 48px !important;
+  object-fit: cover !important;
+  border-radius: 15px !important;
+  box-shadow: 0 8px 18px rgba(54, 36, 24, 0.12) !important;
+}
+
+main.customer-only-shell .service-request-btn span {
+  width: 48px !important;
+  height: 48px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 15px !important;
+  background: rgba(189, 83, 56, 0.12) !important;
+  color: #bd5338 !important;
+  font-size: 14px !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .service-request-btn strong {
+  color: #2d211b !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .service-request-btn small {
+  color: #7b6354 !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+}
+
+@media (max-width: 720px) {
+  .service-item-form,
+  .service-item-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .service-item-actions {
+    justify-content: flex-start !important;
+  }
+}
+
 `;
 
 
@@ -6786,6 +6968,29 @@ type ServiceRequest = {
   createdAt: string;
 };
 
+type ServiceItem = {
+  id: string;
+  name: string;
+  nameAr: string;
+  icon: string;
+  imageUrl: string;
+  active: boolean;
+  sortOrder: number;
+};
+
+type ServiceItemRow = {
+  id: string;
+  business_account_id: string;
+  auth_user_id: string;
+  item_name: string;
+  item_name_ar: string | null;
+  short_code: string | null;
+  image_url: string | null;
+  active: boolean | null;
+  sort_order: number | null;
+  created_at: string | null;
+};
+
 type AppState = {
   profileComplete: boolean;
   profile: Profile;
@@ -6795,6 +7000,7 @@ type AppState = {
   categories: MenuCategory[];
   orders: Order[];
   requests: ServiceRequest[];
+  serviceItems: ServiceItem[];
   qrTokens: Record<string, string>;
   lastQrTable: number;
 };
@@ -6809,6 +7015,23 @@ const APP_LOGO_SRC = "/tawleh_logo.png";
 const PUBLIC_CUSTOMER_SITE_URL = (process.env.NEXT_PUBLIC_TAWLEH_CUSTOMER_URL || "https://tawleh.getdarik.com").replace(/\/+$/, "");
 
 const starterMenu: MenuItem[] = [];
+
+const defaultServiceItems: ServiceItem[] = [
+  { id: "service_waiter", name: "Waiter", nameAr: "نادل", icon: "WA", imageUrl: "", active: true, sortOrder: 400 },
+  { id: "service_water", name: "Water", nameAr: "ماء", icon: "WT", imageUrl: "", active: true, sortOrder: 300 },
+  { id: "service_napkins", name: "Napkins", nameAr: "مناديل", icon: "NP", imageUrl: "", active: true, sortOrder: 200 },
+  { id: "service_charcoal", name: "Charcoal", nameAr: "فحم", icon: "CH", imageUrl: "", active: true, sortOrder: 100 },
+];
+
+const emptyServiceItemDraft: ServiceItem = {
+  id: "",
+  name: "",
+  nameAr: "",
+  icon: "",
+  imageUrl: "",
+  active: true,
+  sortOrder: 0,
+};
 
 const emptyMenuDraft: MenuDraft = {
   name: "",
@@ -6852,6 +7075,7 @@ const defaultState: AppState = {
   categories: [],
   orders: [],
   requests: [],
+  serviceItems: defaultServiceItems,
   qrTokens: {},
   lastQrTable: DEMO_TABLE,
 };
@@ -7157,6 +7381,7 @@ function sanitizeStateForLocalStorage(nextState: AppState): AppState {
       logoDataUrl: cleanPersistedImageUrl(nextState.profile.logoDataUrl),
     },
     menu: nextState.menu.map(cleanMenuItemForStorage),
+    serviceItems: cleanServiceItems(nextState.serviceItems).map(serviceItemForStorage),
   };
 }
 
@@ -7177,6 +7402,7 @@ function safeSaveStateToLocalStorage(nextState: AppState) {
           logoDataUrl: "",
         },
         categories: nextState.categories,
+        serviceItems: cleanServiceItems(nextState.serviceItems).map(serviceItemForStorage),
         qrTokens: nextState.qrTokens,
         lastQrTable: nextState.lastQrTable,
       };
@@ -7212,6 +7438,7 @@ function safeLoadState(): AppState {
         optionGroups: cleanMenuOptionGroups((item as MenuItem).optionGroups || []),
       })) : starterMenu,
       categories: parsed.categories || [],
+      serviceItems: cleanServiceItems(parsed.serviceItems || defaultServiceItems).map(serviceItemForStorage),
       orders: (parsed.orders || []).map((order) => ({
         ...order,
         quantity: Math.max(1, Number(order.quantity || 1)),
@@ -7363,6 +7590,80 @@ function rowToMenuCategory(row: CategoryRow): MenuCategory {
     name: row.name || "Category",
     nameAr: row.name_ar || "",
   };
+}
+
+function cleanServiceIcon(value: unknown, fallback: string) {
+  return String(value || fallback)
+    .replace(/[^a-zA-Z0-9]/g, "")
+    .slice(0, 3)
+    .toUpperCase() || fallback;
+}
+
+function cleanServiceItems(value: unknown): ServiceItem[] {
+  if (!Array.isArray(value)) return defaultServiceItems;
+
+  const cleaned = value
+    .map((item, index): ServiceItem | null => {
+      const source = item as Partial<ServiceItem>;
+      const name = String(source.name || "").trim();
+      const nameAr = String(source.nameAr || "").trim();
+
+      if (!name && !nameAr) return null;
+
+      return {
+        id: String(source.id || makeId("service_item")),
+        name: name || nameAr,
+        nameAr,
+        icon: cleanServiceIcon(source.icon, menuIconFromName(name || nameAr || "Service")),
+        imageUrl: String(source.imageUrl || "").trim(),
+        active: source.active !== false,
+        sortOrder: Number.isFinite(Number(source.sortOrder)) ? Number(source.sortOrder) : Date.now() - index,
+      };
+    })
+    .filter((item): item is ServiceItem => Boolean(item));
+
+  return cleaned.length ? cleaned : defaultServiceItems;
+}
+
+function serviceItemForStorage(item: ServiceItem): ServiceItem {
+  return {
+    ...item,
+    imageUrl: cleanPersistedImageUrl(item.imageUrl),
+  };
+}
+
+function rowToServiceItem(row: ServiceItemRow): ServiceItem {
+  const name = row.item_name || "Service";
+  return {
+    id: row.id,
+    name,
+    nameAr: row.item_name_ar || "",
+    icon: cleanServiceIcon(row.short_code, menuIconFromName(name)),
+    imageUrl: String(row.image_url || "").trim(),
+    active: row.active !== false,
+    sortOrder: Number(row.sort_order || 0),
+  };
+}
+
+function serviceItemToPayload(item: ServiceItem) {
+  return {
+    id: item.id,
+    name: item.name.trim(),
+    nameAr: item.nameAr.trim(),
+    icon: cleanServiceIcon(item.icon, menuIconFromName(item.name || item.nameAr || "Service")),
+    imageUrl: item.imageUrl.trim(),
+    active: item.active !== false,
+    sortOrder: Number(item.sortOrder || Date.now()),
+  };
+}
+
+function getActiveServiceItems(items: ServiceItem[]) {
+  const cleaned = cleanServiceItems(items);
+  const active = cleaned.filter((item) => item.active !== false);
+
+  return (active.length ? active : defaultServiceItems)
+    .slice()
+    .sort((a, b) => Number(b.sortOrder || 0) - Number(a.sortOrder || 0));
 }
 
 function rowToGuestName(row: TableGuestRow) {
@@ -7946,6 +8247,60 @@ async function deleteMenuItemFromSupabase(businessId: string, itemId: string) {
   await readApiJson(response);
 }
 
+async function fetchServiceItemsFromSupabase(businessId: string, username = "") {
+  const headers = await getManagerAuthHeaders();
+
+  const params = new URLSearchParams({
+    businessId,
+    username: username || safeLoadState().profile.username || "",
+  });
+
+  const response = await fetch(`/api/service-items?${params.toString()}`, {
+    method: "GET",
+    headers,
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  const rows = (result.serviceItems || []) as ServiceItemRow[];
+
+  return rows.map((row) => rowToServiceItem(row));
+}
+
+async function saveServiceItemToSupabase(businessId: string, item: ServiceItem, username = "") {
+  const headers = await getManagerAuthHeaders();
+
+  const response = await fetch("/api/service-items", {
+    method: item.id && isUuid(item.id) ? "PATCH" : "POST",
+    headers,
+    body: JSON.stringify({
+      businessId,
+      username: username || safeLoadState().profile.username || "",
+      itemId: item.id,
+      item: serviceItemToPayload(item),
+    }),
+  });
+
+  const result = await readApiJson(response);
+  return rowToServiceItem(result.item as ServiceItemRow);
+}
+
+async function deleteServiceItemFromSupabase(businessId: string, itemId: string, username = "") {
+  const headers = await getManagerAuthHeaders();
+
+  const response = await fetch("/api/service-items", {
+    method: "DELETE",
+    headers,
+    body: JSON.stringify({
+      businessId,
+      username: username || safeLoadState().profile.username || "",
+      itemId,
+    }),
+  });
+
+  await readApiJson(response);
+}
+
 export default function Page() {
   const [state, setState] = useState<AppState>(defaultState);
   const [loaded, setLoaded] = useState(false);
@@ -7981,6 +8336,8 @@ export default function Page() {
   const [imageBusy, setImageBusy] = useState(false);
   const [menuBusy, setMenuBusy] = useState(false);
   const [resettingTable, setResettingTable] = useState<number | null>(null);
+  const [serviceItemDraft, setServiceItemDraft] = useState<ServiceItem>(emptyServiceItemDraft);
+  const [serviceItemBusy, setServiceItemBusy] = useState(false);
   const [selectedMenuImage, setSelectedMenuImage] = useState<MenuItem | null>(null);
   const [customerBgImageUrl, setCustomerBgImageUrl] = useState("");
   const [toast, setToast] = useState("");
@@ -8025,6 +8382,7 @@ export default function Page() {
           const categoryRows = (result.categories || []) as CategoryRow[];
           const guestRows = (result.guests || []) as TableGuestRow[];
           const orderRows = (result.orders || []) as TableOrderRow[];
+          const serviceItemRows = (result.serviceItems || []) as ServiceItemRow[];
 
           const nextProfile: Profile = {
             businessId: business.id || businessId,
@@ -8053,6 +8411,7 @@ export default function Page() {
             profile: nextProfile,
             menu: menuRows.map((row) => rowToMenuItem(row)),
             categories: categoryRows.map((row) => rowToMenuCategory(row)),
+            serviceItems: serviceItemRows.length ? serviceItemRows.map((row) => rowToServiceItem(row)) : defaultServiceItems,
             guests: mergeGuestLists(
               uniqueGuestNames(guestRows.map((row) => rowToGuestName(row))),
               readCachedTableGuests(nextProfile.businessId, tableNumber)
@@ -8920,12 +9279,13 @@ export default function Page() {
       // This fixes the dashboard / QR card showing the generic fallback while the customer QR page shows the real logo.
       const repairedProfile = await fetchBusinessProfileFromServer(loadedState.profile);
 
-      const [savedMenu, savedCategories] = repairedProfile.businessId
+      const [savedMenu, savedCategories, savedServiceItems] = repairedProfile.businessId
         ? await Promise.all([
             fetchMenuItemsFromSupabase(repairedProfile.businessId),
             fetchMenuCategoriesFromSupabase(repairedProfile.businessId),
+            fetchServiceItemsFromSupabase(repairedProfile.businessId, repairedProfile.username),
           ])
-        : [[], []];
+        : [[], [], defaultServiceItems];
 
       updateState((current) => ({
         ...current,
@@ -8936,6 +9296,7 @@ export default function Page() {
         },
         menu: savedMenu.length ? savedMenu : current.menu,
         categories: savedCategories,
+        serviceItems: savedServiceItems.length ? savedServiceItems : current.serviceItems,
       }));
 
       if (repairedProfile.brandColor) {
@@ -8966,16 +9327,18 @@ export default function Page() {
     setMenuBusy(true);
 
     try {
-      const [savedMenu, savedCategories] = await Promise.all([
+      const [savedMenu, savedCategories, savedServiceItems] = await Promise.all([
         fetchMenuItemsFromSupabase(managerProfile.businessId),
         fetchMenuCategoriesFromSupabase(managerProfile.businessId),
+        fetchServiceItemsFromSupabase(managerProfile.businessId, managerProfile.username),
       ]);
       updateState((current) => ({
         ...current,
         menu: savedMenu,
         categories: savedCategories,
+        serviceItems: savedServiceItems.length ? savedServiceItems : current.serviceItems,
       }));
-      show("Menu and categories loaded from Supabase");
+      show("Menu, categories, and waiter buttons loaded from Supabase");
     } catch (error) {
       show(formatMenuDbError(error));
     } finally {
@@ -9303,7 +9666,12 @@ export default function Page() {
         return;
       }
 
-      const savedMenu = business.id ? await fetchMenuItemsFromSupabase(business.id) : [];
+      const [savedMenu, savedServiceItems] = business.id
+        ? await Promise.all([
+            fetchMenuItemsFromSupabase(business.id),
+            fetchServiceItemsFromSupabase(business.id, business.username || cleanUsername),
+          ])
+        : [[], defaultServiceItems];
 
       const nextProfile: Profile = {
         businessId: business.id || "",
@@ -9329,6 +9697,7 @@ export default function Page() {
         profileComplete: true,
         profile: nextProfile,
         menu: savedMenu,
+        serviceItems: savedServiceItems.length ? savedServiceItems : defaultServiceItems,
       }));
 
       setManagerTab("kitchen");
@@ -9725,6 +10094,194 @@ export default function Page() {
     }
 
     show(`Order marked ${status}`);
+  }
+
+  async function refreshServiceItemsNow() {
+    if (!state.profile.businessId) {
+      show("Login first, then refresh waiter buttons");
+      return;
+    }
+
+    setServiceItemBusy(true);
+
+    try {
+      const savedServiceItems = await fetchServiceItemsFromSupabase(
+        state.profile.businessId,
+        state.profile.username
+      );
+
+      updateState((current) => ({
+        ...current,
+        serviceItems: savedServiceItems.length ? savedServiceItems : defaultServiceItems,
+      }));
+
+      show("Waiter buttons refreshed");
+    } catch (error) {
+      show(`Waiter button refresh failed: ${getErrorMessage(error)}`);
+    } finally {
+      setServiceItemBusy(false);
+    }
+  }
+
+  async function saveServiceItemFromDraft() {
+    const cleanName = serviceItemDraft.name.trim();
+    const cleanNameAr = serviceItemDraft.nameAr.trim();
+
+    if (!cleanName && !cleanNameAr) {
+      show("Service item name is required");
+      return;
+    }
+
+    let managerProfile = state.profile;
+
+    if (!managerProfile.businessId) {
+      try {
+        managerProfile = await ensureManagerBusinessProfile();
+      } catch {
+        show("Login first, then add waiter buttons");
+        return;
+      }
+    }
+
+    setServiceItemBusy(true);
+
+    try {
+      const nextItem: ServiceItem = {
+        ...serviceItemDraft,
+        id: serviceItemDraft.id || makeId("service_item"),
+        name: cleanName || cleanNameAr,
+        nameAr: cleanNameAr,
+        icon: cleanServiceIcon(serviceItemDraft.icon, menuIconFromName(cleanName || cleanNameAr || "Service")),
+        imageUrl: serviceItemDraft.imageUrl,
+        active: serviceItemDraft.active !== false,
+        sortOrder: serviceItemDraft.sortOrder || Date.now(),
+      };
+
+      const savedItem = await saveServiceItemToSupabase(
+        managerProfile.businessId,
+        nextItem,
+        managerProfile.username
+      );
+
+      updateState((current) => {
+        const existing = current.serviceItems.some((item) => item.id === savedItem.id);
+
+        return {
+          ...current,
+          serviceItems: existing
+            ? current.serviceItems.map((item) => item.id === savedItem.id ? savedItem : item)
+            : [savedItem, ...current.serviceItems],
+        };
+      });
+
+      setServiceItemDraft(emptyServiceItemDraft);
+      show(`${savedItem.name} waiter button saved`);
+    } catch (error) {
+      show(`Waiter button save failed: ${getErrorMessage(error)}`);
+    } finally {
+      setServiceItemBusy(false);
+    }
+  }
+
+  function editServiceItem(item: ServiceItem) {
+    setServiceItemDraft({ ...item });
+    show(`Editing ${item.name}`);
+  }
+
+  async function toggleServiceItem(item: ServiceItem) {
+    await saveServiceItemFromValue({
+      ...item,
+      active: item.active === false,
+    });
+  }
+
+  async function saveServiceItemFromValue(nextItem: ServiceItem) {
+    if (!state.profile.businessId) {
+      show("Login first, then edit waiter buttons");
+      return;
+    }
+
+    setServiceItemBusy(true);
+
+    try {
+      const savedItem = await saveServiceItemToSupabase(
+        state.profile.businessId,
+        nextItem,
+        state.profile.username
+      );
+
+      updateState((current) => ({
+        ...current,
+        serviceItems: current.serviceItems.map((item) => item.id === savedItem.id ? savedItem : item),
+      }));
+
+      show(`${savedItem.name} updated`);
+    } catch (error) {
+      show(`Waiter button update failed: ${getErrorMessage(error)}`);
+    } finally {
+      setServiceItemBusy(false);
+    }
+  }
+
+  async function removeServiceItem(item: ServiceItem) {
+    const ok = window.confirm(`Delete waiter button "${item.name}"?`);
+    if (!ok) return;
+
+    if (!state.profile.businessId || !isUuid(item.id)) {
+      updateState((current) => ({
+        ...current,
+        serviceItems: current.serviceItems.filter((serviceItem) => serviceItem.id !== item.id),
+      }));
+      return;
+    }
+
+    setServiceItemBusy(true);
+
+    try {
+      await deleteServiceItemFromSupabase(state.profile.businessId, item.id, state.profile.username);
+
+      updateState((current) => ({
+        ...current,
+        serviceItems: current.serviceItems.filter((serviceItem) => serviceItem.id !== item.id),
+      }));
+
+      if (serviceItemDraft.id === item.id) {
+        setServiceItemDraft(emptyServiceItemDraft);
+      }
+
+      show(`${item.name} deleted`);
+    } catch (error) {
+      show(`Waiter button delete failed: ${getErrorMessage(error)}`);
+    } finally {
+      setServiceItemBusy(false);
+    }
+  }
+
+  async function handleServiceItemImageUpload(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      show("Please upload an image file");
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      const imageData = await compressMenuImage(file);
+
+      setServiceItemDraft((current) => ({
+        ...current,
+        imageUrl: imageData.imageThumbUrl,
+        icon: current.icon || menuIconFromName(current.name || file.name || "Service"),
+      }));
+
+      show("Waiter button picture added");
+    } catch (error) {
+      show(`Image failed: ${getErrorMessage(error)}`);
+    } finally {
+      event.target.value = "";
+    }
   }
 
   function addRequest(type: string) {
@@ -11434,15 +11991,16 @@ export default function Page() {
                               <div className="seat-card option-one-service-card">
                                 <h4>Need something?</h4>
                               <p>Your request appears in Tawleh Manager with your name and table number.</p>
-                              <div className="request-grid">
-                                {[
-                                  ["WA", "Waiter"],
-                                  ["WT", "Water"],
-                                  ["NP", "Napkins"],
-                                  ["CH", "Charcoal"],
-                                ].map(([icon, text]) => (
-                                  <button key={text} className="request-btn" onClick={() => addRequest(text)}>
-                                    <span>{icon}</span>{text}
+                              <div className="request-grid service-request-grid">
+                                {getActiveServiceItems(state.serviceItems).map((item) => (
+                                  <button key={item.id} className="request-btn service-request-btn" onClick={() => addRequest(item.name)}>
+                                    {item.imageUrl ? (
+                                      <img src={item.imageUrl} alt={item.name} />
+                                    ) : (
+                                      <span>{item.icon}</span>
+                                    )}
+                                    <strong>{item.name}</strong>
+                                    {item.nameAr ? <small dir="rtl">{item.nameAr}</small> : null}
                                   </button>
                                 ))}
                               </div>
@@ -11667,7 +12225,7 @@ export default function Page() {
                 )}
 
                 {managerTab === "waiter" && (
-                  <div className="two-col">
+                  <div className="two-col waiter-manager-grid">
                     <div className="manager-card">
                       <h3>Waiter Requests</h3>
                       <p className="sub">Customer calls from the table, with name included.</p>
@@ -11687,10 +12245,100 @@ export default function Page() {
                       )}
                     </div>
 
-                    <div className="manager-card">
-                      <h3>Service Script</h3>
-                      <p className="sub">This is the real-world flow.</p>
-                      <Empty alignLeft text={'"Turkey sandwich for Sarah?"\n"Spanish latte for Fatima?"\n"Noor requested a waiter from Table 5."'} />
+                    <div className="manager-card waiter-button-builder-card">
+                      <div className="manager-card-heading-row">
+                        <div>
+                          <h3>Call Waiter Buttons</h3>
+                          <p className="sub">Add the quick request buttons customers see. Example: napkins with a napkin picture.</p>
+                        </div>
+                        <button className="btn ghost small" type="button" onClick={refreshServiceItemsNow} disabled={serviceItemBusy}>
+                          Refresh
+                        </button>
+                      </div>
+
+                      <div className="service-item-form">
+                        <Field label="Button name">
+                          <input
+                            value={serviceItemDraft.name}
+                            onChange={(event) => setServiceItemDraft((current) => ({ ...current, name: event.target.value, icon: current.icon || menuIconFromName(event.target.value) }))}
+                            placeholder="Napkins"
+                          />
+                        </Field>
+
+                        <Field label="Arabic name">
+                          <input
+                            dir="rtl"
+                            value={serviceItemDraft.nameAr}
+                            onChange={(event) => setServiceItemDraft((current) => ({ ...current, nameAr: event.target.value }))}
+                            placeholder="مناديل"
+                          />
+                        </Field>
+
+                        <Field label="Short code">
+                          <input
+                            value={serviceItemDraft.icon}
+                            onChange={(event) => setServiceItemDraft((current) => ({ ...current, icon: cleanServiceIcon(event.target.value, "") }))}
+                            placeholder="NP"
+                            maxLength={3}
+                          />
+                        </Field>
+
+                        <Field label="Picture optional">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleServiceItemImageUpload}
+                          />
+                        </Field>
+
+                        <label className="check-row service-active-row">
+                          <input
+                            type="checkbox"
+                            checked={serviceItemDraft.active !== false}
+                            onChange={(event) => setServiceItemDraft((current) => ({ ...current, active: event.target.checked }))}
+                          />
+                          Show on customer Call Waiter tab
+                        </label>
+
+                        {serviceItemDraft.imageUrl ? (
+                          <div className="service-draft-preview">
+                            <img src={serviceItemDraft.imageUrl} alt={serviceItemDraft.name || "Preview"} />
+                            <button type="button" onClick={() => setServiceItemDraft((current) => ({ ...current, imageUrl: "" }))}>Remove picture</button>
+                          </div>
+                        ) : null}
+
+                        <div className="row-actions">
+                          <button className="btn" type="button" onClick={saveServiceItemFromDraft} disabled={serviceItemBusy}>
+                            {serviceItemDraft.id ? "Save waiter button" : "Add waiter button"}
+                          </button>
+                          <button className="btn ghost" type="button" onClick={() => setServiceItemDraft(emptyServiceItemDraft)} disabled={serviceItemBusy}>
+                            Clear
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="service-items-list">
+                        {getActiveServiceItems(state.serviceItems).map((item) => (
+                          <div className={`service-item-row ${item.active === false ? "inactive" : ""}`} key={item.id}>
+                            <div className="service-item-avatar">
+                              {item.imageUrl ? <img src={item.imageUrl} alt={item.name} /> : <span>{item.icon}</span>}
+                            </div>
+
+                            <div>
+                              <strong>{item.name}</strong>
+                              {item.nameAr ? <span dir="rtl">{item.nameAr}</span> : null}
+                            </div>
+
+                            <div className="service-item-actions">
+                              <button className="btn small ghost" type="button" onClick={() => editServiceItem(item)}>Edit</button>
+                              <button className="btn small secondary" type="button" onClick={() => toggleServiceItem(item)} disabled={serviceItemBusy}>
+                                {item.active === false ? "Show" : "Hide"}
+                              </button>
+                              <button className="btn small danger" type="button" onClick={() => removeServiceItem(item)} disabled={serviceItemBusy}>Delete</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
