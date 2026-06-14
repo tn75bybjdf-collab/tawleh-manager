@@ -14,7 +14,7 @@ function getSignupIp(request: NextRequest) {
   return "local-dev-ip";
 }
 
-function normalizeUsername(value: string) {
+function normalizeUsername(value: unknown) {
   return String(value || "").toLowerCase().trim().replace(/[^a-z0-9_]/g, "");
 }
 
@@ -56,14 +56,15 @@ export async function POST(request: NextRequest) {
     const email = cleanText(body.email).toLowerCase();
     const password = String(body.password || "");
     const username = normalizeUsername(body.username);
+    const signupSource = cleanText(body.signupSource) === "salesperson" ? "salesperson" : "self";
+    const salespersonUsername = normalizeUsername(body.salespersonUsername);
     const restaurantName = cleanText(body.restaurantName);
     const branchName = cleanText(body.branchName);
     const businessType = cleanText(body.businessType) || "Cafe";
     const businessPhone = cleanText(body.businessPhone);
     const tableCount = Math.max(25, Math.min(999, Number(body.tableCount || 25)));
-    const monthlyFeeJod = cleanMoney(body.serviceMonthlyFeeJod, monthlyTableFee(tableCount));
     const tableBasedMonthlyFeeJod = monthlyTableFee(tableCount);
-    const finalMonthlyFeeJod = monthlyFeeJod > 0 ? tableBasedMonthlyFeeJod : tableBasedMonthlyFeeJod;
+    const finalMonthlyFeeJod = cleanMoney(tableBasedMonthlyFeeJod, tableBasedMonthlyFeeJod);
     const locationCount = Math.max(1, Math.min(25, Number(body.locationCount || 1)));
     const locations: string[] = Array.isArray(body.locations)
       ? body.locations.map((item: unknown) => cleanText(item)).filter(Boolean)
@@ -92,6 +93,37 @@ export async function POST(request: NextRequest) {
 
     if (locations.length !== locationCount || locations.some((item) => !item)) {
       return NextResponse.json({ error: "Every location tab must be filled" }, { status: 400 });
+    }
+
+    let salesperson: { id: string; username: string } | null = null;
+
+    if (signupSource === "salesperson") {
+      if (!salespersonUsername) {
+        return NextResponse.json({ error: "Salesperson username is required" }, { status: 400 });
+      }
+
+      const { data: salespersonRow, error: salespersonError } = await admin
+        .from("platform_salespeople")
+        .select("id, username, active")
+        .eq("username", salespersonUsername)
+        .eq("active", true)
+        .maybeSingle();
+
+      if (salespersonError) {
+        return NextResponse.json({ error: salespersonError.message }, { status: 500 });
+      }
+
+      if (!salespersonRow) {
+        return NextResponse.json(
+          { error: "Salesperson username was not found or is inactive" },
+          { status: 403 }
+        );
+      }
+
+      salesperson = {
+        id: salespersonRow.id,
+        username: salespersonRow.username,
+      };
     }
 
     const { data: existingIp, error: existingIpError } = await admin
@@ -133,6 +165,8 @@ export async function POST(request: NextRequest) {
         app: "tawleh_manager",
         username,
         restaurant_name: restaurantName,
+        signup_source: signupSource,
+        salesperson_username: salesperson?.username || "",
       },
     });
 
@@ -152,6 +186,9 @@ export async function POST(request: NextRequest) {
         auth_user_id: authData.user.id,
         email,
         username,
+        signup_source: signupSource,
+        salesperson_id: salesperson?.id || null,
+        salesperson_username: salesperson?.username || null,
         restaurant_name: restaurantName,
         branch_name: branchName,
         business_type: businessType,
@@ -170,10 +207,10 @@ export async function POST(request: NextRequest) {
         service_status: "trial",
         service_expires_at: toDateOnly(trialEndsAt),
         service_payment_due_date: toDateOnly(trialEndsAt),
-        service_balance_due_jod: 0,
+        service_balance_due_jod: finalMonthlyFeeJod,
         service_monthly_fee_jod: finalMonthlyFeeJod,
         service_suspended_reason: null,
-        service_admin_note: `Signup pricing: ${tableCount} QR/table units x 1 JOD = ${finalMonthlyFeeJod.toFixed(3)} JOD/month. Minimum billing is 25 QR codes/month`,
+        service_admin_note: `Signup pricing: ${tableCount} QR/table units x 1 JOD = ${finalMonthlyFeeJod.toFixed(3)} JOD/month. Minimum billing is 25 QR codes/month. Signup source: ${signupSource}${salesperson ? ` via @${salesperson.username}` : ""}`,
         service_updated_at: new Date().toISOString(),
       })
       .select("*")

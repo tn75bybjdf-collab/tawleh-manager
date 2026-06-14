@@ -7533,6 +7533,190 @@ main.customer-only-shell .service-suspended-card {
   }
 }
 
+
+
+/* =========================================================
+   SIGNUP SOURCE GATE + SALESPERSON ADMIN
+   Requires business self-signup or valid salesperson username.
+   ========================================================= */
+
+.signup-source-gate {
+  display: grid !important;
+  gap: 18px !important;
+}
+
+.signup-source-options {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+}
+
+.signup-source-option {
+  min-height: 190px !important;
+  display: grid !important;
+  align-content: start !important;
+  gap: 10px !important;
+  text-align: left !important;
+  padding: 18px !important;
+  border-radius: 26px !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  box-shadow: 0 16px 34px rgba(80, 52, 27, 0.08) !important;
+  cursor: pointer !important;
+}
+
+.signup-source-option span,
+.signup-selected-source span,
+.salespeople-admin-head span {
+  display: block !important;
+  color: #bd5338 !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.10em !important;
+}
+
+.signup-source-option strong {
+  display: block !important;
+  color: #2f2a25 !important;
+  font-size: 24px !important;
+  line-height: 1.02 !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.045em !important;
+}
+
+.signup-source-option em,
+.signup-selected-source em {
+  color: #74685d !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  font-style: normal !important;
+  font-weight: 850 !important;
+}
+
+.signup-selected-source {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 14px !important;
+  border-radius: 22px !important;
+  background: rgba(104, 112, 68, 0.10) !important;
+  border: 1px solid rgba(104, 112, 68, 0.13) !important;
+}
+
+.signup-selected-source strong {
+  display: block !important;
+  margin-top: 4px !important;
+  color: #2f2a25 !important;
+  font-size: 18px !important;
+  font-weight: 1000 !important;
+}
+
+.salespeople-admin-card {
+  display: grid !important;
+  gap: 12px !important;
+  padding: 16px !important;
+  border-radius: 26px !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+  box-shadow: 0 16px 34px rgba(80, 52, 27, 0.08) !important;
+}
+
+.salespeople-admin-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+}
+
+.salespeople-admin-head h3 {
+  margin: 5px 0 4px !important;
+  color: #2f2a25 !important;
+  font-size: 24px !important;
+  line-height: 1 !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.045em !important;
+}
+
+.salespeople-admin-head p {
+  margin: 0 !important;
+  color: #74685d !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  font-weight: 850 !important;
+}
+
+.salespeople-list {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.salesperson-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px !important;
+  border-radius: 18px !important;
+  background: rgba(255, 247, 239, 0.82) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+}
+
+.salesperson-row strong {
+  display: block !important;
+  color: #2f2a25 !important;
+  font-size: 15px !important;
+  font-weight: 1000 !important;
+}
+
+.salesperson-row span {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #74685d !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+}
+
+.salesperson-row b {
+  flex: 0 0 auto !important;
+  min-height: 30px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  border-radius: 999px !important;
+  padding: 0 10px !important;
+  background: #2f2a25 !important;
+  color: #fff !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+}
+
+.salesperson-modal {
+  width: min(600px, 100%) !important;
+  max-height: min(90vh, 780px) !important;
+  overflow-y: auto !important;
+  display: grid !important;
+  gap: 16px !important;
+  padding: 20px !important;
+  border-radius: 30px !important;
+  background: rgba(255, 253, 248, 0.96) !important;
+  border: 1px solid rgba(91, 71, 48, 0.14) !important;
+  box-shadow: 0 32px 90px rgba(18, 13, 10, 0.34) !important;
+}
+
+@media (max-width: 720px) {
+  .signup-source-options {
+    grid-template-columns: 1fr !important;
+  }
+
+  .signup-selected-source,
+  .salespeople-admin-head,
+  .salesperson-row {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+}
+
 `;
 
 
@@ -7839,6 +8023,15 @@ type CliqPaymentRequest = {
   senderCliqName: string;
   senderCliqPhone: string;
   status: string;
+  createdAt: string;
+};
+
+type PlatformSalesperson = {
+  id: string;
+  username: string;
+  fullName: string;
+  phone: string;
+  active: boolean;
   createdAt: string;
 };
 
@@ -9252,6 +9445,17 @@ function rowToCliqPaymentRequest(row: Record<string, unknown>): CliqPaymentReque
   };
 }
 
+function rowToPlatformSalesperson(row: Record<string, unknown>): PlatformSalesperson {
+  return {
+    id: String(row.id || ""),
+    username: String(row.username || ""),
+    fullName: String(row.full_name || ""),
+    phone: String(row.phone || ""),
+    active: row.active !== false,
+    createdAt: String(row.created_at || ""),
+  };
+}
+
 async function getPlatformAdminHeaders() {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -9293,6 +9497,36 @@ async function fetchCliqPaymentsForAdmin() {
 
   const result = await readApiJson(response);
   return ((result.payments || []) as Record<string, unknown>[]).map((row) => rowToCliqPaymentRequest(row));
+}
+
+async function fetchPlatformSalespeopleForAdmin() {
+  const headers = await getPlatformAdminHeaders();
+
+  const response = await fetch("/api/platform-admin/salespeople", {
+    method: "GET",
+    headers,
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  return ((result.salespeople || []) as Record<string, unknown>[]).map((row) => rowToPlatformSalesperson(row));
+}
+
+async function createPlatformSalespersonInServer(payload: {
+  username: string;
+  fullName: string;
+  phone: string;
+}) {
+  const headers = await getPlatformAdminHeaders();
+
+  const response = await fetch("/api/platform-admin/salespeople", {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  const result = await readApiJson(response);
+  return rowToPlatformSalesperson(result.salesperson as Record<string, unknown>);
 }
 
 async function submitCliqPaymentToServer(payload: {
@@ -9358,6 +9592,8 @@ export default function Page() {
   const kitchenBellPrimedRef = useRef(false);
   const lastKitchenNewOrderIdsRef = useRef<Set<string>>(new Set());
   const [signupProfile, setSignupProfile] = useState<Profile>(defaultState.profile);
+  const [signupSource, setSignupSource] = useState<"" | "self" | "salesperson">("");
+  const [signupSalespersonUsername, setSignupSalespersonUsername] = useState("");
   const [activeLocationTab, setActiveLocationTab] = useState(0);
   const [authBusy, setAuthBusy] = useState(false);
   const [signupPassword, setSignupPassword] = useState("");
@@ -9372,6 +9608,12 @@ export default function Page() {
   const [platformAdminLoggedIn, setPlatformAdminLoggedIn] = useState(false);
   const [platformAdminBusinesses, setPlatformAdminBusinesses] = useState<PlatformAdminBusiness[]>([]);
   const [platformAdminPayments, setPlatformAdminPayments] = useState<CliqPaymentRequest[]>([]);
+  const [platformSalespeople, setPlatformSalespeople] = useState<PlatformSalesperson[]>([]);
+  const [salespersonModalOpen, setSalespersonModalOpen] = useState(false);
+  const [salespersonDraftUsername, setSalespersonDraftUsername] = useState("");
+  const [salespersonDraftName, setSalespersonDraftName] = useState("");
+  const [salespersonDraftPhone, setSalespersonDraftPhone] = useState("");
+  const [salespersonBusy, setSalespersonBusy] = useState(false);
   const [platformAdminBusy, setPlatformAdminBusy] = useState(false);
   const [platformAdminMessage, setPlatformAdminMessage] = useState("");
   const [cliqPayOpen, setCliqPayOpen] = useState(false);
@@ -10591,6 +10833,16 @@ export default function Page() {
       return;
     }
 
+    if (!signupSource) {
+      show("Choose whether you are signing up yourself or signing up through a salesperson");
+      return;
+    }
+
+    if (signupSource === "salesperson" && !normalizeUsername(signupSalespersonUsername)) {
+      show("Salesperson username is required");
+      return;
+    }
+
     if (!cleanName || !cleanBranch) {
       show("Restaurant name and branch are required");
       return;
@@ -10642,6 +10894,8 @@ export default function Page() {
           email: cleanEmail,
           password: signupPassword,
           username: cleanUsername,
+          signupSource,
+          salespersonUsername: signupSource === "salesperson" ? normalizeUsername(signupSalespersonUsername) : "",
           restaurantName: cleanName,
           branchName: cleanBranch,
           businessType: signupProfile.businessType,
@@ -10826,14 +11080,16 @@ export default function Page() {
     setPlatformAdminMessage("");
 
     try {
-      const [businesses, payments] = await Promise.all([
+      const [businesses, payments, salespeople] = await Promise.all([
         fetchPlatformBusinessesFromServer(),
         fetchCliqPaymentsForAdmin(),
+        fetchPlatformSalespeopleForAdmin(),
       ]);
       setPlatformAdminBusinesses(businesses);
       setPlatformAdminPayments(payments);
+      setPlatformSalespeople(salespeople);
       setPlatformAdminLoggedIn(true);
-      setPlatformAdminMessage(`${businesses.length} companies loaded • ${payments.length} CliQ payment notification${payments.length === 1 ? "" : "s"}`);
+      setPlatformAdminMessage(`${businesses.length} companies loaded • ${payments.length} CliQ payment notification${payments.length === 1 ? "" : "s"} • ${salespeople.length} salesperson${salespeople.length === 1 ? "" : "s"}`);
     } catch (error) {
       setPlatformAdminMessage(getErrorMessage(error));
       show(`Admin load failed: ${getErrorMessage(error)}`);
@@ -10866,14 +11122,16 @@ export default function Page() {
 
       if (error) throw error;
 
-      const [businesses, payments] = await Promise.all([
+      const [businesses, payments, salespeople] = await Promise.all([
         fetchPlatformBusinessesFromServer(),
         fetchCliqPaymentsForAdmin(),
+        fetchPlatformSalespeopleForAdmin(),
       ]);
       setPlatformAdminBusinesses(businesses);
       setPlatformAdminPayments(payments);
+      setPlatformSalespeople(salespeople);
       setPlatformAdminLoggedIn(true);
-      setPlatformAdminMessage(`${businesses.length} companies loaded • ${payments.length} CliQ payment notification${payments.length === 1 ? "" : "s"}`);
+      setPlatformAdminMessage(`${businesses.length} companies loaded • ${payments.length} CliQ payment notification${payments.length === 1 ? "" : "s"} • ${salespeople.length} salesperson${salespeople.length === 1 ? "" : "s"}`);
       show("Platform admin logged in");
     } catch (error) {
       setPlatformAdminLoggedIn(false);
@@ -10916,6 +11174,43 @@ export default function Page() {
       show(`Admin save failed: ${getErrorMessage(error)}`);
     } finally {
       setPlatformAdminBusy(false);
+    }
+  }
+
+  async function createSalesperson(event: FormEvent) {
+    event.preventDefault();
+
+    const cleanUsername = normalizeUsername(salespersonDraftUsername);
+    const cleanName = salespersonDraftName.trim();
+    const cleanPhone = normalizePhone(salespersonDraftPhone);
+
+    if (!cleanUsername || cleanUsername.length < 3) {
+      setPlatformAdminMessage("Salesperson username must be at least 3 characters");
+      return;
+    }
+
+    setSalespersonBusy(true);
+    setPlatformAdminMessage("");
+
+    try {
+      const salesperson = await createPlatformSalespersonInServer({
+        username: cleanUsername,
+        fullName: cleanName || cleanUsername,
+        phone: cleanPhone,
+      });
+
+      setPlatformSalespeople((current) => [salesperson, ...current.filter((item) => item.id !== salesperson.id)]);
+      setSalespersonDraftUsername("");
+      setSalespersonDraftName("");
+      setSalespersonDraftPhone("");
+      setSalespersonModalOpen(false);
+      setPlatformAdminMessage(`Salesperson @${salesperson.username} added`);
+      show(`Salesperson @${salesperson.username} added`);
+    } catch (error) {
+      setPlatformAdminMessage(getErrorMessage(error));
+      show(`Salesperson save failed: ${getErrorMessage(error)}`);
+    } finally {
+      setSalespersonBusy(false);
     }
   }
 
@@ -11033,6 +11328,8 @@ export default function Page() {
     setPlatformAdminLoggedIn(false);
     setPlatformAdminBusinesses([]);
     setPlatformAdminPayments([]);
+    setPlatformSalespeople([]);
+    setSalespersonModalOpen(false);
     setPlatformAdminPassword("");
     setPlatformAdminNewPassword("");
     setPlatformAdminConfirmPassword("");
@@ -12425,6 +12722,9 @@ export default function Page() {
                           </div>
 
                           <div className="platform-admin-actions">
+                            <button className="btn small" type="button" onClick={() => setSalespersonModalOpen(true)}>
+                              Add salesperson
+                            </button>
                             <button className="btn ghost small" type="button" onClick={loadPlatformAdminBusinesses} disabled={platformAdminBusy}>
                               Refresh
                             </button>
@@ -12446,6 +12746,33 @@ export default function Page() {
                           <div>
                             <span>Total due</span>
                             <strong>{money(platformAdminBusinesses.reduce((sum, business) => sum + Number(business.serviceBalanceDueJod || 0), 0))}</strong>
+                          </div>
+                        </div>
+
+                        <div className="salespeople-admin-card">
+                          <div className="salespeople-admin-head">
+                            <div>
+                              <span>Sales team</span>
+                              <h3>Salespeople</h3>
+                              <p>Create usernames for salespeople. A restaurant can only signup as a salesperson if this username exists.</p>
+                            </div>
+                            <button className="btn small" type="button" onClick={() => setSalespersonModalOpen(true)}>Add salesperson</button>
+                          </div>
+
+                          <div className="salespeople-list">
+                            {platformSalespeople.length ? (
+                              platformSalespeople.map((person) => (
+                                <div className={`salesperson-row ${person.active ? "" : "inactive"}`} key={person.id}>
+                                  <div>
+                                    <strong>@{person.username}</strong>
+                                    <span>{person.fullName || "No name"} {person.phone ? `• ${person.phone}` : ""}</span>
+                                  </div>
+                                  <b>{person.active ? "Active" : "Inactive"}</b>
+                                </div>
+                              ))
+                            ) : (
+                              <Empty text="No salespeople yet. Press Add salesperson." />
+                            )}
                           </div>
                         </div>
 
@@ -12660,6 +12987,49 @@ export default function Page() {
                   </form>
                 ) : (
                   <form className="signup-panel" onSubmit={submitSignup}>
+                    {!signupSource ? (
+                      <div className="signup-source-gate">
+                        <div className="auth-heading">
+                          <h2>Who is creating this account?</h2>
+                          <p>Choose one before the restaurant signup form opens.</p>
+                        </div>
+
+                        <div className="signup-source-options">
+                          <button className="signup-source-option" type="button" onClick={() => setSignupSource("self")}>
+                            <span>Business Owner</span>
+                            <strong>I am a business wanting to signup myself</strong>
+                            <em>Use this if the restaurant owner or manager is creating their own Tawleh account.</em>
+                          </button>
+
+                          <button className="signup-source-option" type="button" onClick={() => setSignupSource("salesperson")}>
+                            <span>Sales Person</span>
+                            <strong>I am a sales person</strong>
+                            <em>Use this if Tawleh gave you a salesperson username.</em>
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="signup-selected-source">
+                          <div>
+                            <span>Signup type</span>
+                            <strong>{signupSource === "salesperson" ? "Sales person" : "Business self signup"}</strong>
+                            <em>{signupSource === "salesperson" ? "Enter your Tawleh salesperson username before submitting." : "Restaurant is creating its own account."}</em>
+                          </div>
+                          <button className="btn ghost small" type="button" onClick={() => setSignupSource("")}>Change</button>
+                        </div>
+
+                        {signupSource === "salesperson" ? (
+                          <Field label="Salesperson username">
+                            <input
+                              value={signupSalespersonUsername}
+                              onChange={(event) => setSignupSalespersonUsername(normalizeUsername(event.target.value))}
+                              placeholder="Enter the username Tawleh gave you"
+                            />
+                            <div className="helper">Admin must create this salesperson username first.</div>
+                          </Field>
+                        ) : null}
+
                     <div className="auth-heading">
                       <h2>Create your account</h2>
                       <p>Start your 30-day free trial. Minimum billing is 25 QR codes per month.</p>
@@ -12835,6 +13205,8 @@ export default function Page() {
                     <p className="terms">
                       By creating an account, you agree to Tawleh Manager's terms and restaurant self-setup policy.
                     </p>
+                      </>
+                    )}
                   </form>
                 )}
               </div>
@@ -14785,6 +15157,56 @@ export default function Page() {
             </section>
             )}
           </section>
+
+          {salespersonModalOpen ? (
+            <div className="modal-backdrop cliq-payment-backdrop">
+              <form className="salesperson-modal" onSubmit={createSalesperson}>
+                <div className="cliq-payment-modal-head">
+                  <div>
+                    <span>Sales team</span>
+                    <h2>Add salesperson</h2>
+                    <p>Create the username you will give to a salesperson. They must enter it before the signup page opens.</p>
+                  </div>
+                  <button className="modal-close" type="button" onClick={() => setSalespersonModalOpen(false)}>×</button>
+                </div>
+
+                <div className="cliq-payment-grid">
+                  <Field label="Salesperson username">
+                    <input
+                      value={salespersonDraftUsername}
+                      onChange={(event) => setSalespersonDraftUsername(normalizeUsername(event.target.value))}
+                      placeholder="example: mohammed_sales"
+                    />
+                  </Field>
+
+                  <Field label="Salesperson name">
+                    <input
+                      value={salespersonDraftName}
+                      onChange={(event) => setSalespersonDraftName(event.target.value)}
+                      placeholder="Full name"
+                    />
+                  </Field>
+
+                  <Field label="Salesperson phone">
+                    <input
+                      value={salespersonDraftPhone}
+                      onChange={(event) => setSalespersonDraftPhone(event.target.value)}
+                      placeholder="07XXXXXXXX"
+                    />
+                  </Field>
+                </div>
+
+                <div className="cliq-payment-actions">
+                  <button className="btn ghost" type="button" onClick={() => setSalespersonModalOpen(false)}>
+                    Close
+                  </button>
+                  <button className="btn dark" type="submit" disabled={salespersonBusy}>
+                    {salespersonBusy ? "Saving..." : "Add salesperson"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : null}
 
           {cliqPayOpen ? (
             <div className="modal-backdrop cliq-payment-backdrop">
