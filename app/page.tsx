@@ -6142,7 +6142,7 @@ main.customer-only-shell .image-modal-card > img {
 
 .app-shell:not(.customer-only-shell) .auth-tabs {
   display: grid !important;
-  grid-template-columns: 1fr 1fr !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
   gap: 8px !important;
   padding: 12px !important;
   background: rgba(255, 247, 239, 0.78) !important;
@@ -6731,6 +6731,311 @@ main.customer-only-shell .service-request-btn small {
   }
 }
 
+
+
+/* =========================================================
+   PLATFORM ADMIN DASHBOARD + SUSPENDED QR PAGE
+   Owner login can view all companies and suspend/expire service.
+   ========================================================= */
+
+.platform-admin-panel {
+  display: grid !important;
+  gap: 18px !important;
+}
+
+.platform-admin-dashboard {
+  display: grid !important;
+  gap: 16px !important;
+}
+
+.platform-admin-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 16px !important;
+  padding: 16px !important;
+  border-radius: 24px !important;
+  background: rgba(255, 250, 243, 0.82) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+}
+
+.platform-admin-head span {
+  display: block !important;
+  color: #bd5338 !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.10em !important;
+}
+
+.platform-admin-head h2 {
+  margin: 4px 0 !important;
+  color: #2f2a25 !important;
+  font-size: 34px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.055em !important;
+  font-weight: 1000 !important;
+}
+
+.platform-admin-head p {
+  margin: 0 !important;
+  color: #74685d !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+  font-weight: 850 !important;
+}
+
+.platform-admin-actions {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+}
+
+.platform-admin-stats {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.platform-admin-stats div {
+  padding: 14px !important;
+  border-radius: 20px !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+}
+
+.platform-admin-stats span {
+  display: block !important;
+  color: #7c6c5f !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}
+
+.platform-admin-stats strong {
+  display: block !important;
+  margin-top: 5px !important;
+  color: #2f2a25 !important;
+  font-size: 24px !important;
+  font-weight: 1000 !important;
+}
+
+.admin-message {
+  padding: 12px 14px !important;
+  border-radius: 16px !important;
+  background: rgba(189, 83, 56, 0.10) !important;
+  color: #8f3a2b !important;
+  font-size: 13px !important;
+  line-height: 1.35 !important;
+  font-weight: 950 !important;
+}
+
+.platform-business-list {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+.platform-business-card {
+  display: grid !important;
+  gap: 14px !important;
+  padding: 16px !important;
+  border-radius: 26px !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+  box-shadow: 0 16px 34px rgba(80, 52, 27, 0.08) !important;
+}
+
+.platform-business-card.suspended {
+  border-color: rgba(185, 28, 28, 0.28) !important;
+  background: rgba(255, 247, 247, 0.92) !important;
+}
+
+.platform-business-top {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+}
+
+.platform-business-top span {
+  color: #bd5338 !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.09em !important;
+}
+
+.platform-business-top h3 {
+  margin: 4px 0 !important;
+  color: #2f2a25 !important;
+  font-size: 22px !important;
+  line-height: 1.05 !important;
+  font-weight: 1000 !important;
+}
+
+.platform-business-top p {
+  margin: 0 !important;
+  color: #74685d !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+}
+
+.platform-business-top b {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 31px !important;
+  border-radius: 999px !important;
+  padding: 0 10px !important;
+  background: #2f2a25 !important;
+  color: #fff !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  white-space: nowrap !important;
+}
+
+.platform-business-card.suspended .platform-business-top b {
+  background: #b91c1c !important;
+}
+
+.platform-business-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.platform-business-grid .form-row:nth-last-child(1) {
+  grid-column: 1 / -1 !important;
+}
+
+.platform-business-footer {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding-top: 4px !important;
+}
+
+.platform-business-footer span {
+  color: #74685d !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+}
+
+main.customer-only-shell .service-suspended-screen {
+  min-height: 100dvh !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 28px 18px !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+main.customer-only-shell .service-suspended-card {
+  width: min(420px, 100%) !important;
+  display: grid !important;
+  justify-items: center !important;
+  gap: 12px !important;
+  text-align: center !important;
+  padding: 26px !important;
+  border-radius: 32px !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+  border: 1px solid rgba(255, 255, 255, 0.42) !important;
+  box-shadow: 0 24px 60px rgba(48, 33, 26, 0.22) !important;
+  backdrop-filter: blur(18px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.08) !important;
+}
+
+main.customer-only-shell .service-suspended-logo {
+  width: 92px !important;
+  height: 92px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 28px !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  border: 1px solid rgba(255, 255, 255, 0.44) !important;
+  overflow: hidden !important;
+}
+
+main.customer-only-shell .service-suspended-card > span {
+  color: #b91c1c !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.14em !important;
+}
+
+main.customer-only-shell .service-suspended-card h2 {
+  margin: 0 !important;
+  color: #2d211b !important;
+  font-size: 32px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.055em !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .service-suspended-card p {
+  margin: 0 !important;
+  color: #5f4c40 !important;
+  font-size: 15px !important;
+  line-height: 1.45 !important;
+  font-weight: 900 !important;
+}
+
+main.customer-only-shell .service-suspended-details {
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 9px !important;
+}
+
+main.customer-only-shell .service-suspended-details div {
+  padding: 12px !important;
+  border-radius: 18px !important;
+  background: rgba(185, 28, 28, 0.08) !important;
+  border: 1px solid rgba(185, 28, 28, 0.12) !important;
+}
+
+main.customer-only-shell .service-suspended-details small {
+  display: block !important;
+  color: #8f3a2b !important;
+  font-size: 10px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}
+
+main.customer-only-shell .service-suspended-details strong {
+  display: block !important;
+  margin-top: 4px !important;
+  color: #2d211b !important;
+  font-size: 15px !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .service-suspended-card em {
+  color: #7b6354 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-style: normal !important;
+  font-weight: 850 !important;
+}
+
+@media (max-width: 760px) {
+  .platform-admin-stats,
+  .platform-business-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .platform-admin-head,
+  .platform-business-top,
+  .platform-business-footer {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+}
+
 `;
 
 
@@ -6989,6 +7294,32 @@ type ServiceItemRow = {
   active: boolean | null;
   sort_order: number | null;
   created_at: string | null;
+};
+
+type PublicSuspension = {
+  suspended: boolean;
+  message: string;
+  paymentDueDate: string;
+  balanceDueJod: number;
+};
+
+type PlatformAdminBusiness = {
+  id: string;
+  username: string;
+  restaurantName: string;
+  branchName: string;
+  email: string;
+  phone: string;
+  tableCount: number;
+  locationCount: number;
+  createdAt: string;
+  serviceStatus: string;
+  serviceExpiresAt: string;
+  servicePaymentDueDate: string;
+  serviceBalanceDueJod: number;
+  serviceMonthlyFeeJod: number;
+  serviceSuspendedReason: string;
+  serviceAdminNote: string;
 };
 
 type AppState = {
@@ -8301,12 +8632,85 @@ async function deleteServiceItemFromSupabase(businessId: string, itemId: string,
   await readApiJson(response);
 }
 
+function rowToPlatformBusiness(row: Record<string, unknown>): PlatformAdminBusiness {
+  return {
+    id: String(row.id || ""),
+    username: String(row.username || ""),
+    restaurantName: String(row.restaurant_name || "Restaurant"),
+    branchName: String(row.branch_name || "Main Branch"),
+    email: String(row.email || ""),
+    phone: String(row.business_phone || ""),
+    tableCount: Number(row.table_count || 0),
+    locationCount: Number(row.location_count || 0),
+    createdAt: String(row.created_at || ""),
+    serviceStatus: String(row.service_status || "active"),
+    serviceExpiresAt: String(row.service_expires_at || ""),
+    servicePaymentDueDate: String(row.service_payment_due_date || ""),
+    serviceBalanceDueJod: Number(row.service_balance_due_jod || 0),
+    serviceMonthlyFeeJod: Number(row.service_monthly_fee_jod || 100),
+    serviceSuspendedReason: String(row.service_suspended_reason || ""),
+    serviceAdminNote: String(row.service_admin_note || ""),
+  };
+}
+
+async function getPlatformAdminHeaders() {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (!supabase) return headers;
+
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token || "";
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  return headers;
+}
+
+async function fetchPlatformBusinessesFromServer() {
+  const headers = await getPlatformAdminHeaders();
+
+  const response = await fetch("/api/platform-admin/businesses", {
+    method: "GET",
+    headers,
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  return ((result.businesses || []) as Record<string, unknown>[]).map((row) => rowToPlatformBusiness(row));
+}
+
+async function updatePlatformBusinessInServer(business: PlatformAdminBusiness) {
+  const headers = await getPlatformAdminHeaders();
+
+  const response = await fetch("/api/platform-admin/businesses", {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({
+      businessId: business.id,
+      serviceStatus: business.serviceStatus,
+      serviceExpiresAt: business.serviceExpiresAt || null,
+      servicePaymentDueDate: business.servicePaymentDueDate || null,
+      serviceBalanceDueJod: Number(business.serviceBalanceDueJod || 0),
+      serviceMonthlyFeeJod: Number(business.serviceMonthlyFeeJod || 100),
+      serviceSuspendedReason: business.serviceSuspendedReason,
+      serviceAdminNote: business.serviceAdminNote,
+    }),
+  });
+
+  const result = await readApiJson(response);
+  return rowToPlatformBusiness(result.business as Record<string, unknown>);
+}
+
 export default function Page() {
   const [state, setState] = useState<AppState>(defaultState);
   const [loaded, setLoaded] = useState(false);
   const [phoneTab, setPhoneTab] = useState<"menu" | "bill" | "service">("menu");
   const [managerTab, setManagerTab] = useState<"kitchen" | "waiter" | "tables" | "menu" | "menuBuilder" | "qr" | "profile">("kitchen");
-  const [authTab, setAuthTab] = useState<"login" | "signup">("signup");
+  const [authTab, setAuthTab] = useState<"login" | "signup" | "platformAdmin">("signup");
   const [guestName, setGuestName] = useState("");
   const [namePromptError, setNamePromptError] = useState(false);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
@@ -8325,6 +8729,12 @@ export default function Page() {
   const [signupConfirmPassword, setSignupConfirmPassword] = useState("");
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [platformAdminEmail, setPlatformAdminEmail] = useState("");
+  const [platformAdminPassword, setPlatformAdminPassword] = useState("");
+  const [platformAdminLoggedIn, setPlatformAdminLoggedIn] = useState(false);
+  const [platformAdminBusinesses, setPlatformAdminBusinesses] = useState<PlatformAdminBusiness[]>([]);
+  const [platformAdminBusy, setPlatformAdminBusy] = useState(false);
+  const [platformAdminMessage, setPlatformAdminMessage] = useState("");
   const [qrInput, setQrInput] = useState(String(DEMO_TABLE));
   const [menuDraft, setMenuDraft] = useState<MenuDraft>(emptyMenuDraft);
   const menuBuilderFormRef = useRef<HTMLDivElement | null>(null);
@@ -8344,6 +8754,12 @@ export default function Page() {
   const [publicTableMode, setPublicTableMode] = useState(false);
   const publicCustomerMode = publicTableMode;
   const [publicTableError, setPublicTableError] = useState("");
+  const [publicSuspension, setPublicSuspension] = useState<PublicSuspension>({
+    suspended: false,
+    message: "",
+    paymentDueDate: "",
+    balanceDueJod: 0,
+  });
   const [activeTable, setActiveTable] = useState(DEMO_TABLE);
   const [tableSortMode, setTableSortMode] = useState<"number" | "active" | "needsHelp" | "openOrders" | "billHigh" | "empty">("number");
 
@@ -8352,6 +8768,17 @@ export default function Page() {
 
     async function boot() {
       const params = new URLSearchParams(window.location.search);
+      const adminMode = params.get("admin") === "1" || params.has("admin");
+
+      if (adminMode) {
+        setPublicTableMode(false);
+        setAuthTab("platformAdmin");
+        setState(defaultState);
+        setSignupProfile(defaultState.profile);
+        setLoaded(true);
+        return;
+      }
+
       const qrMode = params.get("mode") === "table" || params.has("table") || params.has("token") || params.has("businessId") || params.has("username");
       const businessId = params.get("businessId") || params.get("business") || "";
       const username = params.get("username") || "";
@@ -8383,6 +8810,13 @@ export default function Page() {
           const guestRows = (result.guests || []) as TableGuestRow[];
           const orderRows = (result.orders || []) as TableOrderRow[];
           const serviceItemRows = (result.serviceItems || []) as ServiceItemRow[];
+
+          setPublicSuspension({
+            suspended: result.suspended === true,
+            message: String(result.suspensionMessage || "Service suspended. Please make a payment to restore service."),
+            paymentDueDate: String(result.paymentDueDate || business.service_payment_due_date || ""),
+            balanceDueJod: Number(result.balanceDueJod || business.service_balance_due_jod || 0),
+          });
 
           const nextProfile: Profile = {
             businessId: business.id || businessId,
@@ -8435,6 +8869,12 @@ export default function Page() {
         } catch (error) {
           if (!mounted) return;
 
+          setPublicSuspension({
+            suspended: false,
+            message: "",
+            paymentDueDate: "",
+            balanceDueJod: 0,
+          });
           setPublicTableError(getErrorMessage(error));
           setState({
             ...defaultState,
@@ -9707,6 +10147,101 @@ export default function Page() {
     } finally {
       setAuthBusy(false);
     }
+  }
+
+  async function loadPlatformAdminBusinesses() {
+    setPlatformAdminBusy(true);
+    setPlatformAdminMessage("");
+
+    try {
+      const businesses = await fetchPlatformBusinessesFromServer();
+      setPlatformAdminBusinesses(businesses);
+      setPlatformAdminLoggedIn(true);
+      setPlatformAdminMessage(`${businesses.length} companies loaded`);
+    } catch (error) {
+      setPlatformAdminMessage(getErrorMessage(error));
+      show(`Admin load failed: ${getErrorMessage(error)}`);
+    } finally {
+      setPlatformAdminBusy(false);
+    }
+  }
+
+  async function platformAdminLogin(event: FormEvent) {
+    event.preventDefault();
+
+    if (!supabase) {
+      setPlatformAdminMessage("Supabase is not configured");
+      return;
+    }
+
+    if (!platformAdminEmail.trim() || !platformAdminPassword) {
+      setPlatformAdminMessage("Enter admin email and password");
+      return;
+    }
+
+    setPlatformAdminBusy(true);
+    setPlatformAdminMessage("");
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: platformAdminEmail.trim().toLowerCase(),
+        password: platformAdminPassword,
+      });
+
+      if (error) throw error;
+
+      const businesses = await fetchPlatformBusinessesFromServer();
+      setPlatformAdminBusinesses(businesses);
+      setPlatformAdminLoggedIn(true);
+      setPlatformAdminMessage(`${businesses.length} companies loaded`);
+      show("Platform admin logged in");
+    } catch (error) {
+      setPlatformAdminLoggedIn(false);
+      setPlatformAdminMessage(getErrorMessage(error));
+    } finally {
+      setPlatformAdminBusy(false);
+    }
+  }
+
+  function updatePlatformBusinessLocal(businessId: string, patch: Partial<PlatformAdminBusiness>) {
+    setPlatformAdminBusinesses((current) =>
+      current.map((business) => (business.id === businessId ? { ...business, ...patch } : business))
+    );
+  }
+
+  async function savePlatformBusiness(businessId: string) {
+    const business = platformAdminBusinesses.find((item) => item.id === businessId);
+    if (!business) return;
+
+    setPlatformAdminBusy(true);
+    setPlatformAdminMessage("");
+
+    try {
+      const saved = await updatePlatformBusinessInServer(business);
+
+      setPlatformAdminBusinesses((current) =>
+        current.map((item) => (item.id === saved.id ? saved : item))
+      );
+
+      setPlatformAdminMessage(`${saved.restaurantName} billing updated`);
+      show(`${saved.restaurantName} billing updated`);
+    } catch (error) {
+      setPlatformAdminMessage(getErrorMessage(error));
+      show(`Admin save failed: ${getErrorMessage(error)}`);
+    } finally {
+      setPlatformAdminBusy(false);
+    }
+  }
+
+  async function platformAdminLogout() {
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+
+    setPlatformAdminLoggedIn(false);
+    setPlatformAdminBusinesses([]);
+    setPlatformAdminPassword("");
+    setPlatformAdminMessage("Admin logged out");
   }
 
   function resetAll() {
@@ -11042,10 +11577,181 @@ export default function Page() {
                 >
                   Create Account
                 </button>
+                <button
+                  className={`auth-tab ${authTab === "platformAdmin" ? "active" : ""}`}
+                  onClick={() => setAuthTab("platformAdmin")}
+                  type="button"
+                >
+                  Admin
+                </button>
               </div>
 
               <div className="auth-panels">
-                {authTab === "login" ? (
+                {authTab === "platformAdmin" ? (
+                  <div className="platform-admin-panel">
+                    {!platformAdminLoggedIn ? (
+                      <form className="login-panel platform-admin-login" onSubmit={platformAdminLogin}>
+                        <div className="auth-heading">
+                          <h2>Platform Admin</h2>
+                          <p>Log in to see every company, set due dates, and suspend service when needed.</p>
+                        </div>
+
+                        <Field label="Admin email">
+                          <input
+                            value={platformAdminEmail}
+                            onChange={(event) => setPlatformAdminEmail(event.target.value)}
+                            placeholder="admin@example.com"
+                            type="email"
+                          />
+                        </Field>
+
+                        <Field label="Admin password">
+                          <input
+                            value={platformAdminPassword}
+                            onChange={(event) => setPlatformAdminPassword(event.target.value)}
+                            placeholder="Enter admin password"
+                            type="password"
+                          />
+                        </Field>
+
+                        {platformAdminMessage ? <div className="admin-message">{platformAdminMessage}</div> : null}
+
+                        <button className="btn dark full" type="submit" disabled={platformAdminBusy}>
+                          {platformAdminBusy ? "Logging in..." : "Open Admin Dashboard"}
+                        </button>
+                      </form>
+                    ) : (
+                      <div className="platform-admin-dashboard">
+                        <div className="platform-admin-head">
+                          <div>
+                            <span>Tawleh owner dashboard</span>
+                            <h2>Companies</h2>
+                            <p>Set expiration dates and payment amounts. Suspended businesses show customers a payment notice.</p>
+                          </div>
+
+                          <div className="platform-admin-actions">
+                            <button className="btn ghost small" type="button" onClick={loadPlatformAdminBusinesses} disabled={platformAdminBusy}>
+                              Refresh
+                            </button>
+                            <button className="btn danger small" type="button" onClick={platformAdminLogout}>
+                              Logout
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="platform-admin-stats">
+                          <div>
+                            <span>Total companies</span>
+                            <strong>{platformAdminBusinesses.length}</strong>
+                          </div>
+                          <div>
+                            <span>Suspended</span>
+                            <strong>{platformAdminBusinesses.filter((business) => business.serviceStatus === "suspended").length}</strong>
+                          </div>
+                          <div>
+                            <span>Total due</span>
+                            <strong>{money(platformAdminBusinesses.reduce((sum, business) => sum + Number(business.serviceBalanceDueJod || 0), 0))}</strong>
+                          </div>
+                        </div>
+
+                        {platformAdminMessage ? <div className="admin-message">{platformAdminMessage}</div> : null}
+
+                        <div className="platform-business-list">
+                          {platformAdminBusinesses.map((business) => (
+                            <div className={`platform-business-card ${business.serviceStatus === "suspended" ? "suspended" : ""}`} key={business.id}>
+                              <div className="platform-business-top">
+                                <div>
+                                  <span>@{business.username || "no_username"}</span>
+                                  <h3>{business.restaurantName}</h3>
+                                  <p>{business.branchName} • {business.tableCount} tables • {business.email}</p>
+                                </div>
+                                <b>{business.serviceStatus === "suspended" ? "Suspended" : business.serviceStatus === "trial" ? "Trial" : "Active"}</b>
+                              </div>
+
+                              <div className="platform-business-grid">
+                                <Field label="Status">
+                                  <select
+                                    value={business.serviceStatus}
+                                    onChange={(event) => updatePlatformBusinessLocal(business.id, { serviceStatus: event.target.value })}
+                                  >
+                                    <option value="active">Active</option>
+                                    <option value="trial">Trial</option>
+                                    <option value="suspended">Suspended</option>
+                                  </select>
+                                </Field>
+
+                                <Field label="Expires on">
+                                  <input
+                                    type="date"
+                                    value={business.serviceExpiresAt}
+                                    onChange={(event) => updatePlatformBusinessLocal(business.id, { serviceExpiresAt: event.target.value })}
+                                  />
+                                </Field>
+
+                                <Field label="Payment due date">
+                                  <input
+                                    type="date"
+                                    value={business.servicePaymentDueDate}
+                                    onChange={(event) => updatePlatformBusinessLocal(business.id, { servicePaymentDueDate: event.target.value })}
+                                  />
+                                </Field>
+
+                                <Field label="Balance due JOD">
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    step="0.001"
+                                    value={business.serviceBalanceDueJod}
+                                    onChange={(event) => updatePlatformBusinessLocal(business.id, { serviceBalanceDueJod: Number(event.target.value || 0) })}
+                                  />
+                                </Field>
+
+                                <Field label="Monthly fee JOD">
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    step="0.001"
+                                    value={business.serviceMonthlyFeeJod}
+                                    onChange={(event) => updatePlatformBusinessLocal(business.id, { serviceMonthlyFeeJod: Number(event.target.value || 0) })}
+                                  />
+                                </Field>
+
+                                <Field label="Suspension message">
+                                  <input
+                                    value={business.serviceSuspendedReason}
+                                    onChange={(event) => updatePlatformBusinessLocal(business.id, { serviceSuspendedReason: event.target.value })}
+                                    placeholder="Service suspended. Please make a payment to restore service."
+                                  />
+                                </Field>
+
+                                <Field label="Admin note">
+                                  <textarea
+                                    value={business.serviceAdminNote}
+                                    onChange={(event) => updatePlatformBusinessLocal(business.id, { serviceAdminNote: event.target.value })}
+                                    placeholder="Internal note only"
+                                  />
+                                </Field>
+                              </div>
+
+                              <div className="platform-business-footer">
+                                <span>
+                                  Example: {business.restaurantName} owes {money(business.serviceBalanceDueJod)} by {business.servicePaymentDueDate || business.serviceExpiresAt || "date not set"}
+                                </span>
+                                <button className="btn small" type="button" onClick={() => savePlatformBusiness(business.id)} disabled={platformAdminBusy}>
+                                  Save billing
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          {!platformAdminBusinesses.length ? (
+                            <Empty text="No companies loaded yet. Press Refresh." />
+                          ) : null}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : authTab === "login" ? (
                   <form className="login-panel" onSubmit={fakeLogin}>
                     <div className="auth-heading">
                       <h2>Welcome back</h2>
@@ -11326,7 +12032,36 @@ export default function Page() {
                       />
                     ) : null}
 
-                    {publicCustomerMode ? (
+                    {publicCustomerMode && publicSuspension.suspended ? (
+                      <div className="service-suspended-screen">
+                        <div className="service-suspended-card">
+                          <div className="service-suspended-logo">
+                            <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} customer />
+                          </div>
+                          <span>Service Suspended</span>
+                          <h2>{businessName}</h2>
+                          <p>{publicSuspension.message || "Service suspended. Please make a payment to restore service."}</p>
+
+                          <div className="service-suspended-details">
+                            {publicSuspension.balanceDueJod ? (
+                              <div>
+                                <small>Amount due</small>
+                                <strong>{money(publicSuspension.balanceDueJod)}</strong>
+                              </div>
+                            ) : null}
+
+                            {publicSuspension.paymentDueDate ? (
+                              <div>
+                                <small>Due date</small>
+                                <strong>{publicSuspension.paymentDueDate}</strong>
+                              </div>
+                            ) : null}
+                          </div>
+
+                          <em>Please contact the restaurant or Tawleh support to restore service.</em>
+                        </div>
+                      </div>
+                    ) : publicCustomerMode ? (
                       <div className="option-one-customer-hero">
                         <div className="option-one-welcome-first">
                           <span>Welcome</span>

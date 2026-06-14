@@ -18,10 +18,15 @@ type BusinessRow = {
   welcome_message: string | null;
   brand_color: string | null;
   logo_data_url: string | null;
+  service_status: string | null;
+  service_expires_at: string | null;
+  service_payment_due_date: string | null;
+  service_balance_due_jod: number | string | null;
+  service_suspended_reason: string | null;
 };
 
 const BUSINESS_SELECT =
-  "id, auth_user_id, username, restaurant_name, branch_name, business_type, table_count, location_count, location, locations, welcome_message, brand_color, logo_data_url";
+  "id, auth_user_id, username, restaurant_name, branch_name, business_type, table_count, location_count, location, locations, welcome_message, brand_color, logo_data_url, service_status, service_expires_at, service_payment_due_date, service_balance_due_jod, service_suspended_reason";
 
 const MENU_SELECT =
   "id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, available_all_day, available_from, available_to, image_url, image_path, image_thumb_url, image_full_url, option_groups, sort_order, created_at";
@@ -49,6 +54,30 @@ function createAdmin() {
       autoRefreshToken: false,
     },
   });
+}
+
+function todayDateOnly() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function isBusinessSuspended(business: BusinessRow) {
+  const status = String(business.service_status || "active").toLowerCase();
+  const expiresAt = String(business.service_expires_at || "").slice(0, 10);
+  const expired = Boolean(expiresAt && expiresAt < todayDateOnly());
+
+  return status === "suspended" || expired;
+}
+
+function suspensionMessage(business: BusinessRow) {
+  const custom = String(business.service_suspended_reason || "").trim();
+
+  if (custom) return custom;
+
+  const due = Number(business.service_balance_due_jod || 0);
+  const dueText = due > 0 ? ` Amount due: ${due.toFixed(2)} JOD.` : "";
+  const dateText = business.service_payment_due_date ? ` Payment due date: ${business.service_payment_due_date}.` : "";
+
+  return `Service suspended. Please make a payment to restore service.${dueText}${dateText}`;
 }
 
 async function loadBusinessById(admin: SupabaseClient, businessId: string) {
@@ -170,10 +199,6 @@ export async function GET(request: NextRequest) {
     let menu = await loadMenu(admin, business.id);
     let menuSource = businessById ? "businessId" : "username";
 
-    // Multi-restaurant safety:
-    // Older printed QR codes may contain a stale businessId plus the correct username.
-    // If the businessId account has no menu, but the username account has menu,
-    // use the username restaurant instead of showing an empty menu.
     if (!menu.length && businessByUsername && businessByUsername.id !== business.id) {
       const usernameMenu = await loadMenu(admin, businessByUsername.id);
 
@@ -184,24 +209,32 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    const [categories, guests, orders, serviceItems] = await Promise.all([
-      loadCategories(admin, business.id),
-      loadGuests(admin, business.id, table),
-      loadOrders(admin, business.id, table),
-      loadServiceItems(admin, business.id),
-    ]);
+    const suspended = isBusinessSuspended(business);
+
+    const [categories, guests, orders, serviceItems] = suspended
+      ? [[], [], [], []]
+      : await Promise.all([
+          loadCategories(admin, business.id),
+          loadGuests(admin, business.id, table),
+          loadOrders(admin, business.id, table),
+          loadServiceItems(admin, business.id),
+        ]);
 
     return NextResponse.json(
       {
         business,
         categories,
-        menu,
+        menu: suspended ? [] : menu,
         guests,
         orders,
         serviceItems,
         table,
         token,
         menuSource,
+        suspended,
+        suspensionMessage: suspended ? suspensionMessage(business) : "",
+        paymentDueDate: business.service_payment_due_date || "",
+        balanceDueJod: Number(business.service_balance_due_jod || 0),
       },
       {
         headers: {
