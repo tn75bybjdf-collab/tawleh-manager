@@ -5958,6 +5958,597 @@ main.customer-only-shell .image-modal-card > img {
   }
 }
 
+
+
+/* =========================================================
+   CLEAN ORGANIZED LOGIN / SIGNUP PAGE
+   Restores a proper landing/auth layout for creating another restaurant.
+   ========================================================= */
+
+.app-shell:not(.customer-only-shell) .auth-page {
+  min-height: calc(100vh - 48px) !important;
+  width: 100% !important;
+  display: grid !important;
+  grid-template-rows: auto 1fr auto !important;
+  gap: 18px !important;
+  padding: 8px 0 18px !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-logo-wrap {
+  width: min(1180px, 100%) !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.app-shell:not(.customer-only-shell) .main-auth-logo {
+  width: 96px !important;
+  height: 96px !important;
+  object-fit: contain !important;
+  padding: 12px !important;
+  border-radius: 28px !important;
+  background: rgba(255, 253, 248, 0.88) !important;
+  border: 1px solid rgba(97, 72, 48, 0.12) !important;
+  box-shadow: 0 18px 44px rgba(80, 52, 27, 0.12) !important;
+  backdrop-filter: blur(18px) !important;
+  -webkit-backdrop-filter: blur(18px) !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-layout {
+  width: min(1180px, 100%) !important;
+  margin: 0 auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(320px, 0.82fr) minmax(420px, 1.18fr) !important;
+  gap: 24px !important;
+  align-items: start !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-info,
+.app-shell:not(.customer-only-shell) .auth-card {
+  border-radius: 34px !important;
+  border: 1px solid rgba(97, 72, 48, 0.12) !important;
+  background: rgba(255, 253, 248, 0.86) !important;
+  box-shadow: 0 24px 60px rgba(80, 52, 27, 0.12) !important;
+  backdrop-filter: blur(22px) !important;
+  -webkit-backdrop-filter: blur(22px) !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-info {
+  position: sticky !important;
+  top: 24px !important;
+  overflow: hidden !important;
+  min-height: 660px !important;
+  padding: 32px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  gap: 24px !important;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(207, 95, 59, 0.16), transparent 34%),
+    radial-gradient(circle at 100% 80%, rgba(104, 112, 68, 0.14), transparent 38%),
+    rgba(255, 253, 248, 0.88) !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-info h1 {
+  max-width: 420px !important;
+  margin: 0 !important;
+  color: #2f2a25 !important;
+  font-size: clamp(36px, 4.2vw, 58px) !important;
+  line-height: 0.95 !important;
+  letter-spacing: -0.07em !important;
+  font-weight: 1000 !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-info p {
+  max-width: 460px !important;
+  margin: 16px 0 0 !important;
+  color: #74685d !important;
+  font-size: 15px !important;
+  line-height: 1.58 !important;
+  font-weight: 800 !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-feature-list {
+  display: grid !important;
+  gap: 12px !important;
+  margin: 8px 0 !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-feature {
+  display: grid !important;
+  grid-template-columns: 46px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-height: 72px !important;
+  padding: 12px !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, 0.66) !important;
+  border: 1px solid rgba(97, 72, 48, 0.10) !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-feature-icon {
+  width: 46px !important;
+  height: 46px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #d36d47, #bd5338) !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-feature strong {
+  display: block !important;
+  color: #2f2a25 !important;
+  font-size: 14px !important;
+  font-weight: 1000 !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-feature span {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #7a6b5e !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-weight: 800 !important;
+}
+
+.app-shell:not(.customer-only-shell) .price-card {
+  display: grid !important;
+  grid-template-columns: 54px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  align-items: center !important;
+  padding: 15px !important;
+  border-radius: 24px !important;
+  background: #2f2a25 !important;
+  color: #fff !important;
+  box-shadow: 0 18px 42px rgba(47, 42, 37, 0.20) !important;
+}
+
+.app-shell:not(.customer-only-shell) .price-icon {
+  width: 54px !important;
+  height: 54px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #f7d3a6 !important;
+  font-weight: 1000 !important;
+}
+
+.app-shell:not(.customer-only-shell) .price-card strong {
+  display: block !important;
+  color: #fff !important;
+  font-size: 16px !important;
+  font-weight: 1000 !important;
+}
+
+.app-shell:not(.customer-only-shell) .price-card span {
+  display: block !important;
+  margin-top: 4px !important;
+  color: rgba(255, 255, 255, 0.74) !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-weight: 850 !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-card {
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-tabs {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  padding: 12px !important;
+  background: rgba(255, 247, 239, 0.78) !important;
+  border-bottom: 1px solid rgba(97, 72, 48, 0.10) !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-tab {
+  min-height: 52px !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  background: transparent !important;
+  color: #6f6155 !important;
+  font-size: 15px !important;
+  font-weight: 1000 !important;
+  cursor: pointer !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-tab.active {
+  background: #fff !important;
+  color: #bd5338 !important;
+  box-shadow: 0 12px 28px rgba(80, 52, 27, 0.10) !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-panels {
+  padding: 26px !important;
+}
+
+.app-shell:not(.customer-only-shell) .login-panel,
+.app-shell:not(.customer-only-shell) .signup-panel {
+  display: grid !important;
+  gap: 18px !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-heading {
+  margin-bottom: 2px !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-heading h2 {
+  margin: 0 !important;
+  color: #2f2a25 !important;
+  font-size: 32px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.055em !important;
+  font-weight: 1000 !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-heading p {
+  margin: 8px 0 0 !important;
+  color: #817466 !important;
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+  font-weight: 850 !important;
+}
+
+.app-shell:not(.customer-only-shell) .signup-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: start !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-page .form-row {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 7px !important;
+  margin: 0 !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-page .form-row > span {
+  color: #4e4339 !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.07em !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-page input,
+.app-shell:not(.customer-only-shell) .auth-page select,
+.app-shell:not(.customer-only-shell) .auth-page textarea {
+  width: 100% !important;
+  min-height: 50px !important;
+  box-sizing: border-box !important;
+  border: 1px solid rgba(97, 72, 48, 0.14) !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  color: #2f2a25 !important;
+  font-size: 15px !important;
+  font-weight: 850 !important;
+  outline: none !important;
+  padding: 0 14px !important;
+  box-shadow: 0 8px 18px rgba(80, 52, 27, 0.035) !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-page textarea {
+  min-height: 96px !important;
+  padding: 13px 14px !important;
+  resize: vertical !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-page input:focus,
+.app-shell:not(.customer-only-shell) .auth-page select:focus,
+.app-shell:not(.customer-only-shell) .auth-page textarea:focus {
+  border-color: rgba(207, 95, 59, 0.48) !important;
+  box-shadow: 0 0 0 4px rgba(207, 95, 59, 0.12) !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-page input[type="color"] {
+  height: 50px !important;
+  padding: 6px !important;
+}
+
+.app-shell:not(.customer-only-shell) .signup-grid .form-row:nth-child(11),
+.app-shell:not(.customer-only-shell) .signup-grid .form-row:nth-child(12),
+.app-shell:not(.customer-only-shell) .signup-grid .form-row:nth-child(14) {
+  grid-column: 1 / -1 !important;
+}
+
+.app-shell:not(.customer-only-shell) .helper,
+.app-shell:not(.customer-only-shell) .ip-lock-note {
+  color: #817466 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-weight: 800 !important;
+}
+
+.app-shell:not(.customer-only-shell) .ip-lock-note.good {
+  margin-top: 8px !important;
+  padding: 10px 12px !important;
+  border-radius: 14px !important;
+  background: rgba(104, 112, 68, 0.10) !important;
+  color: #59613c !important;
+}
+
+.app-shell:not(.customer-only-shell) .location-tabs {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 7px !important;
+  padding: 8px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 246, 236, 0.82) !important;
+  border: 1px solid rgba(97, 72, 48, 0.09) !important;
+}
+
+.app-shell:not(.customer-only-shell) .location-tab {
+  width: 38px !important;
+  height: 38px !important;
+  border: 0 !important;
+  border-radius: 13px !important;
+  background: rgba(255, 255, 255, 0.74) !important;
+  color: #7b6b5c !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+  cursor: pointer !important;
+}
+
+.app-shell:not(.customer-only-shell) .location-tab.active {
+  background: linear-gradient(135deg, #d36d47, #bd5338) !important;
+  color: #fff !important;
+}
+
+.app-shell:not(.customer-only-shell) .location-tab.done:not(.active) {
+  background: rgba(104, 112, 68, 0.14) !important;
+  color: #59613c !important;
+}
+
+.app-shell:not(.customer-only-shell) .logo-uploader.compact {
+  display: grid !important;
+  grid-template-columns: 96px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 12px !important;
+  border-radius: 18px !important;
+  background: rgba(255, 247, 239, 0.76) !important;
+  border: 1px solid rgba(97, 72, 48, 0.10) !important;
+}
+
+.app-shell:not(.customer-only-shell) .logo-uploader.compact .logo-box {
+  width: 96px !important;
+  height: 96px !important;
+  min-width: 96px !important;
+  border-radius: 24px !important;
+  background: #fff !important;
+}
+
+.app-shell:not(.customer-only-shell) .logo-uploader.compact input[type="file"] {
+  min-height: auto !important;
+  padding: 11px !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+}
+
+.app-shell:not(.customer-only-shell) .username-status,
+.app-shell:not(.customer-only-shell) .password-rules {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.app-shell:not(.customer-only-shell) .username-status span,
+.app-shell:not(.customer-only-shell) .password-rules span {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 28px !important;
+  padding: 0 9px !important;
+  border-radius: 999px !important;
+  background: rgba(104, 112, 68, 0.10) !important;
+  color: #59613c !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.app-shell:not(.customer-only-shell) .check-row {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  color: #6f6155 !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+}
+
+.app-shell:not(.customer-only-shell) .check-row input {
+  width: 18px !important;
+  height: 18px !important;
+  min-height: 18px !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+.app-shell:not(.customer-only-shell) .link-button {
+  border: 0 !important;
+  background: transparent !important;
+  color: #bd5338 !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+  cursor: pointer !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-page .btn.full,
+.app-shell:not(.customer-only-shell) .auth-page .btn.dark.full {
+  min-height: 56px !important;
+  width: 100% !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, #d36d47, #bd5338) !important;
+  color: #fff !important;
+  font-size: 15px !important;
+  font-weight: 1000 !important;
+  box-shadow: 0 16px 30px rgba(207, 95, 59, 0.22) !important;
+  cursor: pointer !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-page .btn.dark.full {
+  background: #2f2a25 !important;
+  box-shadow: 0 16px 30px rgba(47, 42, 37, 0.20) !important;
+}
+
+.app-shell:not(.customer-only-shell) .or-row {
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr !important;
+  align-items: center !important;
+  gap: 10px !important;
+  color: #9b8a7b !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+}
+
+.app-shell:not(.customer-only-shell) .or-row span {
+  height: 1px !important;
+  background: rgba(97, 72, 48, 0.12) !important;
+}
+
+.app-shell:not(.customer-only-shell) .or-row em {
+  font-style: normal !important;
+}
+
+.app-shell:not(.customer-only-shell) .google-button {
+  min-height: 54px !important;
+  width: 100% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  border: 1px solid rgba(97, 72, 48, 0.12) !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  color: #2f2a25 !important;
+  font-size: 14px !important;
+  font-weight: 1000 !important;
+  cursor: pointer !important;
+}
+
+.app-shell:not(.customer-only-shell) .google-button span {
+  width: 28px !important;
+  height: 28px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  background: rgba(207, 95, 59, 0.10) !important;
+  color: #bd5338 !important;
+}
+
+.app-shell:not(.customer-only-shell) .terms {
+  margin: 0 !important;
+  color: #817466 !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+  text-align: center !important;
+  font-weight: 800 !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-footnote {
+  width: min(1180px, 100%) !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  color: #817466 !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-footnote span {
+  display: inline-flex !important;
+  min-height: 26px !important;
+  align-items: center !important;
+  padding: 0 9px !important;
+  border-radius: 999px !important;
+  background: rgba(104, 112, 68, 0.12) !important;
+  color: #59613c !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}
+
+@media (max-width: 980px) {
+  .app-shell:not(.customer-only-shell) .auth-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .auth-info {
+    position: relative !important;
+    top: auto !important;
+    min-height: auto !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .app-shell:not(.customer-only-shell) {
+    padding: 14px !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .auth-page {
+    gap: 12px !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .main-auth-logo {
+    width: 78px !important;
+    height: 78px !important;
+    border-radius: 24px !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .auth-info,
+  .app-shell:not(.customer-only-shell) .auth-card {
+    border-radius: 26px !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .auth-info {
+    padding: 22px !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .auth-info h1 {
+    font-size: 34px !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .auth-panels {
+    padding: 18px !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .signup-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .signup-grid .form-row {
+    grid-column: 1 / -1 !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .logo-uploader.compact {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-shell:not(.customer-only-shell) .auth-footnote {
+    align-items: flex-start !important;
+    text-align: center !important;
+    flex-direction: column !important;
+  }
+}
+
 `;
 
 
@@ -9873,7 +10464,7 @@ export default function Page() {
                 <div className="price-icon">OK</div>
                 <div>
                   <strong>30-day free trial</strong>
-                  <span>Then100 JOD/month per branch.No setup fee.</span>
+                  <span>Then 100 JOD/month per branch. No setup fee.</span>
                 </div>
               </div>
             </aside>
