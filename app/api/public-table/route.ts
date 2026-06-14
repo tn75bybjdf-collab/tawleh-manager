@@ -196,7 +196,7 @@ async function loadMenu(admin: SupabaseClient, businessId: string, includeUnavai
   return data || [];
 }
 
-async function loadBestBusinessAndMenu(admin: SupabaseClient, candidates: BusinessRow[]) {
+async function loadBestBusinessAndMenu(admin: SupabaseClient, candidates: Array<BusinessRow | null | undefined>) {
   const unique = uniqueBusinesses(candidates);
 
   for (const business of unique) {
