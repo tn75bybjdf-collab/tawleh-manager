@@ -7213,6 +7213,59 @@ main.customer-only-shell .service-suspended-card em {
   }
 }
 
+
+
+/* =========================================================
+   SUBSCRIPTION EXPIRED CUSTOMER QR MESSAGE
+   Shows the expired payment notice in large bold red text.
+   ========================================================= */
+
+main.customer-only-shell .subscription-expired-title {
+  margin: 2px 0 0 !important;
+  color: #b91c1c !important;
+  font-size: clamp(34px, 8vw, 54px) !important;
+  line-height: 0.92 !important;
+  letter-spacing: -0.07em !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+}
+
+main.customer-only-shell .subscription-expired-copy {
+  margin: 0 !important;
+  color: #b91c1c !important;
+  font-size: clamp(22px, 5.6vw, 36px) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.045em !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .subscription-expired-restaurant {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 32px !important;
+  padding: 0 12px !important;
+  border-radius: 999px !important;
+  background: rgba(185, 28, 28, 0.08) !important;
+  color: #7f1d1d !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}
+
+main.customer-only-shell .service-suspended-card > span {
+  color: #b91c1c !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.14em !important;
+}
+
+main.customer-only-shell .service-suspended-card {
+  border: 2px solid rgba(185, 28, 28, 0.20) !important;
+}
+
 `;
 
 
@@ -9011,6 +9064,7 @@ export default function Page() {
       const qrMode = params.get("mode") === "table" || params.has("table") || params.has("token") || params.has("businessId") || params.has("username");
       const businessId = params.get("businessId") || params.get("business") || "";
       const username = params.get("username") || "";
+      const restaurantSlug = params.get("restaurant") || "";
       const tableNumber = Math.max(1, Math.min(999, Number(params.get("table") || DEMO_TABLE)));
       const token = params.get("token") || "";
 
@@ -9023,6 +9077,7 @@ export default function Page() {
           const query = new URLSearchParams({
             businessId,
             username,
+            restaurant: restaurantSlug,
             table: String(tableNumber),
             token,
           });
@@ -12354,9 +12409,10 @@ export default function Page() {
                           <div className="service-suspended-logo">
                             <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} customer />
                           </div>
-                          <span>Service Suspended</span>
-                          <h2>{businessName}</h2>
-                          <p>{publicSuspension.message || "Service suspended. Please make a payment to restore service."}</p>
+                          <span>Subscription expired</span>
+                          <h2 className="subscription-expired-title">Subscription expired</h2>
+                          <p className="subscription-expired-copy">Please make payment to restore service</p>
+                          <small className="subscription-expired-restaurant">{businessName}</small>
 
                           <div className="service-suspended-details">
                             {publicSuspension.balanceDueJod ? (
