@@ -1,8 +1,5 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
-
-export const runtime = "nodejs";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -17,15 +14,28 @@ type BusinessRow = {
 type OrderItemPayload = {
   itemId?: unknown;
   itemName?: unknown;
+  basePrice?: unknown;
   price?: unknown;
+  addonsTotal?: unknown;
   quantity?: unknown;
+  specialInstructions?: unknown;
+  modifiers?: unknown;
+};
+
+type OrderModifierPayload = {
+  groupId?: unknown;
+  groupName?: unknown;
+  choiceId?: unknown;
+  choiceName?: unknown;
+  price?: unknown;
+  parentChoiceId?: unknown;
+  parentChoiceName?: unknown;
+  level?: unknown;
 };
 
 type TableOrderInsertRow = {
   business_account_id: string;
   auth_user_id: string;
-  order_ticket_id: string;
-  ticket_number: number;
   table_number: number;
   guest_name: string;
   item_id: string;
@@ -33,15 +43,12 @@ type TableOrderInsertRow = {
   quantity: number;
   price_jod: number;
   line_total_jod: number;
+  special_instructions: string | null;
+  modifiers: OrderModifierPayload[];
+  modifiers_total_jod: number;
+  base_price_jod: number;
+  unit_total_jod: number;
   status: "New";
-};
-
-type KitchenPrintPayloadItem = {
-  itemId: string;
-  itemName: string;
-  quantity: number;
-  priceJod: number;
-  lineTotalJod: number;
 };
 
 function isTableOrderInsertRow(row: TableOrderInsertRow | null): row is TableOrderInsertRow {
@@ -87,12 +94,6 @@ function cleanGuestName(value: unknown) {
     .slice(0, 40);
 }
 
-function normalizeUsername(value: unknown) {
-  return cleanText(value)
-    .toLowerCase()
-    .replace(/[^a-z0-9_]/g, "");
-}
-
 function cleanTable(value: unknown) {
   const table = Number(value || 1);
   return Math.max(1, Math.min(999, Number.isFinite(table) ? table : 1));
@@ -108,9 +109,53 @@ function cleanQuantity(value: unknown) {
   return Math.max(1, Math.min(99, Number.isFinite(quantity) ? Math.floor(quantity) : 1));
 }
 
-function money(value: number) {
-  return Math.round(Number(value || 0) * 1000) / 1000;
+function cleanSpecialInstructions(value: unknown) {
+  const text = cleanText(value).replace(/\s+/g, " ").slice(0, 240);
+  return text || null;
 }
+
+function cleanModifiers(value: unknown): OrderModifierPayload[] {
+  let raw = value;
+
+  if (typeof raw === "string") {
+    try {
+      raw = JSON.parse(raw);
+    } catch {
+      raw = [];
+    }
+  }
+
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map((modifier): OrderModifierPayload | null => {
+      const source = modifier && typeof modifier === "object" ? (modifier as Record<string, unknown>) : {};
+      const choiceName = cleanText(source.choiceName);
+      const groupName = cleanText(source.groupName, "Option");
+      const parentChoiceName = cleanText(source.parentChoiceName);
+      const price = cleanPrice(source.price || 0);
+      const level = Number(source.level || 0);
+
+      if (!choiceName) return null;
+
+      return {
+        groupId: cleanText(source.groupId),
+        groupName,
+        choiceId: cleanText(source.choiceId),
+        choiceName,
+        price: Math.max(0, price),
+        parentChoiceId: cleanText(source.parentChoiceId),
+        parentChoiceName,
+        level: Number.isFinite(level) ? Math.max(0, Math.floor(level)) : 0,
+      };
+    })
+    .filter((modifier): modifier is OrderModifierPayload => Boolean(modifier));
+}
+
+function modifierTotal(modifiers: OrderModifierPayload[]) {
+  return Math.round(modifiers.reduce((sum, modifier) => sum + cleanPrice(modifier.price || 0), 0) * 1000) / 1000;
+}
+
 
 function jsonError(message: string, status = 500) {
   return NextResponse.json(
@@ -147,7 +192,7 @@ async function findBusiness(
   if (businessId) {
     query = query.eq("id", businessId);
   } else if (username) {
-    query = query.eq("username", normalizeUsername(username));
+    query = query.eq("username", username.toLowerCase());
   } else {
     throw new Error("Missing business account");
   }
@@ -160,97 +205,10 @@ async function findBusiness(
   return data as BusinessRow;
 }
 
-async function nextTicketNumber(db: SupabaseClient) {
-  const { data, error } = await db.rpc("next_table_order_ticket_number");
-
-  if (error) {
-    throw new Error(`Ticket number failed: ${error.message}`);
-  }
-
-  const value = Number(data);
-  if (!Number.isFinite(value) || value <= 0) {
-    throw new Error("Ticket number failed");
-  }
-
-  return value;
-}
-
-function buildKitchenPayload(args: {
-  business: BusinessRow;
-  orderTicketId: string;
-  ticketNumber: number;
-  tableNumber: number;
-  guestName: string;
-  items: KitchenPrintPayloadItem[];
-}) {
-  const subtotal = money(args.items.reduce((sum, item) => sum + item.lineTotalJod, 0));
-
-  return {
-    kind: "kitchen_ticket",
-    version: 1,
-    restaurantUsername: args.business.username || "restaurant",
-    businessAccountId: args.business.id,
-    authUserId: args.business.auth_user_id,
-    orderTicketId: args.orderTicketId,
-    ticketNumber: args.ticketNumber,
-    tableNumber: args.tableNumber,
-    guestName: args.guestName,
-    subtotalJod: subtotal,
-    currency: "JOD",
-    createdAt: new Date().toISOString(),
-    items: args.items,
-    receiptText: [
-      "ZUWAR",
-      "KITCHEN TICKET",
-      `Ticket #${args.ticketNumber}`,
-      `Table ${args.tableNumber}`,
-      `Guest: ${args.guestName}`,
-      "------------------------------",
-      ...args.items.map((item) => `${item.quantity}x ${item.itemName}`),
-      "------------------------------",
-    ].join("\n"),
-  };
-}
-
-async function createKitchenPrintJob(
-  db: SupabaseClient,
-  args: {
-    business: BusinessRow;
-    orderTicketId: string;
-    ticketNumber: number;
-    tableNumber: number;
-    guestName: string;
-    items: KitchenPrintPayloadItem[];
-  }
-) {
-  const payload = buildKitchenPayload(args);
-
-  const { data, error } = await db
-    .from("table_print_jobs")
-    .insert({
-      business_account_id: args.business.id,
-      auth_user_id: args.business.auth_user_id,
-      order_ticket_id: args.orderTicketId,
-      ticket_number: args.ticketNumber,
-      table_number: args.tableNumber,
-      guest_name: args.guestName,
-      job_type: "kitchen_ticket",
-      printer_target: "kitchen",
-      status: "pending",
-      payload,
-    })
-    .select("id, business_account_id, order_ticket_id, ticket_number, table_number, guest_name, job_type, printer_target, status, payload, created_at")
-    .single();
-
-  if (error) throw error;
-
-  return data;
-}
-
 async function fetchOrders(db: SupabaseClient, businessId: string, tableNumber?: number | null) {
   let query = db
     .from("table_orders")
-    .select("id, business_account_id, auth_user_id, order_ticket_id, ticket_number, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, status, kitchen_print_job_id, customer_bill_print_job_id, kitchen_printed_at, customer_bill_printed_at, print_note, created_at")
+    .select("id, business_account_id, auth_user_id, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, special_instructions, modifiers, modifiers_total_jod, base_price_jod, unit_total_jod, status, created_at")
     .eq("business_account_id", businessId)
     .order("created_at", { ascending: false });
 
@@ -329,41 +287,36 @@ export async function POST(request: NextRequest) {
       return jsonError("Missing auth_user_id for restaurant. Refresh the QR page.", 400);
     }
 
-    const orderTicketId = randomUUID();
-    const ticketNumber = await nextTicketNumber(db);
-
-    const printItems: KitchenPrintPayloadItem[] = [];
-
     const rows: TableOrderInsertRow[] = items
       .map((item): TableOrderInsertRow | null => {
         const itemId = cleanText(item.itemId);
         const itemName = cleanText(item.itemName, "Menu item");
         const quantity = cleanQuantity(item.quantity);
-        const price = cleanPrice(item.price);
-        const lineTotal = money(price * quantity);
+        const basePrice = cleanPrice(item.basePrice || item.price);
+        const modifiers = cleanModifiers(item.modifiers || []);
+        const modifiersTotal = item.addonsTotal === undefined
+          ? modifierTotal(modifiers)
+          : cleanPrice(item.addonsTotal);
+        const price = cleanPrice(item.price || basePrice + modifiersTotal);
+        const unitTotal = Math.round(price * 1000) / 1000;
 
-        if (!itemName || price <= 0) return null;
-
-        printItems.push({
-          itemId,
-          itemName,
-          quantity,
-          priceJod: price,
-          lineTotalJod: lineTotal,
-        });
+        if (!itemName || unitTotal <= 0) return null;
 
         return {
           business_account_id: business.id,
           auth_user_id: business.auth_user_id,
-          order_ticket_id: orderTicketId,
-          ticket_number: ticketNumber,
           table_number: tableNumber,
           guest_name: guestName,
           item_id: itemId,
           item_name: itemName,
           quantity,
-          price_jod: price,
-          line_total_jod: lineTotal,
+          price_jod: unitTotal,
+          line_total_jod: Math.round(unitTotal * quantity * 1000) / 1000,
+          special_instructions: cleanSpecialInstructions(item.specialInstructions),
+          modifiers,
+          modifiers_total_jod: Math.max(0, modifiersTotal),
+          base_price_jod: basePrice,
+          unit_total_jod: unitTotal,
           status: "New",
         };
       })
@@ -376,52 +329,16 @@ export async function POST(request: NextRequest) {
     const { data: orders, error } = await db
       .from("table_orders")
       .insert(rows)
-      .select("id, business_account_id, auth_user_id, order_ticket_id, ticket_number, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, status, kitchen_print_job_id, customer_bill_print_job_id, kitchen_printed_at, customer_bill_printed_at, print_note, created_at");
+      .select("id, business_account_id, auth_user_id, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, special_instructions, modifiers, modifiers_total_jod, base_price_jod, unit_total_jod, status, created_at");
 
     if (error) {
       return jsonError(`Supabase insert failed: ${error.message}`, 500);
-    }
-
-    let printJob = null;
-    let printWarning = "";
-
-    try {
-      printJob = await createKitchenPrintJob(db, {
-        business,
-        orderTicketId,
-        ticketNumber,
-        tableNumber,
-        guestName,
-        items: printItems,
-      });
-
-      await db
-        .from("table_orders")
-        .update({
-          kitchen_print_job_id: printJob.id,
-        })
-        .eq("business_account_id", business.id)
-        .eq("order_ticket_id", orderTicketId);
-    } catch (printError) {
-      printWarning = printError instanceof Error ? printError.message : "Could not create print job";
-
-      await db
-        .from("table_orders")
-        .update({
-          print_note: `Print job warning: ${printWarning}`,
-        })
-        .eq("business_account_id", business.id)
-        .eq("order_ticket_id", orderTicketId);
     }
 
     return NextResponse.json(
       {
         ok: true,
         mode: usingServiceRole() ? "service_role" : "anon_fallback",
-        orderTicketId,
-        ticketNumber,
-        printJob,
-        printWarning,
         orders: orders || [],
         table: tableNumber,
       },
@@ -469,7 +386,7 @@ export async function PATCH(request: NextRequest) {
       })
       .eq("id", orderId)
       .eq("business_account_id", business.id)
-      .select("id, business_account_id, auth_user_id, order_ticket_id, ticket_number, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, status, kitchen_print_job_id, customer_bill_print_job_id, kitchen_printed_at, customer_bill_printed_at, print_note, created_at")
+      .select("id, business_account_id, auth_user_id, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, special_instructions, modifiers, modifiers_total_jod, base_price_jod, unit_total_jod, status, created_at")
       .single();
 
     if (error) {

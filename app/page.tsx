@@ -2648,6 +2648,94 @@ main.customer-only-shell .name-entry-error-text {
   }
 }
 
+
+
+/* =========================================================
+   MENU OPTION NESTED ADD-ONS FIX
+   - Empty option name fields no longer disappear while editing.
+   - Choices can have sub-options, e.g. Mashed Potato -> Gravy Type.
+   ========================================================= */
+
+.option-choice-with-nesting {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.option-choice-editor {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 100px auto auto !important;
+}
+
+.nested-option-builder {
+  margin: -2px 0 10px 16px !important;
+  padding: 12px !important;
+  border-left: 3px solid rgba(203, 94, 61, 0.32) !important;
+  border-radius: 18px !important;
+  background: rgba(255, 248, 239, 0.78) !important;
+  box-shadow: inset 0 0 0 1px rgba(151, 114, 77, 0.10) !important;
+}
+
+.nested-option-title {
+  margin: 0 0 10px !important;
+  color: #8a553c !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+}
+
+.nested-option-group-editor {
+  display: grid !important;
+  gap: 10px !important;
+  padding: 10px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid rgba(151, 114, 77, 0.14) !important;
+}
+
+.nested-choice-list {
+  gap: 8px !important;
+}
+
+.nested-choice-list .option-choice-editor {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 100px auto !important;
+}
+
+.nested-actions {
+  justify-content: flex-start !important;
+}
+
+.customer-option-choice-wrap {
+  display: grid !important;
+  gap: 8px !important;
+}
+
+.customer-nested-option-groups {
+  margin: -2px 0 6px 12px !important;
+  padding: 10px !important;
+  border-left: 3px solid rgba(203, 94, 61, 0.32) !important;
+  border-radius: 16px !important;
+  background: rgba(255, 248, 239, 0.66) !important;
+}
+
+.customer-option-group.nested {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.customer-option-choice.nested-choice {
+  background: rgba(255,255,255,0.74) !important;
+}
+
+@media (max-width: 820px) {
+  .option-choice-editor,
+  .nested-choice-list .option-choice-editor {
+    grid-template-columns: 1fr !important;
+  }
+
+  .nested-option-builder {
+    margin-left: 6px !important;
+  }
+}
+
 `;
 
 
@@ -5084,6 +5172,94 @@ main.customer-only-shell .image-modal-card > img {
   }
 }
 
+
+
+/* =========================================================
+   MENU OPTION NESTED ADD-ONS FIX
+   - Empty option name fields no longer disappear while editing.
+   - Choices can have sub-options, e.g. Mashed Potato -> Gravy Type.
+   ========================================================= */
+
+.option-choice-with-nesting {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.option-choice-editor {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 100px auto auto !important;
+}
+
+.nested-option-builder {
+  margin: -2px 0 10px 16px !important;
+  padding: 12px !important;
+  border-left: 3px solid rgba(203, 94, 61, 0.32) !important;
+  border-radius: 18px !important;
+  background: rgba(255, 248, 239, 0.78) !important;
+  box-shadow: inset 0 0 0 1px rgba(151, 114, 77, 0.10) !important;
+}
+
+.nested-option-title {
+  margin: 0 0 10px !important;
+  color: #8a553c !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+}
+
+.nested-option-group-editor {
+  display: grid !important;
+  gap: 10px !important;
+  padding: 10px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid rgba(151, 114, 77, 0.14) !important;
+}
+
+.nested-choice-list {
+  gap: 8px !important;
+}
+
+.nested-choice-list .option-choice-editor {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 100px auto !important;
+}
+
+.nested-actions {
+  justify-content: flex-start !important;
+}
+
+.customer-option-choice-wrap {
+  display: grid !important;
+  gap: 8px !important;
+}
+
+.customer-nested-option-groups {
+  margin: -2px 0 6px 12px !important;
+  padding: 10px !important;
+  border-left: 3px solid rgba(203, 94, 61, 0.32) !important;
+  border-radius: 16px !important;
+  background: rgba(255, 248, 239, 0.66) !important;
+}
+
+.customer-option-group.nested {
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.customer-option-choice.nested-choice {
+  background: rgba(255,255,255,0.74) !important;
+}
+
+@media (max-width: 820px) {
+  .option-choice-editor,
+  .nested-choice-list .option-choice-editor {
+    grid-template-columns: 1fr !important;
+  }
+
+  .nested-option-builder {
+    margin-left: 6px !important;
+  }
+}
+
 `;
 
 
@@ -5130,6 +5306,7 @@ type MenuOptionChoice = {
   name: string;
   nameAr: string;
   price: number;
+  subOptionGroups?: MenuOptionGroup[];
 };
 
 type MenuOptionGroup = {
@@ -5152,6 +5329,9 @@ type OrderModifier = {
   choiceId: string;
   choiceName: string;
   price: number;
+  parentChoiceId?: string;
+  parentChoiceName?: string;
+  level?: number;
 };
 
 type MenuItem = {
@@ -5432,7 +5612,7 @@ function cleanPersistedImageUrl(value: unknown) {
   return text;
 }
 
-function cleanMenuOptionGroups(value: unknown): MenuOptionGroup[] {
+function normalizeMenuOptionGroups(value: unknown, keepBlankChoices = false): MenuOptionGroup[] {
   let raw = value;
 
   if (typeof raw === "string") {
@@ -5453,27 +5633,29 @@ function cleanMenuOptionGroups(value: unknown): MenuOptionGroup[] {
       const choicesRaw = Array.isArray(groupRecord.choices) ? groupRecord.choices : [];
       const choices = choicesRaw
         .map((choice, choiceIndex): MenuOptionChoice | null => {
-          const choiceRecord = choice as Partial<MenuOptionChoice>;
+          const choiceRecord = choice as Partial<MenuOptionChoice> & { sub_option_groups?: unknown; subOptionGroups?: unknown };
           const choiceName = String(choiceRecord.name || "").trim();
           const choiceNameAr = String(choiceRecord.nameAr || "").trim();
           const price = Number(choiceRecord.price || 0);
+          const subOptionGroups = normalizeMenuOptionGroups(choiceRecord.subOptionGroups || choiceRecord.sub_option_groups || [], keepBlankChoices);
 
-          if (!choiceName && !choiceNameAr) return null;
+          if (!keepBlankChoices && !choiceName && !choiceNameAr && !subOptionGroups.length) return null;
 
           return {
             id: String(choiceRecord.id || `choice_${choiceIndex}_${Date.now()}`),
-            name: choiceName || choiceNameAr,
+            name: keepBlankChoices ? choiceName : (choiceName || choiceNameAr),
             nameAr: choiceNameAr,
             price: Number.isFinite(price) ? Math.max(0, Math.round(price * 1000) / 1000) : 0,
+            subOptionGroups,
           };
         })
         .filter((choice): choice is MenuOptionChoice => Boolean(choice));
 
-      if (!name && !nameAr && !choices.length) return null;
+      if (!keepBlankChoices && !name && !nameAr && !choices.length) return null;
 
       return {
         id: String(groupRecord.id || `group_${groupIndex}_${Date.now()}`),
-        name: name || nameAr || "Options",
+        name: keepBlankChoices ? name : (name || nameAr || "Options"),
         nameAr,
         required: groupRecord.required === true,
         multiple: groupRecord.multiple === true,
@@ -5481,6 +5663,50 @@ function cleanMenuOptionGroups(value: unknown): MenuOptionGroup[] {
       };
     })
     .filter((group): group is MenuOptionGroup => Boolean(group));
+}
+
+function cleanMenuOptionGroups(value: unknown): MenuOptionGroup[] {
+  return normalizeMenuOptionGroups(value, false);
+}
+
+function draftMenuOptionGroups(value: unknown): MenuOptionGroup[] {
+  return normalizeMenuOptionGroups(value, true);
+}
+
+function updateOptionGroupTree(groups: MenuOptionGroup[], groupId: string, updater: (group: MenuOptionGroup) => MenuOptionGroup | null): MenuOptionGroup[] {
+  return groups
+    .map((group) => {
+      if (group.id === groupId) return updater(group);
+
+      return {
+        ...group,
+        choices: group.choices.map((choice) => ({
+          ...choice,
+          subOptionGroups: updateOptionGroupTree(choice.subOptionGroups || [], groupId, updater),
+        })),
+      };
+    })
+    .filter((group): group is MenuOptionGroup => Boolean(group));
+}
+
+function updateOptionChoiceTree(groups: MenuOptionGroup[], choiceId: string, updater: (choice: MenuOptionChoice) => MenuOptionChoice | null): MenuOptionGroup[] {
+  return groups.map((group) => ({
+    ...group,
+    choices: group.choices
+      .map((choice) => {
+        if (choice.id === choiceId) return updater(choice);
+
+        return {
+          ...choice,
+          subOptionGroups: updateOptionChoiceTree(choice.subOptionGroups || [], choiceId, updater),
+        };
+      })
+      .filter((choice): choice is MenuOptionChoice => Boolean(choice)),
+  }));
+}
+
+function makeDefaultOptionChoice(label = "Option 1"): MenuOptionChoice {
+  return { id: makeId("option_choice"), name: label, nameAr: "", price: 0, subOptionGroups: [] };
 }
 
 function cleanSelectedChoices(value: unknown): Record<string, string[]> {
@@ -5521,6 +5747,7 @@ function cleanOrderModifiers(value: unknown): OrderModifier[] {
       const record = modifier as Partial<OrderModifier>;
       const choiceName = String(record.choiceName || "").trim();
       const groupName = String(record.groupName || "").trim();
+      const parentChoiceName = String(record.parentChoiceName || "").trim();
       const price = Number(record.price || 0);
 
       if (!choiceName) return null;
@@ -5531,6 +5758,9 @@ function cleanOrderModifiers(value: unknown): OrderModifier[] {
         choiceId: String(record.choiceId || ""),
         choiceName,
         price: Number.isFinite(price) ? Math.max(0, Math.round(price * 1000) / 1000) : 0,
+        parentChoiceId: String(record.parentChoiceId || ""),
+        parentChoiceName,
+        level: Number(record.level || 0),
       };
     })
     .filter((modifier): modifier is OrderModifier => Boolean(modifier));
@@ -5540,22 +5770,32 @@ function getSelectedModifiersForItem(item: MenuItem, customization: CartCustomiz
   const selectedChoices = cleanSelectedChoices(customization.selectedChoices);
   const modifiers: OrderModifier[] = [];
 
-  for (const group of item.optionGroups || []) {
-    const selectedIds = selectedChoices[group.id] || [];
+  function collect(groups: MenuOptionGroup[], parentChoice?: MenuOptionChoice, level = 0) {
+    for (const group of groups || []) {
+      const selectedIds = selectedChoices[group.id] || [];
 
-    for (const choice of group.choices) {
-      if (!selectedIds.includes(choice.id)) continue;
+      for (const choice of group.choices) {
+        if (!selectedIds.includes(choice.id)) continue;
 
-      modifiers.push({
-        groupId: group.id,
-        groupName: group.name,
-        choiceId: choice.id,
-        choiceName: choice.name,
-        price: choice.price,
-      });
+        modifiers.push({
+          groupId: group.id,
+          groupName: parentChoice ? `${parentChoice.name || "Choice"} / ${group.name || "Option"}` : (group.name || "Option"),
+          choiceId: choice.id,
+          choiceName: choice.name || choice.nameAr || "Choice",
+          price: choice.price,
+          parentChoiceId: parentChoice?.id || "",
+          parentChoiceName: parentChoice?.name || "",
+          level,
+        });
+
+        if (choice.subOptionGroups?.length) {
+          collect(choice.subOptionGroups, choice, level + 1);
+        }
+      }
     }
   }
 
+  collect(item.optionGroups || []);
   return modifiers;
 }
 
@@ -7780,17 +8020,31 @@ export default function Page() {
   }
 
   function validateOrderCustomizations() {
-    for (const line of orderCartLines) {
-      for (const group of line.item.optionGroups || []) {
-        if (!group.required || !group.choices.length) continue;
+    function validateGroups(line: CartLine, groups: MenuOptionGroup[], parentChoice?: MenuOptionChoice): boolean {
+      for (const group of groups || []) {
+        if (!group.choices.length) continue;
 
-        const selected = line.customization.selectedChoices[group.id] || [];
+        const selectedIds = line.customization.selectedChoices[group.id] || [];
 
-        if (!selected.length) {
-          show(`Choose ${group.name} for ${line.item.name}`);
+        if (group.required && !selectedIds.length) {
+          show(`Choose ${parentChoice ? `${group.name} for ${parentChoice.name}` : group.name} for ${line.item.name}`);
           return false;
         }
+
+        for (const choice of group.choices) {
+          if (!selectedIds.includes(choice.id)) continue;
+
+          if (choice.subOptionGroups?.length && !validateGroups(line, choice.subOptionGroups, choice)) {
+            return false;
+          }
+        }
       }
+
+      return true;
+    }
+
+    for (const line of orderCartLines) {
+      if (!validateGroups(line, line.item.optionGroups || [])) return false;
     }
 
     return true;
@@ -8159,16 +8413,14 @@ export default function Page() {
     setMenuDraft((current) => ({
       ...current,
       optionGroups: [
-        ...cleanMenuOptionGroups(current.optionGroups),
+        ...draftMenuOptionGroups(current.optionGroups),
         {
           id: groupId,
           name: "Choice",
           nameAr: "",
           required: false,
           multiple: false,
-          choices: [
-            { id: makeId("option_choice"), name: "Option 1", nameAr: "", price: 0 },
-          ],
+          choices: [makeDefaultOptionChoice("Option 1")],
         },
       ],
     }));
@@ -8177,66 +8429,63 @@ export default function Page() {
   function updateOptionGroupInDraft(groupId: string, patch: Partial<MenuOptionGroup>) {
     setMenuDraft((current) => ({
       ...current,
-      optionGroups: cleanMenuOptionGroups(current.optionGroups).map((group) =>
-        group.id === groupId ? { ...group, ...patch } : group
-      ),
+      optionGroups: updateOptionGroupTree(draftMenuOptionGroups(current.optionGroups), groupId, (group) => ({ ...group, ...patch })),
     }));
   }
 
   function removeOptionGroupFromDraft(groupId: string) {
     setMenuDraft((current) => ({
       ...current,
-      optionGroups: cleanMenuOptionGroups(current.optionGroups).filter((group) => group.id !== groupId),
+      optionGroups: updateOptionGroupTree(draftMenuOptionGroups(current.optionGroups), groupId, () => null),
     }));
   }
 
   function addOptionChoiceToDraft(groupId: string) {
     setMenuDraft((current) => ({
       ...current,
-      optionGroups: cleanMenuOptionGroups(current.optionGroups).map((group) =>
-        group.id === groupId
-          ? {
-              ...group,
-              choices: [
-                ...group.choices,
-                { id: makeId("option_choice"), name: "New choice", nameAr: "", price: 0 },
-              ],
-            }
-          : group
-      ),
+      optionGroups: updateOptionGroupTree(draftMenuOptionGroups(current.optionGroups), groupId, (group) => ({
+        ...group,
+        choices: [...group.choices, makeDefaultOptionChoice("New choice")],
+      })),
     }));
   }
 
   function updateOptionChoiceInDraft(groupId: string, choiceId: string, patch: Partial<MenuOptionChoice>) {
     setMenuDraft((current) => ({
       ...current,
-      optionGroups: cleanMenuOptionGroups(current.optionGroups).map((group) =>
-        group.id === groupId
-          ? {
-              ...group,
-              choices: group.choices.map((choice) =>
-                choice.id === choiceId
-                  ? {
-                      ...choice,
-                      ...patch,
-                      price: patch.price === undefined ? choice.price : Math.max(0, Math.round(Number(patch.price || 0) * 1000) / 1000),
-                    }
-                  : choice
-              ),
-            }
-          : group
-      ),
+      optionGroups: updateOptionChoiceTree(draftMenuOptionGroups(current.optionGroups), choiceId, (choice) => ({
+        ...choice,
+        ...patch,
+        price: patch.price === undefined ? choice.price : Math.max(0, Math.round(Number(patch.price || 0) * 1000) / 1000),
+        subOptionGroups: patch.subOptionGroups === undefined ? (choice.subOptionGroups || []) : draftMenuOptionGroups(patch.subOptionGroups),
+      })),
     }));
   }
 
   function removeOptionChoiceFromDraft(groupId: string, choiceId: string) {
     setMenuDraft((current) => ({
       ...current,
-      optionGroups: cleanMenuOptionGroups(current.optionGroups).map((group) =>
-        group.id === groupId
-          ? { ...group, choices: group.choices.filter((choice) => choice.id !== choiceId) }
-          : group
-      ),
+      optionGroups: updateOptionChoiceTree(draftMenuOptionGroups(current.optionGroups), choiceId, () => null),
+    }));
+  }
+
+  function addSubOptionGroupToChoice(choiceId: string) {
+    setMenuDraft((current) => ({
+      ...current,
+      optionGroups: updateOptionChoiceTree(draftMenuOptionGroups(current.optionGroups), choiceId, (choice) => ({
+        ...choice,
+        subOptionGroups: [
+          ...draftMenuOptionGroups(choice.subOptionGroups || []),
+          {
+            id: makeId("option_group"),
+            name: "Choose topping",
+            nameAr: "",
+            required: false,
+            multiple: false,
+            choices: [makeDefaultOptionChoice("Option 1")],
+          },
+        ],
+      })),
     }));
   }
 
@@ -10124,27 +10373,111 @@ export default function Page() {
 
                                   <div className="option-choice-editor-list">
                                     {group.choices.map((choice) => (
-                                      <div className="option-choice-editor" key={choice.id}>
-                                        <input
-                                          value={choice.name}
-                                          onChange={(e) => updateOptionChoiceInDraft(group.id, choice.id, { name: e.target.value })}
-                                          placeholder="French fries"
-                                        />
-                                        <input
-                                          dir="rtl"
-                                          value={choice.nameAr}
-                                          onChange={(e) => updateOptionChoiceInDraft(group.id, choice.id, { nameAr: e.target.value })}
-                                          placeholder="بطاطا مقلية"
-                                        />
-                                        <input
-                                          type="number"
-                                          min={0}
-                                          step="0.05"
-                                          value={choice.price}
-                                          onChange={(e) => updateOptionChoiceInDraft(group.id, choice.id, { price: Number(e.target.value || 0) })}
-                                          placeholder="0.00"
-                                        />
-                                        <button className="btn small ghost" type="button" onClick={() => removeOptionChoiceFromDraft(group.id, choice.id)}>Remove</button>
+                                      <div className="option-choice-with-nesting" key={choice.id}>
+                                        <div className="option-choice-editor">
+                                          <input
+                                            value={choice.name}
+                                            onChange={(e) => updateOptionChoiceInDraft(group.id, choice.id, { name: e.target.value })}
+                                            placeholder="French fries"
+                                          />
+                                          <input
+                                            dir="rtl"
+                                            value={choice.nameAr}
+                                            onChange={(e) => updateOptionChoiceInDraft(group.id, choice.id, { nameAr: e.target.value })}
+                                            placeholder="بطاطا مقلية"
+                                          />
+                                          <input
+                                            type="number"
+                                            min={0}
+                                            step="0.05"
+                                            value={choice.price}
+                                            onChange={(e) => updateOptionChoiceInDraft(group.id, choice.id, { price: Number(e.target.value || 0) })}
+                                            placeholder="0.00"
+                                          />
+                                          <button className="btn small secondary" type="button" onClick={() => addSubOptionGroupToChoice(choice.id)}>Add sub-option</button>
+                                          <button className="btn small ghost" type="button" onClick={() => removeOptionChoiceFromDraft(group.id, choice.id)}>Remove</button>
+                                        </div>
+
+                                        {choice.subOptionGroups?.length ? (
+                                          <div className="nested-option-builder">
+                                            <div className="nested-option-title">Options only shown when “{choice.name || choice.nameAr || "this choice"}” is selected</div>
+                                            {choice.subOptionGroups.map((subGroup) => (
+                                              <div className="nested-option-group-editor" key={subGroup.id}>
+                                                <div className="option-group-grid">
+                                                  <Field label="Sub-option group">
+                                                    <input
+                                                      value={subGroup.name}
+                                                      onChange={(e) => updateOptionGroupInDraft(subGroup.id, { name: e.target.value })}
+                                                      placeholder="Example: Gravy type"
+                                                    />
+                                                  </Field>
+                                                  <Field label="Arabic sub-option group">
+                                                    <input
+                                                      dir="rtl"
+                                                      value={subGroup.nameAr}
+                                                      onChange={(e) => updateOptionGroupInDraft(subGroup.id, { nameAr: e.target.value })}
+                                                      placeholder="مثال: نوع الصوص"
+                                                    />
+                                                  </Field>
+                                                </div>
+
+                                                <div className="option-group-grid compact">
+                                                  <Field label="Required?">
+                                                    <select
+                                                      value={subGroup.required ? "yes" : "no"}
+                                                      onChange={(e) => updateOptionGroupInDraft(subGroup.id, { required: e.target.value === "yes" })}
+                                                    >
+                                                      <option value="no">Optional</option>
+                                                      <option value="yes">Required</option>
+                                                    </select>
+                                                  </Field>
+
+                                                  <Field label="Customer can choose">
+                                                    <select
+                                                      value={subGroup.multiple ? "multiple" : "single"}
+                                                      onChange={(e) => updateOptionGroupInDraft(subGroup.id, { multiple: e.target.value === "multiple" })}
+                                                    >
+                                                      <option value="single">One choice</option>
+                                                      <option value="multiple">Multiple choices</option>
+                                                    </select>
+                                                  </Field>
+                                                </div>
+
+                                                <div className="option-choice-editor-list nested-choice-list">
+                                                  {subGroup.choices.map((subChoice) => (
+                                                    <div className="option-choice-editor" key={subChoice.id}>
+                                                      <input
+                                                        value={subChoice.name}
+                                                        onChange={(e) => updateOptionChoiceInDraft(subGroup.id, subChoice.id, { name: e.target.value })}
+                                                        placeholder="Brown gravy"
+                                                      />
+                                                      <input
+                                                        dir="rtl"
+                                                        value={subChoice.nameAr}
+                                                        onChange={(e) => updateOptionChoiceInDraft(subGroup.id, subChoice.id, { nameAr: e.target.value })}
+                                                        placeholder="صوص بني"
+                                                      />
+                                                      <input
+                                                        type="number"
+                                                        min={0}
+                                                        step="0.05"
+                                                        value={subChoice.price}
+                                                        onChange={(e) => updateOptionChoiceInDraft(subGroup.id, subChoice.id, { price: Number(e.target.value || 0) })}
+                                                        placeholder="0.00"
+                                                      />
+                                                      <button className="btn small ghost" type="button" onClick={() => removeOptionChoiceFromDraft(subGroup.id, subChoice.id)}>Remove</button>
+                                                    </div>
+                                                  ))}
+                                                </div>
+
+                                                <div className="row-actions option-actions nested-actions">
+                                                  <button className="btn small secondary" type="button" onClick={() => addOptionChoiceToDraft(subGroup.id)}>Add gravy / topping choice</button>
+                                                  <button className="btn small danger" type="button" onClick={() => removeOptionGroupFromDraft(subGroup.id)}>Remove sub-option group</button>
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        ) : null}
                                       </div>
                                     ))}
                                   </div>
@@ -10619,15 +10952,51 @@ function CustomerCustomizationPanel({
                     const isSelected = selected.has(choice.id);
 
                     return (
-                      <button
-                        key={choice.id}
-                        className={`customer-option-choice ${isSelected ? "selected" : ""}`}
-                        type="button"
-                        onClick={() => onToggleChoice(group, choice)}
-                      >
-                        <span>{choice.name}</span>
-                        <b>{choice.price > 0 ? `+${money(choice.price)}` : "Free"}</b>
-                      </button>
+                      <div className="customer-option-choice-wrap" key={choice.id}>
+                        <button
+                          className={`customer-option-choice ${isSelected ? "selected" : ""}`}
+                          type="button"
+                          onClick={() => onToggleChoice(group, choice)}
+                        >
+                          <span>{choice.name}</span>
+                          <b>{choice.price > 0 ? `+${money(choice.price)}` : "Free"}</b>
+                        </button>
+
+                        {isSelected && choice.subOptionGroups?.length ? (
+                          <div className="customer-nested-option-groups">
+                            {choice.subOptionGroups.map((subGroup) => {
+                              const nestedSelected = new Set(customization.selectedChoices[subGroup.id] || []);
+
+                              return (
+                                <div className="customer-option-group nested" key={subGroup.id}>
+                                  <div className="customer-option-group-head">
+                                    <strong>{subGroup.name}</strong>
+                                    <span>{subGroup.required ? "Required" : "Optional"} • {subGroup.multiple ? "Choose more than one" : "Choose one"}</span>
+                                  </div>
+
+                                  <div className="customer-option-choice-grid">
+                                    {subGroup.choices.map((subChoice) => {
+                                      const nestedIsSelected = nestedSelected.has(subChoice.id);
+
+                                      return (
+                                        <button
+                                          key={subChoice.id}
+                                          className={`customer-option-choice nested-choice ${nestedIsSelected ? "selected" : ""}`}
+                                          type="button"
+                                          onClick={() => onToggleChoice(subGroup, subChoice)}
+                                        >
+                                          <span>{subChoice.name}</span>
+                                          <b>{subChoice.price > 0 ? `+${money(subChoice.price)}` : "Free"}</b>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : null}
+                      </div>
                     );
                   })}
                 </div>

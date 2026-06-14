@@ -85,14 +85,16 @@ function cleanOptionGroups(value: unknown) {
           const name = cleanText(choiceSource.name);
           const nameAr = cleanText(choiceSource.nameAr);
           const price = moneyNumber(choiceSource.price || 0);
+          const subOptionGroups = cleanOptionGroups(choiceSource.subOptionGroups || choiceSource.sub_option_groups || []);
 
-          if (!name && !nameAr) return null;
+          if (!name && !nameAr && !subOptionGroups.length) return null;
 
           return {
             id: cleanText(choiceSource.id, `choice_${groupIndex}_${choiceIndex}`),
             name: name || nameAr,
             nameAr,
             price: Math.max(0, price),
+            subOptionGroups,
           };
         })
         .filter(Boolean);
@@ -113,7 +115,6 @@ function cleanOptionGroups(value: unknown) {
     })
     .filter(Boolean);
 }
-
 
 function getBearerToken(request: NextRequest) {
   const header = request.headers.get("authorization") || "";
