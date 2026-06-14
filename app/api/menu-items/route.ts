@@ -27,6 +27,31 @@ type MenuItemPayload = {
   optionGroups?: unknown;
 };
 
+type CleanMenuOptionChoice = {
+  id: string;
+  name: string;
+  nameAr: string;
+  price: number;
+  subOptionGroups: CleanMenuOptionGroup[];
+};
+
+type CleanMenuOptionGroup = {
+  id: string;
+  name: string;
+  nameAr: string;
+  required: boolean;
+  multiple: boolean;
+  choices: CleanMenuOptionChoice[];
+};
+
+function isCleanMenuOptionChoice(choice: CleanMenuOptionChoice | null): choice is CleanMenuOptionChoice {
+  return choice !== null;
+}
+
+function isCleanMenuOptionGroup(group: CleanMenuOptionGroup | null): group is CleanMenuOptionGroup {
+  return group !== null;
+}
+
 function adminClient() {
   if (!supabaseUrl || !serviceRoleKey) {
     throw new Error("Missing Supabase server environment keys");
@@ -62,12 +87,12 @@ function cleanTime(value: unknown, fallback: string) {
   return /^\d{2}:\d{2}$/.test(text) ? text : fallback;
 }
 
-function cleanOptionGroups(value: unknown) {
+function cleanOptionGroups(value: unknown): CleanMenuOptionGroup[] {
   let raw = value;
 
   if (typeof raw === "string") {
     try {
-      raw = JSON.parse(raw);
+      raw = JSON.parse(raw) as unknown;
     } catch {
       raw = [];
     }
@@ -76,11 +101,11 @@ function cleanOptionGroups(value: unknown) {
   if (!Array.isArray(raw)) return [];
 
   return raw
-    .map((group, groupIndex) => {
+    .map((group, groupIndex): CleanMenuOptionGroup | null => {
       const source = group && typeof group === "object" ? (group as Record<string, unknown>) : {};
       const choicesRaw = Array.isArray(source.choices) ? source.choices : [];
       const choices = choicesRaw
-        .map((choice, choiceIndex) => {
+        .map((choice, choiceIndex): CleanMenuOptionChoice | null => {
           const choiceSource = choice && typeof choice === "object" ? (choice as Record<string, unknown>) : {};
           const name = cleanText(choiceSource.name);
           const nameAr = cleanText(choiceSource.nameAr);
@@ -97,7 +122,7 @@ function cleanOptionGroups(value: unknown) {
             subOptionGroups,
           };
         })
-        .filter(Boolean);
+        .filter(isCleanMenuOptionChoice);
 
       const name = cleanText(source.name);
       const nameAr = cleanText(source.nameAr);
@@ -113,7 +138,7 @@ function cleanOptionGroups(value: unknown) {
         choices,
       };
     })
-    .filter(Boolean);
+    .filter(isCleanMenuOptionGroup);
 }
 
 function getBearerToken(request: NextRequest) {
