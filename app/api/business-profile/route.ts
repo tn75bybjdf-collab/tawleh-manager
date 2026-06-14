@@ -65,7 +65,15 @@ export async function GET(request: NextRequest) {
       brand_color,
       logo_data_url,
       logo_path,
-      logo_updated_at
+      logo_updated_at,
+      service_status,
+      service_expires_at,
+      service_payment_due_date,
+      service_balance_due_jod,
+      service_monthly_fee_jod,
+      service_suspended_reason,
+      service_admin_note,
+      service_updated_at
     `);
 
   if (businessId) {

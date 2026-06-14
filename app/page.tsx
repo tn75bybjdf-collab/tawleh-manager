@@ -7036,6 +7036,183 @@ main.customer-only-shell .service-suspended-card em {
   }
 }
 
+
+
+/* =========================================================
+   PLATFORM ADMIN CHANGE PASSWORD
+   Allows logged-in admin to update their Supabase Auth password.
+   ========================================================= */
+
+.platform-admin-password-card {
+  display: grid !important;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(320px, 1.2fr) !important;
+  gap: 14px !important;
+  align-items: end !important;
+  padding: 16px !important;
+  border-radius: 24px !important;
+  background: rgba(47, 42, 37, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow: 0 18px 42px rgba(47, 42, 37, 0.16) !important;
+}
+
+.platform-admin-password-card > div:first-child span {
+  display: block !important;
+  color: #f4c99f !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.10em !important;
+}
+
+.platform-admin-password-card h3 {
+  margin: 5px 0 4px !important;
+  color: #fff !important;
+  font-size: 22px !important;
+  line-height: 1.05 !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.platform-admin-password-card p {
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.68) !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-weight: 850 !important;
+}
+
+.platform-admin-password-fields {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto !important;
+  gap: 10px !important;
+  align-items: end !important;
+}
+
+.platform-admin-password-card .form-row > span {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.platform-admin-password-card input {
+  background: rgba(255, 255, 255, 0.95) !important;
+}
+
+.platform-admin-password-card .btn.dark,
+.platform-admin-password-card .btn.small.dark {
+  min-height: 50px !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #d36d47, #bd5338) !important;
+  color: #fff !important;
+  border: 0 !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 860px) {
+  .platform-admin-password-card,
+  .platform-admin-password-fields {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+
+/* =========================================================
+   RESTAURANT LICENSE + CLIQ PAYMENT DISPLAY
+   Shows license active date under logo and billing rows in profile.
+   ========================================================= */
+
+.license-active-until {
+  display: block !important;
+  margin-top: 5px !important;
+  color: rgba(75, 56, 43, 0.70) !important;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+  font-style: normal !important;
+  font-weight: 950 !important;
+}
+
+.sidebar-restaurant-card .license-active-until {
+  color: rgba(255, 255, 255, 0.74) !important;
+}
+
+.profile-license-line {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: fit-content !important;
+  min-height: 28px !important;
+  margin-top: 8px !important;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+  background: rgba(104, 112, 68, 0.12) !important;
+  color: #59613c !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+}
+
+.profile-payment-card {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 14px !important;
+  margin: 14px 0 !important;
+  padding: 16px !important;
+  border-radius: 24px !important;
+  background: rgba(47, 42, 37, 0.94) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow: 0 18px 42px rgba(47, 42, 37, 0.16) !important;
+}
+
+.profile-payment-card span {
+  display: block !important;
+  color: #f4c99f !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.10em !important;
+}
+
+.profile-payment-card strong {
+  display: block !important;
+  margin-top: 5px !important;
+  color: #fff !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+  font-weight: 1000 !important;
+}
+
+.profile-payment-card p {
+  margin: 6px 0 0 !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-weight: 850 !important;
+}
+
+.profile-payment-card .btn {
+  min-height: 48px !important;
+  flex: 0 0 auto !important;
+  border-radius: 16px !important;
+  padding: 0 16px !important;
+  background: linear-gradient(135deg, #d36d47, #bd5338) !important;
+  color: #fff !important;
+  border: 0 !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 720px) {
+  .profile-payment-card {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .profile-payment-card .btn {
+    width: 100% !important;
+  }
+}
+
 `;
 
 
@@ -7057,6 +7234,12 @@ type Profile = {
   welcomeMessage: string;
   brandColor: string;
   logoDataUrl: string;
+  serviceStatus: string;
+  serviceExpiresAt: string;
+  servicePaymentDueDate: string;
+  serviceBalanceDueJod: number;
+  serviceMonthlyFeeJod: number;
+  serviceSuspendedReason: string;
 };
 
 type SavedBusinessAccount = {
@@ -7399,6 +7582,12 @@ const defaultState: AppState = {
     welcomeMessage: "Have a seat, enter your name, and order under your own name.",
     brandColor: "#c8613f",
     logoDataUrl: "",
+    serviceStatus: "active",
+    serviceExpiresAt: "",
+    servicePaymentDueDate: "",
+    serviceBalanceDueJod: 0,
+    serviceMonthlyFeeJod: 100,
+    serviceSuspendedReason: "",
   },
   currentGuest: "",
   guests: [],
@@ -7413,6 +7602,31 @@ const defaultState: AppState = {
 
 function money(value: number) {
   return `${Number(value || 0).toFixed(2)} JOD`;
+}
+
+function displayDate(value: string) {
+  if (!value) return "Not set";
+
+  const clean = String(value).slice(0, 10);
+  const parts = clean.split("-");
+
+  if (parts.length !== 3) return clean;
+
+  const [year, month, day] = parts;
+  return `${month}/${day}/${year}`;
+}
+
+function licenseStatusText(profile: Profile) {
+  const status = String(profile.serviceStatus || "active").toLowerCase();
+
+  if (status === "suspended") return "Suspended";
+  if (profile.serviceExpiresAt) return displayDate(profile.serviceExpiresAt);
+
+  return "Not set";
+}
+
+function handlePayByCliq() {
+  window.alert("Pay By Cliq coming soon.");
 }
 
 function slugify(value: string) {
@@ -8250,6 +8464,12 @@ type BusinessProfileRow = {
   welcome_message: string | null;
   brand_color: string | null;
   logo_data_url: string | null;
+  service_status?: string | null;
+  service_expires_at?: string | null;
+  service_payment_due_date?: string | null;
+  service_balance_due_jod?: number | string | null;
+  service_monthly_fee_jod?: number | string | null;
+  service_suspended_reason?: string | null;
 };
 
 function businessRowToProfile(row: BusinessProfileRow, fallback: Profile): Profile {
@@ -8270,6 +8490,12 @@ function businessRowToProfile(row: BusinessProfileRow, fallback: Profile): Profi
     welcomeMessage: row.welcome_message || fallback.welcomeMessage || defaultState.profile.welcomeMessage,
     brandColor: row.brand_color || fallback.brandColor || defaultState.profile.brandColor,
     logoDataUrl: row.logo_data_url || fallback.logoDataUrl || "",
+    serviceStatus: row.service_status || fallback.serviceStatus || "active",
+    serviceExpiresAt: String(row.service_expires_at || fallback.serviceExpiresAt || "").slice(0, 10),
+    servicePaymentDueDate: String(row.service_payment_due_date || fallback.servicePaymentDueDate || "").slice(0, 10),
+    serviceBalanceDueJod: Number(row.service_balance_due_jod ?? fallback.serviceBalanceDueJod ?? 0),
+    serviceMonthlyFeeJod: Number(row.service_monthly_fee_jod ?? fallback.serviceMonthlyFeeJod ?? 100),
+    serviceSuspendedReason: row.service_suspended_reason || fallback.serviceSuspendedReason || "",
   };
 }
 
@@ -8731,6 +8957,9 @@ export default function Page() {
   const [loginPassword, setLoginPassword] = useState("");
   const [platformAdminEmail, setPlatformAdminEmail] = useState("");
   const [platformAdminPassword, setPlatformAdminPassword] = useState("");
+  const [platformAdminNewPassword, setPlatformAdminNewPassword] = useState("");
+  const [platformAdminConfirmPassword, setPlatformAdminConfirmPassword] = useState("");
+  const [platformAdminPasswordBusy, setPlatformAdminPasswordBusy] = useState(false);
   const [platformAdminLoggedIn, setPlatformAdminLoggedIn] = useState(false);
   const [platformAdminBusinesses, setPlatformAdminBusinesses] = useState<PlatformAdminBusiness[]>([]);
   const [platformAdminBusy, setPlatformAdminBusy] = useState(false);
@@ -8835,6 +9064,12 @@ export default function Page() {
             welcomeMessage: business.welcome_message || defaultState.profile.welcomeMessage,
             brandColor: business.brand_color || defaultState.profile.brandColor,
             logoDataUrl: business.logo_data_url || "",
+            serviceStatus: business.service_status || "active",
+            serviceExpiresAt: String(business.service_expires_at || "").slice(0, 10),
+            servicePaymentDueDate: String(business.service_payment_due_date || "").slice(0, 10),
+            serviceBalanceDueJod: Number(business.service_balance_due_jod || 0),
+            serviceMonthlyFeeJod: Number(business.service_monthly_fee_jod || 100),
+            serviceSuspendedReason: business.service_suspended_reason || "",
           };
 
           if (!mounted) return;
@@ -10130,6 +10365,12 @@ export default function Page() {
         welcomeMessage: business.welcome_message || defaultState.profile.welcomeMessage,
         brandColor: business.brand_color || defaultState.profile.brandColor,
         logoDataUrl: business.logo_data_url || "",
+        serviceStatus: business.service_status || "active",
+        serviceExpiresAt: String(business.service_expires_at || "").slice(0, 10),
+        servicePaymentDueDate: String(business.service_payment_due_date || "").slice(0, 10),
+        serviceBalanceDueJod: Number(business.service_balance_due_jod || 0),
+        serviceMonthlyFeeJod: Number(business.service_monthly_fee_jod || 100),
+        serviceSuspendedReason: business.service_suspended_reason || "",
       };
 
       updateState((current) => ({
@@ -10233,6 +10474,47 @@ export default function Page() {
     }
   }
 
+  async function changePlatformAdminPassword(event: FormEvent) {
+    event.preventDefault();
+
+    if (!supabase) {
+      setPlatformAdminMessage("Supabase is not configured");
+      return;
+    }
+
+    if (platformAdminNewPassword.length < 8) {
+      setPlatformAdminMessage("New admin password must be at least 8 characters");
+      return;
+    }
+
+    if (platformAdminNewPassword !== platformAdminConfirmPassword) {
+      setPlatformAdminMessage("Passwords do not match");
+      return;
+    }
+
+    setPlatformAdminPasswordBusy(true);
+    setPlatformAdminMessage("");
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: platformAdminNewPassword,
+      });
+
+      if (error) throw error;
+
+      setPlatformAdminPassword("");
+      setPlatformAdminNewPassword("");
+      setPlatformAdminConfirmPassword("");
+      setPlatformAdminMessage("Admin password changed");
+      show("Admin password changed");
+    } catch (error) {
+      setPlatformAdminMessage(getErrorMessage(error));
+      show(`Password change failed: ${getErrorMessage(error)}`);
+    } finally {
+      setPlatformAdminPasswordBusy(false);
+    }
+  }
+
   async function platformAdminLogout() {
     if (supabase) {
       await supabase.auth.signOut();
@@ -10241,6 +10523,8 @@ export default function Page() {
     setPlatformAdminLoggedIn(false);
     setPlatformAdminBusinesses([]);
     setPlatformAdminPassword("");
+    setPlatformAdminNewPassword("");
+    setPlatformAdminConfirmPassword("");
     setPlatformAdminMessage("Admin logged out");
   }
 
@@ -11654,6 +11938,38 @@ export default function Page() {
                           </div>
                         </div>
 
+                        <form className="platform-admin-password-card" onSubmit={changePlatformAdminPassword}>
+                          <div>
+                            <span>Security</span>
+                            <h3>Change admin password</h3>
+                            <p>This updates the password for the admin account you are logged into.</p>
+                          </div>
+
+                          <div className="platform-admin-password-fields">
+                            <Field label="New password">
+                              <input
+                                type="password"
+                                value={platformAdminNewPassword}
+                                onChange={(event) => setPlatformAdminNewPassword(event.target.value)}
+                                placeholder="At least 8 characters"
+                              />
+                            </Field>
+
+                            <Field label="Confirm password">
+                              <input
+                                type="password"
+                                value={platformAdminConfirmPassword}
+                                onChange={(event) => setPlatformAdminConfirmPassword(event.target.value)}
+                                placeholder="Confirm new password"
+                              />
+                            </Field>
+
+                            <button className="btn small dark" type="submit" disabled={platformAdminPasswordBusy}>
+                              {platformAdminPasswordBusy ? "Changing..." : "Change password"}
+                            </button>
+                          </div>
+                        </form>
+
                         {platformAdminMessage ? <div className="admin-message">{platformAdminMessage}</div> : null}
 
                         <div className="platform-business-list">
@@ -12766,6 +13082,7 @@ export default function Page() {
                   <div>
                     <strong>{businessName}</strong>
                     <span>{branchName}</span>
+                    <em className="license-active-until">License active until {licenseStatusText(state.profile)}</em>
                   </div>
                 </div>
 
@@ -12774,6 +13091,7 @@ export default function Page() {
                   <div>
                     <strong>{businessName}</strong>
                     <span>Restaurant logo for dashboard and QR</span>
+                    <em className="license-active-until">License active until {licenseStatusText(state.profile)}</em>
                   </div>
                 </div>
 
@@ -13860,7 +14178,17 @@ export default function Page() {
                         <div>
                           <h3>{businessName}</h3>
                           <p>{branchName}  {state.profile.location}</p>
+                          <span className="profile-license-line">License active until {licenseStatusText(state.profile)}</span>
                         </div>
+                      </div>
+
+                      <div className="profile-payment-card">
+                        <div>
+                          <span>Account billing</span>
+                          <strong>{money(state.profile.serviceBalanceDueJod || 0)}</strong>
+                          <p>Due by {displayDate(state.profile.servicePaymentDueDate)} • Expires {displayDate(state.profile.serviceExpiresAt)}</p>
+                        </div>
+                        <button className="btn dark" type="button" onClick={handlePayByCliq}>Pay By Cliq</button>
                       </div>
 
                       <div className="restaurant-logo-upload-card">
@@ -13888,7 +14216,11 @@ export default function Page() {
                         <div className="bill-row"><span>Signup IP lock</span><strong>{state.profile.signupIp}</strong></div>
                         <div className="bill-row"><span>Business type</span><strong>{state.profile.businessType}</strong></div>
                         <div className="bill-row"><span>Tables</span><strong>{state.profile.tableCount}</strong></div>
-                        <div className="bill-row"><span>Pricing</span><strong>100 JOD/month</strong></div>
+                        <div className="bill-row"><span>License status</span><strong>{state.profile.serviceStatus || "active"}</strong></div>
+                        <div className="bill-row"><span>Payment due date</span><strong>{displayDate(state.profile.servicePaymentDueDate)}</strong></div>
+                        <div className="bill-row"><span>Expiration date</span><strong>{displayDate(state.profile.serviceExpiresAt)}</strong></div>
+                        <div className="bill-row"><span>Balance due</span><strong>{money(state.profile.serviceBalanceDueJod || 0)}</strong></div>
+                        <div className="bill-row"><span>Pricing</span><strong>{money(state.profile.serviceMonthlyFeeJod || 100)}/month</strong></div>
                         <div className="bill-row"><span>Trial</span><strong>30 days free</strong></div>
                       </div>
                     </div>
