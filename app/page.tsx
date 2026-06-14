@@ -13091,6 +13091,9 @@ export default function Page() {
                             <button className="btn small" type="button" onClick={() => { setSalespersonDraftUsername(""); setSalespersonDraftName(""); setSalespersonDraftPhone(""); setSalespersonModalOpen(true); }}>
                               Add salesperson
                             </button>
+                            <button className="btn dark small" type="button" onClick={() => { window.location.href = "/reports"; }}>
+                              Reports
+                            </button>
                             <button className="btn ghost small" type="button" onClick={loadPlatformAdminBusinesses} disabled={platformAdminBusy}>
                               Refresh
                             </button>
@@ -13115,114 +13118,15 @@ export default function Page() {
                           </div>
                         </div>
 
-                        <div className="report-center-card">
-                          <div className="report-center-head">
-                            <div>
-                              <span>Report center</span>
-                              <h3>Company + salesperson reports</h3>
-                              <p>Monthly and year-to-date totals for Tawleh. Salesperson reports include every renewal payment from restaurants they signed up.</p>
-                            </div>
-
-                            <div className="report-center-controls">
-                              <Field label="Report month">
-                                <input
-                                  type="month"
-                                  value={reportMonth}
-                                  onChange={(event) => setReportMonth(event.target.value)}
-                                />
-                              </Field>
-
-                              <Field label="Commission %">
-                                <input
-                                  type="number"
-                                  min={0}
-                                  max={100}
-                                  step="0.1"
-                                  value={reportCommissionRate}
-                                  onChange={(event) => setReportCommissionRate(Number(event.target.value || 0))}
-                                />
-                              </Field>
-
-                              <button className="btn small dark" type="button" onClick={loadPlatformReports} disabled={platformReportBusy}>
-                                {platformReportBusy ? "Loading..." : "Refresh reports"}
-                              </button>
-                            </div>
+                        <div className="report-launch-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: 16, margin: "0 0 18px", borderRadius: 24, background: "rgba(255, 255, 255, 0.90)", border: "1px solid rgba(91, 71, 48, 0.10)", boxShadow: "0 16px 34px rgba(80, 52, 27, 0.08)" }}>
+                          <div>
+                            <span style={{ display: "block", color: "#bd5338", fontSize: 11, fontWeight: 1000, textTransform: "uppercase", letterSpacing: "0.10em" }}>Report center</span>
+                            <h3 style={{ margin: "5px 0 4px", color: "#2f2a25", fontSize: 24, lineHeight: 1, letterSpacing: "-0.05em", fontWeight: 1000 }}>Reports moved to their own page</h3>
+                            <p style={{ margin: 0, color: "#74685d", fontSize: 12, lineHeight: 1.4, fontWeight: 850 }}>Open a clean, full-page report center for company totals, salesperson reports, and commissions.</p>
                           </div>
-
-                          {platformReports ? (
-                            <>
-                              <div className="report-summary-grid">
-                                <div>
-                                  <span>Monthly recurring</span>
-                                  <strong>{money(platformReports.company.monthlyRecurringJod)}</strong>
-                                </div>
-                                <div>
-                                  <span>Collected this month</span>
-                                  <strong>{money(platformReports.company.monthlyCollectedJod)}</strong>
-                                </div>
-                                <div>
-                                  <span>Collected YTD</span>
-                                  <strong>{money(platformReports.company.ytdCollectedJod)}</strong>
-                                </div>
-                                <div>
-                                  <span>Total balance due</span>
-                                  <strong>{money(platformReports.company.totalBalanceDueJod)}</strong>
-                                </div>
-                                <div>
-                                  <span>New accounts this month</span>
-                                  <strong>{platformReports.company.newAccountsMonth}</strong>
-                                </div>
-                                <div>
-                                  <span>New accounts YTD</span>
-                                  <strong>{platformReports.company.newAccountsYtd}</strong>
-                                </div>
-                              </div>
-
-                              <div className="report-company-mini">
-                                <span>Total companies: <strong>{platformReports.company.totalBusinesses}</strong></span>
-                                <span>Active: <strong>{platformReports.company.activeBusinesses}</strong></span>
-                                <span>Trial: <strong>{platformReports.company.trialBusinesses}</strong></span>
-                                <span>Suspended: <strong>{platformReports.company.suspendedBusinesses}</strong></span>
-                                <span>MRR added this month: <strong>{money(platformReports.company.monthlyRecurringAddedJod)}</strong></span>
-                                <span>MRR added YTD: <strong>{money(platformReports.company.ytdMonthlyRecurringAddedJod)}</strong></span>
-                              </div>
-
-                              <div className="sales-report-table">
-                                <div className="sales-report-header">
-                                  <span>Salesperson</span>
-                                  <span>Accounts</span>
-                                  <span>Portfolio MRR</span>
-                                  <span>Collected month</span>
-                                  <span>Collected YTD</span>
-                                  <span>Commission</span>
-                                </div>
-
-                                {platformReports.salespeople.length ? (
-                                  platformReports.salespeople.map((person) => (
-                                    <div className="sales-report-row" key={person.salespersonId || person.username}>
-                                      <div>
-                                        <strong>@{person.username}</strong>
-                                        <em>{person.fullName || "Salesperson"}{person.phone ? ` • ${person.phone}` : ""}</em>
-                                      </div>
-                                      <span>{person.newAccountsMonth} month / {person.newAccountsYtd} YTD</span>
-                                      <span>{money(person.portfolioMonthlyRecurringJod)}</span>
-                                      <span>{money(person.monthlyCollectedJod)}</span>
-                                      <span>{money(person.ytdCollectedJod)}</span>
-                                      <b>{money(commissionAmount(person.monthlyCollectedJod, reportCommissionRate))}</b>
-                                    </div>
-                                  ))
-                                ) : (
-                                  <Empty text="No salesperson report data yet." />
-                                )}
-                              </div>
-
-                              <p className="report-note">
-                                Commission is calculated from collected CliQ payment notifications for the selected month at {reportCommissionRate}%. A restaurant stays attached to the salesperson who signed it up, so every renewal from that restaurant continues under that salesperson.
-                              </p>
-                            </>
-                          ) : (
-                            <Empty text="No reports loaded yet. Press Refresh reports." />
-                          )}
+                          <button className="btn dark small" type="button" onClick={() => { window.location.href = "/reports"; }}>
+                            Open Reports
+                          </button>
                         </div>
 
                         <div className="salespeople-admin-card">
