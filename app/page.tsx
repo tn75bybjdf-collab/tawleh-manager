@@ -5889,6 +5889,75 @@ main.customer-only-shell .image-modal-card > img {
   font-weight: 950 !important;
 }
 
+
+
+/* =========================================================
+   ACTIVE TABLE SORT TOOLBAR
+   Lets dashboard sort tables by active/open/needs-help/highest-bill.
+   ========================================================= */
+
+.table-sort-toolbar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin: 14px 0 12px !important;
+  padding: 12px !important;
+  border-radius: 18px !important;
+  background: rgba(255, 250, 243, 0.78) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+}
+
+.table-sort-toolbar > div {
+  display: grid !important;
+  gap: 2px !important;
+}
+
+.table-sort-toolbar span,
+.table-sort-toolbar label {
+  color: #7c6c5f !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}
+
+.table-sort-toolbar strong {
+  color: #2f2a25 !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  font-weight: 1000 !important;
+}
+
+.table-sort-toolbar label {
+  display: grid !important;
+  gap: 6px !important;
+  min-width: 180px !important;
+}
+
+.table-sort-toolbar select {
+  width: 100% !important;
+  min-height: 39px !important;
+  border-radius: 13px !important;
+  border: 1px solid rgba(91, 71, 48, 0.14) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: #2f2a25 !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  padding: 0 10px !important;
+}
+
+@media (max-width: 720px) {
+  .table-sort-toolbar {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .table-sort-toolbar label {
+    min-width: 0 !important;
+  }
+}
+
 `;
 
 
@@ -7328,6 +7397,7 @@ export default function Page() {
   const publicCustomerMode = publicTableMode;
   const [publicTableError, setPublicTableError] = useState("");
   const [activeTable, setActiveTable] = useState(DEMO_TABLE);
+  const [tableSortMode, setTableSortMode] = useState<"number" | "active" | "needsHelp" | "openOrders" | "billHigh" | "empty">("number");
 
   useEffect(() => {
     let mounted = true;
@@ -7944,6 +8014,65 @@ export default function Page() {
     acc[order.guest].push(order);
     return acc;
   }, {});
+
+  const tableDashboardRows = useMemo(() => {
+    return Array.from({ length: state.profile.tableCount }, (_, index) => {
+      const tableNumber = index + 1;
+      const tableOrders = state.orders.filter((order) => Number(order.table || activeTable) === tableNumber);
+      const tableOpenOrders = tableOrders.filter((order) => order.status !== "Served").length;
+      const tableBillTotal = tableOrders.reduce((sum, order) => sum + orderLineTotal(order), 0);
+      const tableGuestsFromOrders = uniqueGuestNames(tableOrders.map((order) => order.guest));
+      const tableGuestCount = tableNumber === activeTable && state.guests.length
+        ? uniqueGuestNames(state.guests).length
+        : tableGuestsFromOrders.length;
+      const needsHelp = waitingRequests.some((request) => Number(request.table || activeTable) === tableNumber);
+      const active = tableGuestCount > 0 || tableOpenOrders > 0 || tableBillTotal > 0;
+
+      return {
+        tableNumber,
+        tableOrders,
+        tableOpenOrders,
+        tableBillTotal,
+        tableGuestCount,
+        needsHelp,
+        active,
+      };
+    }).sort((a, b) => {
+      if (tableSortMode === "active") {
+        if (Number(b.active) !== Number(a.active)) return Number(b.active) - Number(a.active);
+        if (b.tableOpenOrders !== a.tableOpenOrders) return b.tableOpenOrders - a.tableOpenOrders;
+        if (b.tableBillTotal !== a.tableBillTotal) return b.tableBillTotal - a.tableBillTotal;
+        return a.tableNumber - b.tableNumber;
+      }
+
+      if (tableSortMode === "needsHelp") {
+        if (Number(b.needsHelp) !== Number(a.needsHelp)) return Number(b.needsHelp) - Number(a.needsHelp);
+        if (Number(b.active) !== Number(a.active)) return Number(b.active) - Number(a.active);
+        return a.tableNumber - b.tableNumber;
+      }
+
+      if (tableSortMode === "openOrders") {
+        if (b.tableOpenOrders !== a.tableOpenOrders) return b.tableOpenOrders - a.tableOpenOrders;
+        if (Number(b.active) !== Number(a.active)) return Number(b.active) - Number(a.active);
+        return a.tableNumber - b.tableNumber;
+      }
+
+      if (tableSortMode === "billHigh") {
+        if (b.tableBillTotal !== a.tableBillTotal) return b.tableBillTotal - a.tableBillTotal;
+        if (Number(b.active) !== Number(a.active)) return Number(b.active) - Number(a.active);
+        return a.tableNumber - b.tableNumber;
+      }
+
+      if (tableSortMode === "empty") {
+        if (Number(a.active) !== Number(b.active)) return Number(a.active) - Number(b.active);
+        return a.tableNumber - b.tableNumber;
+      }
+
+      return a.tableNumber - b.tableNumber;
+    });
+  }, [activeTable, state.guests, state.orders, state.profile.tableCount, tableSortMode, waitingRequests]);
+
+  const activeTableDashboardCount = tableDashboardRows.filter((row) => row.active).length;
 
   function updateState(updater: (current: AppState) => AppState) {
     setState((current) => updater(current));
@@ -10980,18 +11109,34 @@ export default function Page() {
                     <div className="manager-card">
                       <h3>Floor Tables</h3>
                       <p className="sub">Tap a table to view it. Reset clears names, bill totals, open orders, and waiter requests for that table.</p>
+
+                      <div className="table-sort-toolbar">
+                        <div>
+                          <span>Active tables</span>
+                          <strong>{activeTableDashboardCount} / {state.profile.tableCount}</strong>
+                        </div>
+
+                        <label>
+                          Sort
+                          <select value={tableSortMode} onChange={(e) => setTableSortMode(e.target.value as typeof tableSortMode)}>
+                            <option value="number">Table number</option>
+                            <option value="active">Active tables first</option>
+                            <option value="needsHelp">Needs waiter first</option>
+                            <option value="openOrders">Most open orders</option>
+                            <option value="billHigh">Highest bill</option>
+                            <option value="empty">Empty tables first</option>
+                          </select>
+                        </label>
+                      </div>
+
                       <div className="table-map resettable-table-map">
-                        {Array.from({ length: state.profile.tableCount }, (_, index) => {
-                          const tableNumber = index + 1;
-                          const tableOrders = state.orders.filter((order) => Number(order.table || activeTable) === tableNumber);
-                          const tableOpenOrders = tableOrders.filter((order) => order.status !== "Served").length;
-                          const tableBillTotal = tableOrders.reduce((sum, order) => sum + orderLineTotal(order), 0);
-                          const tableGuestsFromOrders = uniqueGuestNames(tableOrders.map((order) => order.guest));
-                          const tableGuestCount = tableNumber === activeTable && state.guests.length
-                            ? uniqueGuestNames(state.guests).length
-                            : tableGuestsFromOrders.length;
-                          const active = tableGuestCount > 0 || tableOpenOrders > 0 || tableBillTotal > 0;
-                          const needsHelp = waitingRequests.some((request) => Number(request.table || activeTable) === tableNumber);
+                        {tableDashboardRows.map((row) => {
+                          const tableNumber = row.tableNumber;
+                          const active = row.active;
+                          const needsHelp = row.needsHelp;
+                          const tableOpenOrders = row.tableOpenOrders;
+                          const tableBillTotal = row.tableBillTotal;
+                          const tableGuestCount = row.tableGuestCount;
                           const isSelected = tableNumber === activeTable;
 
                           return (
