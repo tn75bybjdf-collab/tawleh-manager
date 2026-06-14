@@ -7717,6 +7717,43 @@ main.customer-only-shell .service-suspended-card {
   }
 }
 
+
+
+/* Inline salesperson form in admin dashboard.
+   This avoids the old hidden modal issue on the auth/admin screen. */
+.salesperson-inline-form {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto !important;
+  gap: 12px !important;
+  align-items: end !important;
+  padding: 14px !important;
+  border-radius: 22px !important;
+  background: rgba(104, 112, 68, 0.10) !important;
+  border: 1px solid rgba(104, 112, 68, 0.14) !important;
+}
+
+.salesperson-inline-actions {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  padding-bottom: 1px !important;
+}
+
+@media (max-width: 900px) {
+  .salesperson-inline-form {
+    grid-template-columns: 1fr !important;
+  }
+
+  .salesperson-inline-actions {
+    justify-content: stretch !important;
+  }
+
+  .salesperson-inline-actions .btn {
+    width: 100% !important;
+  }
+}
+
 `;
 
 
@@ -12722,7 +12759,7 @@ export default function Page() {
                           </div>
 
                           <div className="platform-admin-actions">
-                            <button className="btn small" type="button" onClick={() => setSalespersonModalOpen(true)}>
+                            <button className="btn small" type="button" onClick={() => { setSalespersonDraftUsername(""); setSalespersonDraftName(""); setSalespersonDraftPhone(""); setSalespersonModalOpen(true); }}>
                               Add salesperson
                             </button>
                             <button className="btn ghost small" type="button" onClick={loadPlatformAdminBusinesses} disabled={platformAdminBusy}>
@@ -12756,8 +12793,45 @@ export default function Page() {
                               <h3>Salespeople</h3>
                               <p>Create usernames for salespeople. A restaurant can only signup as a salesperson if this username exists.</p>
                             </div>
-                            <button className="btn small" type="button" onClick={() => setSalespersonModalOpen(true)}>Add salesperson</button>
+                            <button className="btn small" type="button" onClick={() => { setSalespersonDraftUsername(""); setSalespersonDraftName(""); setSalespersonDraftPhone(""); setSalespersonModalOpen(true); }}>Add salesperson</button>
                           </div>
+
+                          {salespersonModalOpen ? (
+                            <form className="salesperson-inline-form" onSubmit={createSalesperson}>
+                              <Field label="Salesperson username">
+                                <input
+                                  value={salespersonDraftUsername}
+                                  onChange={(event) => setSalespersonDraftUsername(normalizeUsername(event.target.value))}
+                                  placeholder="example: mohammed_sales"
+                                />
+                              </Field>
+
+                              <Field label="Salesperson name">
+                                <input
+                                  value={salespersonDraftName}
+                                  onChange={(event) => setSalespersonDraftName(event.target.value)}
+                                  placeholder="Full name"
+                                />
+                              </Field>
+
+                              <Field label="Salesperson phone">
+                                <input
+                                  value={salespersonDraftPhone}
+                                  onChange={(event) => setSalespersonDraftPhone(event.target.value)}
+                                  placeholder="07XXXXXXXX"
+                                />
+                              </Field>
+
+                              <div className="salesperson-inline-actions">
+                                <button className="btn ghost small" type="button" onClick={() => setSalespersonModalOpen(false)}>
+                                  Cancel
+                                </button>
+                                <button className="btn small dark" type="submit" disabled={salespersonBusy}>
+                                  {salespersonBusy ? "Saving..." : "Save salesperson"}
+                                </button>
+                              </div>
+                            </form>
+                          ) : null}
 
                           <div className="salespeople-list">
                             {platformSalespeople.length ? (
