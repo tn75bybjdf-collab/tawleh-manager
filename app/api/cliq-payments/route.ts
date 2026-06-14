@@ -104,21 +104,63 @@ async function requirePlatformAdmin(admin: SupabaseClient, request: NextRequest)
   };
 }
 
-async function findBusiness(admin: SupabaseClient, businessId: string, username = "") {
-  let query = admin
-    .from("business_accounts")
-    .select("id, auth_user_id, username, restaurant_name, branch_name, service_payment_due_date, service_monthly_fee_jod, service_balance_due_jod");
+async function findBusiness(admin: SupabaseClient, userId: string, businessId: string, username = "") {
+  const possibleUsername = cleanText(username || (!isUuid(businessId) ? businessId : "")).toLowerCase();
 
-  if (businessId) {
-    if (!isUuid(businessId)) throw new Error("Invalid business account");
-    query = query.eq("id", businessId);
-  } else if (username) {
-    query = query.eq("username", username.toLowerCase());
-  } else {
-    throw new Error("Missing business account");
+  const select =
+    "id, auth_user_id, username, restaurant_name, branch_name, service_payment_due_date, service_monthly_fee_jod, service_balance_due_jod";
+
+  if (businessId && isUuid(businessId)) {
+    const { data, error } = await admin
+      .from("business_accounts")
+      .select(select)
+      .eq("id", businessId)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (data) {
+      return data as {
+        id: string;
+        auth_user_id: string;
+        username: string | null;
+        restaurant_name: string | null;
+        branch_name: string | null;
+        service_payment_due_date: string | null;
+        service_monthly_fee_jod: number | string | null;
+        service_balance_due_jod: number | string | null;
+      };
+    }
   }
 
-  const { data, error } = await query.maybeSingle();
+  if (possibleUsername) {
+    const { data, error } = await admin
+      .from("business_accounts")
+      .select(select)
+      .eq("username", possibleUsername)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (data) {
+      return data as {
+        id: string;
+        auth_user_id: string;
+        username: string | null;
+        restaurant_name: string | null;
+        branch_name: string | null;
+        service_payment_due_date: string | null;
+        service_monthly_fee_jod: number | string | null;
+        service_balance_due_jod: number | string | null;
+      };
+    }
+  }
+
+  const { data, error } = await admin
+    .from("business_accounts")
+    .select(select)
+    .eq("auth_user_id", userId)
+    .maybeSingle();
 
   if (error) throw error;
   if (!data) throw new Error("Restaurant account was not found");
@@ -178,7 +220,7 @@ export async function POST(request: NextRequest) {
     const businessId = cleanText(body.businessId);
     const username = cleanText(body.username).toLowerCase();
 
-    const business = await findBusiness(admin, businessId, username);
+    const business = await findBusiness(admin, user.id, businessId, username);
 
     if (business.auth_user_id !== user.id) {
       return jsonError("You do not own this restaurant account", 403);
