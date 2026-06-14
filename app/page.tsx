@@ -7293,6 +7293,137 @@ main.customer-only-shell .service-suspended-card {
 
 
 
+
+
+/* =========================================================
+   NETWORK PRINTER SETTINGS
+   Restaurant enters printer IP/port from POS printer self-test printout.
+   Actual printing still requires the local Tawleh print bridge later.
+   ========================================================= */
+
+.printer-settings-card {
+  display: grid !important;
+  gap: 16px !important;
+}
+
+.printer-settings-head {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+}
+
+.printer-settings-head h3 {
+  margin: 0 !important;
+}
+
+.printer-settings-head p {
+  margin: 4px 0 0 !important;
+  color: var(--muted) !important;
+}
+
+.printer-form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.printer-form-grid .field.full {
+  grid-column: 1 / -1 !important;
+}
+
+.printer-ready-note {
+  padding: 13px 14px !important;
+  border-radius: 18px !important;
+  background: rgba(200, 97, 63, 0.09) !important;
+  border: 1px solid rgba(200, 97, 63, 0.15) !important;
+  color: #6b4635 !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  font-weight: 800 !important;
+}
+
+.printer-list {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.printer-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 14px !important;
+  border-radius: 20px !important;
+  background: rgba(255, 255, 255, 0.84) !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  box-shadow: 0 10px 24px rgba(39, 28, 20, 0.06) !important;
+}
+
+.printer-row strong {
+  display: block !important;
+  color: #35241c !important;
+  font-size: 16px !important;
+  line-height: 1.1 !important;
+}
+
+.printer-row span {
+  display: block !important;
+  margin-top: 4px !important;
+  color: var(--muted) !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+.printer-status-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 24px !important;
+  padding: 0 9px !important;
+  border-radius: 999px !important;
+  margin-top: 7px !important;
+  background: rgba(32, 124, 82, 0.10) !important;
+  color: #16714a !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.printer-status-pill.off {
+  background: rgba(130, 105, 80, 0.12) !important;
+  color: #7c6a5c !important;
+}
+
+.printer-row-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+}
+
+@media (max-width: 760px) {
+  .printer-settings-head,
+  .printer-row {
+    grid-template-columns: 1fr !important;
+    display: grid !important;
+  }
+
+  .printer-form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .printer-row-actions {
+    justify-content: stretch !important;
+  }
+
+  .printer-row-actions .btn {
+    width: 100% !important;
+  }
+}
+
+
 /* =========================================================
    CLIQ PAYMENT MODAL + ADMIN NOTIFICATIONS
    Restaurant sends payment notice; platform admin sees it.
@@ -8205,6 +8336,38 @@ type ServiceItemRow = {
   created_at: string | null;
 };
 
+
+
+type PrinterSetting = {
+  id: string;
+  printerName: string;
+  printerRole: string;
+  printerIp: string;
+  printerPort: number;
+  paperWidth: string;
+  autoPrint: boolean;
+  copies: number;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type PrinterSettingRow = {
+  id: string;
+  business_account_id: string;
+  auth_user_id: string | null;
+  printer_name: string | null;
+  printer_role: string | null;
+  printer_ip: string | null;
+  printer_port: number | string | null;
+  paper_width: string | null;
+  auto_print: boolean | null;
+  copies: number | string | null;
+  is_active: boolean | null;
+  created_at: string | null;
+  updated_at: string | null;
+};
+
 type PublicSuspension = {
   suspended: boolean;
   message: string;
@@ -8337,6 +8500,22 @@ const emptyServiceItemDraft: ServiceItem = {
   imageUrl: "",
   active: true,
   sortOrder: 0,
+};
+
+
+
+const emptyPrinterDraft: PrinterSetting = {
+  id: "",
+  printerName: "Kitchen Printer",
+  printerRole: "kitchen",
+  printerIp: "",
+  printerPort: 9100,
+  paperWidth: "80mm",
+  autoPrint: true,
+  copies: 1,
+  isActive: true,
+  createdAt: "",
+  updatedAt: "",
 };
 
 const emptyMenuDraft: MenuDraft = {
@@ -9019,6 +9198,52 @@ function serviceItemToPayload(item: ServiceItem) {
   };
 }
 
+
+
+function rowToPrinterSetting(row: PrinterSettingRow): PrinterSetting {
+  return {
+    id: String(row.id || ""),
+    printerName: String(row.printer_name || "Network Printer"),
+    printerRole: String(row.printer_role || "kitchen"),
+    printerIp: String(row.printer_ip || ""),
+    printerPort: Math.max(1, Math.min(65535, Number(row.printer_port || 9100))),
+    paperWidth: String(row.paper_width || "80mm"),
+    autoPrint: row.auto_print !== false,
+    copies: Math.max(1, Math.min(10, Number(row.copies || 1))),
+    isActive: row.is_active !== false,
+    createdAt: String(row.created_at || ""),
+    updatedAt: String(row.updated_at || ""),
+  };
+}
+
+function printerSettingToPayload(printer: PrinterSetting) {
+  return {
+    id: printer.id,
+    printerName: printer.printerName.trim(),
+    printerRole: printer.printerRole,
+    printerIp: printer.printerIp.trim(),
+    printerPort: Math.max(1, Math.min(65535, Number(printer.printerPort || 9100))),
+    paperWidth: printer.paperWidth || "80mm",
+    autoPrint: printer.autoPrint !== false,
+    copies: Math.max(1, Math.min(10, Number(printer.copies || 1))),
+    isActive: printer.isActive !== false,
+  };
+}
+
+function isLikelyPrinterIp(value: string) {
+  const clean = value.trim();
+  if (!clean) return false;
+
+  const parts = clean.split(".");
+  if (parts.length !== 4) return false;
+
+  return parts.every((part) => {
+    if (!/^\d+$/.test(part)) return false;
+    const number = Number(part);
+    return number >= 0 && number <= 255;
+  });
+}
+
 function getActiveServiceItems(items: ServiceItem[]) {
   const cleaned = cleanServiceItems(items);
   const active = cleaned.filter((item) => item.active !== false);
@@ -9675,6 +9900,60 @@ async function deleteServiceItemFromSupabase(businessId: string, itemId: string,
   await readApiJson(response);
 }
 
+
+
+async function fetchPrinterSettingsFromSupabase(businessId: string, username = "") {
+  const headers = await getManagerAuthHeaders();
+  const params = new URLSearchParams({
+    businessId,
+    username: username || safeLoadState().profile.username || "",
+  });
+
+  const response = await fetch(`/api/printer-settings?${params.toString()}`, {
+    method: "GET",
+    headers,
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  const rows = (result.printers || []) as PrinterSettingRow[];
+
+  return rows.map((row) => rowToPrinterSetting(row));
+}
+
+async function savePrinterSettingToSupabase(businessId: string, printer: PrinterSetting, username = "") {
+  const headers = await getManagerAuthHeaders();
+  const response = await fetch("/api/printer-settings", {
+    method: printer.id && isUuid(printer.id) ? "PATCH" : "POST",
+    headers,
+    body: JSON.stringify({
+      businessId,
+      username: username || safeLoadState().profile.username || "",
+      printerId: printer.id,
+      printer: printerSettingToPayload(printer),
+    }),
+  });
+
+  const result = await readApiJson(response);
+  return rowToPrinterSetting(result.printer as PrinterSettingRow);
+}
+
+async function deletePrinterSettingFromSupabase(businessId: string, printerId: string, username = "") {
+  const headers = await getManagerAuthHeaders();
+
+  const response = await fetch("/api/printer-settings", {
+    method: "DELETE",
+    headers,
+    body: JSON.stringify({
+      businessId,
+      username: username || safeLoadState().profile.username || "",
+      printerId,
+    }),
+  });
+
+  await readApiJson(response);
+}
+
 function rowToPlatformBusiness(row: Record<string, unknown>): PlatformAdminBusiness {
   const tableCount = Number(row.table_count || 25);
   const monthlyFee = Number(row.service_monthly_fee_jod || monthlyTableFee(tableCount));
@@ -9980,6 +10259,12 @@ export default function Page() {
   const [resettingTable, setResettingTable] = useState<number | null>(null);
   const [serviceItemDraft, setServiceItemDraft] = useState<ServiceItem>(emptyServiceItemDraft);
   const [serviceItemBusy, setServiceItemBusy] = useState(false);
+
+  const [printerSettings, setPrinterSettings] = useState<PrinterSetting[]>([]);
+  const [printerDraft, setPrinterDraft] = useState<PrinterSetting>(emptyPrinterDraft);
+  const [printerBusy, setPrinterBusy] = useState(false);
+  const [printerMessage, setPrinterMessage] = useState("");
+  const printersLoadedKeyRef = useRef("");
   const [selectedMenuImage, setSelectedMenuImage] = useState<MenuItem | null>(null);
   const [customerBgImageUrl, setCustomerBgImageUrl] = useState("");
   const [toast, setToast] = useState("");
@@ -10159,6 +10444,18 @@ export default function Page() {
     safeSaveStateToLocalStorage(state);
     document.documentElement.style.setProperty("--brand", state.profile.brandColor || "#c8613f");
   }, [state, loaded, publicTableMode]);
+
+
+
+  useEffect(() => {
+    if (!loaded || publicTableMode || !state.profileComplete || !state.profile.businessId) return;
+
+    const key = state.profile.businessId;
+    if (printersLoadedKeyRef.current === key) return;
+
+    printersLoadedKeyRef.current = key;
+    void refreshPrinterSettingsNow(false);
+  }, [loaded, publicTableMode, state.profileComplete, state.profile.businessId]);
 
   useEffect(() => {
     if (!toast) return;
@@ -12114,6 +12411,133 @@ export default function Page() {
     } finally {
       setServiceItemBusy(false);
     }
+  }
+
+
+
+  async function refreshPrinterSettingsNow(showToast = true) {
+    if (!state.profile.businessId) {
+      if (showToast) show("Login first, then refresh printer settings");
+      return;
+    }
+
+    setPrinterBusy(true);
+    setPrinterMessage("");
+
+    try {
+      const savedPrinters = await fetchPrinterSettingsFromSupabase(
+        state.profile.businessId,
+        state.profile.username
+      );
+
+      setPrinterSettings(savedPrinters);
+      if (showToast) show("Printer settings refreshed");
+    } catch (error) {
+      const message = `Printer settings refresh failed: ${getErrorMessage(error)}`;
+      setPrinterMessage(message);
+      if (showToast) show(message);
+    } finally {
+      setPrinterBusy(false);
+    }
+  }
+
+  async function savePrinterFromDraft() {
+    const cleanName = printerDraft.printerName.trim();
+    const cleanIp = printerDraft.printerIp.trim();
+    const cleanPort = Math.max(1, Math.min(65535, Number(printerDraft.printerPort || 9100)));
+
+    if (!cleanName) {
+      show("Printer name is required");
+      return;
+    }
+
+    if (!isLikelyPrinterIp(cleanIp)) {
+      show("Enter the printer IP from the self-test printout, example 192.168.1.45");
+      return;
+    }
+
+    let managerProfile = state.profile;
+
+    if (!managerProfile.businessId) {
+      try {
+        managerProfile = await ensureManagerBusinessProfile();
+      } catch {
+        show("Login first, then save printer settings");
+        return;
+      }
+    }
+
+    setPrinterBusy(true);
+    setPrinterMessage("");
+
+    try {
+      const savedPrinter = await savePrinterSettingToSupabase(
+        managerProfile.businessId,
+        {
+          ...printerDraft,
+          printerName: cleanName,
+          printerIp: cleanIp,
+          printerPort: cleanPort,
+          copies: Math.max(1, Math.min(10, Number(printerDraft.copies || 1))),
+        },
+        managerProfile.username
+      );
+
+      setPrinterSettings((current) => [
+        savedPrinter,
+        ...current.filter((printer) => printer.id !== savedPrinter.id),
+      ]);
+
+      setPrinterDraft(emptyPrinterDraft);
+      printersLoadedKeyRef.current = managerProfile.businessId;
+      setPrinterMessage(`${savedPrinter.printerName} saved. Tawleh print bridge will use ${savedPrinter.printerIp}:${savedPrinter.printerPort}.`);
+      show("Printer settings saved");
+    } catch (error) {
+      const message = `Printer save failed: ${getErrorMessage(error)}`;
+      setPrinterMessage(message);
+      show(message);
+    } finally {
+      setPrinterBusy(false);
+    }
+  }
+
+  function editPrinterSetting(printer: PrinterSetting) {
+    setPrinterDraft(printer);
+    setPrinterMessage("Editing saved printer. Make changes, then press Save printer.");
+  }
+
+  async function deletePrinterSetting(printer: PrinterSetting) {
+    if (!state.profile.businessId || !printer.id) return;
+
+    const ok = window.confirm(`Remove ${printer.printerName}?`);
+    if (!ok) return;
+
+    setPrinterBusy(true);
+    setPrinterMessage("");
+
+    try {
+      await deletePrinterSettingFromSupabase(
+        state.profile.businessId,
+        printer.id,
+        state.profile.username
+      );
+
+      setPrinterSettings((current) => current.filter((item) => item.id !== printer.id));
+      if (printerDraft.id === printer.id) setPrinterDraft(emptyPrinterDraft);
+      setPrinterMessage(`${printer.printerName} removed.`);
+      show("Printer removed");
+    } catch (error) {
+      const message = `Printer remove failed: ${getErrorMessage(error)}`;
+      setPrinterMessage(message);
+      show(message);
+    } finally {
+      setPrinterBusy(false);
+    }
+  }
+
+  function markPrinterReadyForBridge(printer: PrinterSetting) {
+    setPrinterMessage(`Saved for local bridge: ${printer.printerName} at ${printer.printerIp}:${printer.printerPort}. Test print will work after the Tawleh local print bridge is installed on the restaurant tablet/PC.`);
+    show("Printer is ready for bridge setup");
   }
 
   async function saveServiceItemFromDraft() {
@@ -14440,7 +14864,7 @@ export default function Page() {
                   <button className={`sidebar-nav-item ${managerTab === "menu" ? "active" : ""}`} type="button" onClick={() => setManagerTab("menu")}>Menu</button>
                   <button className={`sidebar-nav-item ${managerTab === "menuBuilder" ? "active" : ""}`} type="button" onClick={() => setManagerTab("menuBuilder")}>Builder</button>
                   <button className={`sidebar-nav-item ${managerTab === "qr" ? "active" : ""}`} type="button" onClick={() => setManagerTab("qr")}>QR Tables</button>
-                  <button className={`sidebar-nav-item ${managerTab === "profile" ? "active" : ""}`} type="button" onClick={() => setManagerTab("profile")}>Profile</button>
+                  <button className={`sidebar-nav-item ${managerTab === "profile" ? "active" : ""}`} type="button" onClick={() => setManagerTab("profile")}>Profile / Printers</button>
                 </nav>
 
                 <div className="sidebar-summary-card">
@@ -14483,7 +14907,7 @@ export default function Page() {
                   <Tab label="Menu Manager" active={managerTab === "menu"} onClick={() => setManagerTab("menu")} />
                   <Tab label="Menu Builder" active={managerTab === "menuBuilder"} onClick={() => setManagerTab("menuBuilder")} />
                   <Tab label="Table QR" active={managerTab === "qr"} onClick={() => setManagerTab("qr")} />
-                  <Tab label="Restaurant Profile" active={managerTab === "profile"} onClick={() => setManagerTab("profile")} />
+                  <Tab label="Profile / Printers" active={managerTab === "profile"} onClick={() => setManagerTab("profile")} />
                 </nav>
 
                 {managerTab === "kitchen" && (
@@ -15568,6 +15992,138 @@ export default function Page() {
                       <p className="sub">Add items, upload item pictures, and control what customers see on the QR menu.</p>
                       <button className="btn secondary full" onClick={openMenuBuilder}>Open Menu Builder</button>
                     </div>
+
+                    <div className="manager-card printer-settings-card">
+                      <div className="printer-settings-head">
+                        <div>
+                          <h3>Printer Settings</h3>
+                          <p className="sub">Enter the IP address from the printer self-test printout. Most network POS printers use port 9100.</p>
+                        </div>
+                        <button className="btn ghost small" type="button" onClick={() => refreshPrinterSettingsNow()} disabled={printerBusy}>
+                          {printerBusy ? "Loading..." : "Refresh"}
+                        </button>
+                      </div>
+
+                      <div className="printer-ready-note">
+                        Step 1: save the kitchen/cashier printer details here. Step 2 later: install the Tawleh local print bridge on the restaurant tablet or Windows PC so it can print to the local IP.
+                      </div>
+
+                      <div className="printer-form-grid">
+                        <Field label="Printer name">
+                          <input
+                            value={printerDraft.printerName}
+                            onChange={(event) => setPrinterDraft((current) => ({ ...current, printerName: event.target.value }))}
+                            placeholder="Kitchen Printer"
+                          />
+                        </Field>
+
+                        <Field label="Printer use">
+                          <select
+                            value={printerDraft.printerRole}
+                            onChange={(event) => setPrinterDraft((current) => ({ ...current, printerRole: event.target.value }))}
+                          >
+                            <option value="kitchen">Kitchen</option>
+                            <option value="cashier">Cashier / Bill</option>
+                            <option value="bar">Bar</option>
+                            <option value="expo">Expo / Runner</option>
+                            <option value="backup">Backup</option>
+                          </select>
+                        </Field>
+
+                        <Field label="Printer IP address">
+                          <input
+                            value={printerDraft.printerIp}
+                            onChange={(event) => setPrinterDraft((current) => ({ ...current, printerIp: event.target.value.trim() }))}
+                            placeholder="192.168.1.45"
+                            inputMode="numeric"
+                          />
+                        </Field>
+
+                        <Field label="Port">
+                          <input
+                            type="number"
+                            min={1}
+                            max={65535}
+                            value={printerDraft.printerPort}
+                            onChange={(event) => setPrinterDraft((current) => ({ ...current, printerPort: Number(event.target.value || 9100) }))}
+                            placeholder="9100"
+                          />
+                        </Field>
+
+                        <Field label="Paper width">
+                          <select
+                            value={printerDraft.paperWidth}
+                            onChange={(event) => setPrinterDraft((current) => ({ ...current, paperWidth: event.target.value }))}
+                          >
+                            <option value="80mm">80mm</option>
+                            <option value="58mm">58mm</option>
+                          </select>
+                        </Field>
+
+                        <Field label="Copies">
+                          <input
+                            type="number"
+                            min={1}
+                            max={10}
+                            value={printerDraft.copies}
+                            onChange={(event) => setPrinterDraft((current) => ({ ...current, copies: Math.max(1, Math.min(10, Number(event.target.value || 1))) }))}
+                          />
+                        </Field>
+
+                        <label className="check-row field full">
+                          <input
+                            type="checkbox"
+                            checked={printerDraft.autoPrint !== false}
+                            onChange={(event) => setPrinterDraft((current) => ({ ...current, autoPrint: event.target.checked }))}
+                          />
+                          Auto-print new orders for this printer role when the local print bridge is connected
+                        </label>
+
+                        <label className="check-row field full">
+                          <input
+                            type="checkbox"
+                            checked={printerDraft.isActive !== false}
+                            onChange={(event) => setPrinterDraft((current) => ({ ...current, isActive: event.target.checked }))}
+                          />
+                          Printer is active
+                        </label>
+                      </div>
+
+                      <div className="row-actions">
+                        <button className="btn" type="button" onClick={savePrinterFromDraft} disabled={printerBusy}>
+                          {printerBusy ? "Saving..." : printerDraft.id ? "Save printer" : "Add printer"}
+                        </button>
+                        <button className="btn ghost" type="button" onClick={() => { setPrinterDraft(emptyPrinterDraft); setPrinterMessage(""); }} disabled={printerBusy}>
+                          Clear
+                        </button>
+                      </div>
+
+                      {printerMessage ? <div className="admin-message">{printerMessage}</div> : null}
+
+                      <div className="printer-list">
+                        {printerSettings.length ? (
+                          printerSettings.map((printer) => (
+                            <div className="printer-row" key={printer.id || `${printer.printerIp}-${printer.printerRole}`}>
+                              <div>
+                                <strong>{printer.printerName}</strong>
+                                <span>{printer.printerRole.toUpperCase()} • {printer.printerIp}:{printer.printerPort} • {printer.paperWidth} • {printer.copies} cop{printer.copies === 1 ? "y" : "ies"}</span>
+                                <em className={`printer-status-pill ${printer.isActive ? "" : "off"}`}>
+                                  {printer.isActive ? "Active" : "Disabled"} {printer.autoPrint ? "• Auto print" : "• Manual"}
+                                </em>
+                              </div>
+                              <div className="printer-row-actions">
+                                <button className="btn small ghost" type="button" onClick={() => markPrinterReadyForBridge(printer)}>Bridge info</button>
+                                <button className="btn small secondary" type="button" onClick={() => editPrinterSetting(printer)}>Edit</button>
+                                <button className="btn small danger" type="button" onClick={() => deletePrinterSetting(printer)} disabled={printerBusy}>Remove</button>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <Empty text="No printers saved yet. Print the POS printer self-test page, then enter the IP address here." />
+                        )}
+                      </div>
+                    </div>
+
                   </div>
                 )}
               </div>
