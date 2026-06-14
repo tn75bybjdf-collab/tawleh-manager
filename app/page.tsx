@@ -5260,6 +5260,66 @@ main.customer-only-shell .image-modal-card > img {
   }
 }
 
+
+
+/* =========================================================
+   REUSABLE MODIFIER MEMORY
+   Dashboard remembers option groups/choices already saved on other items.
+   The browser dropdown appears while typing in option/add-on fields.
+   ========================================================= */
+
+.option-builder-card input[list] {
+  background-image: linear-gradient(45deg, transparent 50%, rgba(91, 71, 48, 0.42) 50%), linear-gradient(135deg, rgba(91, 71, 48, 0.42) 50%, transparent 50%) !important;
+  background-position: calc(100% - 16px) 50%, calc(100% - 11px) 50% !important;
+  background-size: 5px 5px, 5px 5px !important;
+  background-repeat: no-repeat !important;
+  padding-right: 30px !important;
+}
+
+.option-builder-card input[list][dir="rtl"] {
+  background-position: 16px 50%, 11px 50% !important;
+  padding-left: 30px !important;
+  padding-right: 12px !important;
+}
+
+.option-builder-head p::after {
+  content: " Reuse memory: saved groups and choices autocomplete here." !important;
+  display: block !important;
+  width: fit-content !important;
+  margin-top: 7px !important;
+  padding: 5px 8px !important;
+  border-radius: 999px !important;
+  background: rgba(207, 95, 59, 0.10) !important;
+  color: #9a442f !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+}
+
+
+
+/* =========================================================
+   MENU BUILDER EDIT AUTO-SCROLL RESTORE
+   Clicking Edit item scrolls back to the editing form at the top.
+   ========================================================= */
+
+.menu-builder-form {
+  scroll-margin-top: 24px !important;
+}
+
+.menu-builder-form .edit-banner {
+  animation: tawlehEditBannerPulse 900ms ease-in-out 0s 2 !important;
+}
+
+@keyframes tawlehEditBannerPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(207, 95, 59, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 0 5px rgba(207, 95, 59, 0.16);
+  }
+}
+
 `;
 
 
@@ -5707,6 +5767,45 @@ function updateOptionChoiceTree(groups: MenuOptionGroup[], choiceId: string, upd
 
 function makeDefaultOptionChoice(label = "Option 1"): MenuOptionChoice {
   return { id: makeId("option_choice"), name: label, nameAr: "", price: 0, subOptionGroups: [] };
+}
+
+function modifierMemoryKey(value: string) {
+  return value.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
+function cloneOptionChoiceForDraft(choice: MenuOptionChoice): MenuOptionChoice {
+  return {
+    id: makeId("option_choice"),
+    name: choice.name || "",
+    nameAr: choice.nameAr || "",
+    price: Math.max(0, Math.round(Number(choice.price || 0) * 1000) / 1000),
+    subOptionGroups: cloneOptionGroupsForDraft(choice.subOptionGroups || []),
+  };
+}
+
+function cloneOptionGroupsForDraft(groups: MenuOptionGroup[]): MenuOptionGroup[] {
+  return groups.map((group) => ({
+    id: makeId("option_group"),
+    name: group.name || "",
+    nameAr: group.nameAr || "",
+    required: group.required === true,
+    multiple: group.multiple === true,
+    choices: (group.choices || []).map((choice) => cloneOptionChoiceForDraft(choice)),
+  }));
+}
+
+function findReusableOptionGroupTemplate(groups: MenuOptionGroup[], value: string) {
+  const key = modifierMemoryKey(value);
+  if (!key) return null;
+
+  return groups.find((group) => modifierMemoryKey(group.name || "") === key || modifierMemoryKey(group.nameAr || "") === key) || null;
+}
+
+function findReusableOptionChoiceTemplate(choices: MenuOptionChoice[], value: string) {
+  const key = modifierMemoryKey(value);
+  if (!key) return null;
+
+  return choices.find((choice) => modifierMemoryKey(choice.name || "") === key || modifierMemoryKey(choice.nameAr || "") === key) || null;
 }
 
 function cleanSelectedChoices(value: unknown): Record<string, string[]> {
@@ -6616,6 +6715,7 @@ export default function Page() {
   const [loginPassword, setLoginPassword] = useState("");
   const [qrInput, setQrInput] = useState(String(DEMO_TABLE));
   const [menuDraft, setMenuDraft] = useState<MenuDraft>(emptyMenuDraft);
+  const menuBuilderFormRef = useRef<HTMLDivElement | null>(null);
   const [editingMenuItemId, setEditingMenuItemId] = useState("");
   const [categoryDraft, setCategoryDraft] = useState({ name: "", nameAr: "" });
   const [activeMenuCategory, setActiveMenuCategory] = useState("all");
@@ -7109,6 +7209,63 @@ export default function Page() {
       search ? group.items.length > 0 : group.totalCount > 0
     );
   }, [state.categories, state.menu, menuBuilderSearch]);
+
+  const modifierMemory = useMemo(() => {
+    const optionGroupMap = new Map<string, MenuOptionGroup>();
+    const subOptionGroupMap = new Map<string, MenuOptionGroup>();
+    const optionChoiceMap = new Map<string, MenuOptionChoice>();
+    const subOptionChoiceMap = new Map<string, MenuOptionChoice>();
+
+    const rememberGroup = (group: MenuOptionGroup, nested: boolean): void => {
+      const key = modifierMemoryKey(group.name || group.nameAr || "");
+      if (!key) return;
+
+      const targetMap = nested ? subOptionGroupMap : optionGroupMap;
+      if (!targetMap.has(key)) {
+        targetMap.set(key, {
+          ...group,
+          choices: (group.choices || []).map((choice) => ({
+            ...choice,
+            subOptionGroups: draftMenuOptionGroups(choice.subOptionGroups || []),
+          })),
+        });
+      }
+    };
+
+    const rememberChoice = (choice: MenuOptionChoice, nested: boolean): void => {
+      const key = modifierMemoryKey(choice.name || choice.nameAr || "");
+      if (!key) return;
+
+      const targetMap = nested ? subOptionChoiceMap : optionChoiceMap;
+      if (!targetMap.has(key)) {
+        targetMap.set(key, {
+          ...choice,
+          price: Math.max(0, Math.round(Number(choice.price || 0) * 1000) / 1000),
+          subOptionGroups: draftMenuOptionGroups(choice.subOptionGroups || []),
+        });
+      }
+    };
+
+    const walkGroups = (groups: MenuOptionGroup[], nested: boolean): void => {
+      draftMenuOptionGroups(groups).forEach((group) => {
+        rememberGroup(group, nested);
+
+        group.choices.forEach((choice) => {
+          rememberChoice(choice, nested);
+          walkGroups(choice.subOptionGroups || [], true);
+        });
+      });
+    };
+
+    state.menu.forEach((item) => walkGroups(item.optionGroups || [], false));
+
+    return {
+      optionGroups: Array.from(optionGroupMap.values()),
+      subOptionGroups: Array.from(subOptionGroupMap.values()),
+      optionChoices: Array.from(optionChoiceMap.values()),
+      subOptionChoices: Array.from(subOptionChoiceMap.values()),
+    };
+  }, [state.menu]);
 
   const openOrderCount = state.orders.filter((order) => order.status !== "Served").length;
   const waitingRequests = state.requests.filter((request) => request.status === "Waiting");
@@ -8489,6 +8646,86 @@ export default function Page() {
     }));
   }
 
+  function applyReusableOptionGroupName(groupId: string, nextName: string, nested = false) {
+    const templates = nested ? modifierMemory.subOptionGroups : modifierMemory.optionGroups;
+    const template = findReusableOptionGroupTemplate(templates, nextName);
+
+    setMenuDraft((current) => ({
+      ...current,
+      optionGroups: updateOptionGroupTree(draftMenuOptionGroups(current.optionGroups), groupId, (group) => {
+        if (!template) {
+          return { ...group, name: nextName };
+        }
+
+        return {
+          ...group,
+          name: nextName || template.name,
+          nameAr: template.nameAr || group.nameAr,
+          required: template.required,
+          multiple: template.multiple,
+          choices: cloneOptionGroupsForDraft([{ ...template, id: group.id }])[0]?.choices || group.choices,
+        };
+      }),
+    }));
+  }
+
+  function applyReusableOptionGroupNameAr(groupId: string, nextNameAr: string, nested = false) {
+    const templates = nested ? modifierMemory.subOptionGroups : modifierMemory.optionGroups;
+    const template = findReusableOptionGroupTemplate(templates, nextNameAr);
+
+    setMenuDraft((current) => ({
+      ...current,
+      optionGroups: updateOptionGroupTree(draftMenuOptionGroups(current.optionGroups), groupId, (group) => {
+        if (!template) {
+          return { ...group, nameAr: nextNameAr };
+        }
+
+        return {
+          ...group,
+          name: template.name || group.name,
+          nameAr: nextNameAr || template.nameAr,
+          required: template.required,
+          multiple: template.multiple,
+          choices: cloneOptionGroupsForDraft([{ ...template, id: group.id }])[0]?.choices || group.choices,
+        };
+      }),
+    }));
+  }
+
+  function applyReusableOptionChoiceName(groupId: string, choiceId: string, nextName: string, nested = false) {
+    const templates = nested ? modifierMemory.subOptionChoices : modifierMemory.optionChoices;
+    const template = findReusableOptionChoiceTemplate(templates, nextName);
+
+    if (!template) {
+      updateOptionChoiceInDraft(groupId, choiceId, { name: nextName });
+      return;
+    }
+
+    updateOptionChoiceInDraft(groupId, choiceId, {
+      name: nextName || template.name,
+      nameAr: template.nameAr,
+      price: template.price,
+      subOptionGroups: cloneOptionGroupsForDraft(template.subOptionGroups || []),
+    });
+  }
+
+  function applyReusableOptionChoiceNameAr(groupId: string, choiceId: string, nextNameAr: string, nested = false) {
+    const templates = nested ? modifierMemory.subOptionChoices : modifierMemory.optionChoices;
+    const template = findReusableOptionChoiceTemplate(templates, nextNameAr);
+
+    if (!template) {
+      updateOptionChoiceInDraft(groupId, choiceId, { nameAr: nextNameAr });
+      return;
+    }
+
+    updateOptionChoiceInDraft(groupId, choiceId, {
+      name: template.name,
+      nameAr: nextNameAr || template.nameAr,
+      price: template.price,
+      subOptionGroups: cloneOptionGroupsForDraft(template.subOptionGroups || []),
+    });
+  }
+
   function buildMenuItemFromDraft(cleanName: string, cleanNameAr: string, cleanDesc: string, cleanPrice: number): MenuItem {
     const icon = (menuDraft.icon.trim() || menuIconFromName(cleanName)).slice(0, 3).toUpperCase();
     const selectedCategory = state.categories.find((category) => category.id === menuDraft.categoryId);
@@ -8606,6 +8843,30 @@ export default function Page() {
     setExpandedMenuCategories({});
   }
 
+  function scrollToMenuBuilderForm() {
+    window.setTimeout(() => {
+      const target = menuBuilderFormRef.current || document.getElementById("menu-builder-form");
+
+      if (!target) return;
+
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 80);
+
+    window.setTimeout(() => {
+      const target = menuBuilderFormRef.current || document.getElementById("menu-builder-form");
+
+      if (!target) return;
+
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 260);
+  }
+
   function startEditingMenuItem(item: MenuItem) {
     setEditingMenuItemId(item.id);
     setMenuDraft({
@@ -8623,6 +8884,8 @@ export default function Page() {
       imageFullUrl: item.imageFullUrl || "",
       optionGroups: cleanMenuOptionGroups(item.optionGroups),
     });
+    setManagerTab("menuBuilder");
+    scrollToMenuBuilderForm();
     show(`Editing ${item.name}`);
   }
 
@@ -10164,7 +10427,7 @@ export default function Page() {
                         </div>
                       </div>
 
-                      <div className="menu-builder-form">
+                      <div id="menu-builder-form" ref={menuBuilderFormRef} className="menu-builder-form">
                         {editingMenuItemId ? (
                           <div className="edit-banner">
                             Editing item. Change price, picture, stock, category, or daily serving hours, then save.
@@ -10318,11 +10581,75 @@ export default function Page() {
                           </div>
                         </Field>
 
+                        <datalist id="modifier-memory-option-groups">
+                          {modifierMemory.optionGroups.map((group) => (
+                            <option key={`group-${group.id}-${group.name}`} value={group.name}>
+                              {group.choices.map((choice) => choice.name).filter(Boolean).join(", ")}
+                            </option>
+                          ))}
+                        </datalist>
+
+                        <datalist id="modifier-memory-option-groups-ar">
+                          {modifierMemory.optionGroups.map((group) => group.nameAr ? (
+                            <option key={`group-ar-${group.id}-${group.nameAr}`} value={group.nameAr}>
+                              {group.name}
+                            </option>
+                          ) : null)}
+                        </datalist>
+
+                        <datalist id="modifier-memory-option-choices">
+                          {modifierMemory.optionChoices.map((choice) => (
+                            <option key={`choice-${choice.id}-${choice.name}`} value={choice.name}>
+                              {choice.price > 0 ? `+${money(choice.price)}` : "Free"}
+                            </option>
+                          ))}
+                        </datalist>
+
+                        <datalist id="modifier-memory-option-choices-ar">
+                          {modifierMemory.optionChoices.map((choice) => choice.nameAr ? (
+                            <option key={`choice-ar-${choice.id}-${choice.nameAr}`} value={choice.nameAr}>
+                              {choice.name}
+                            </option>
+                          ) : null)}
+                        </datalist>
+
+                        <datalist id="modifier-memory-sub-option-groups">
+                          {modifierMemory.subOptionGroups.map((group) => (
+                            <option key={`sub-group-${group.id}-${group.name}`} value={group.name}>
+                              {group.choices.map((choice) => choice.name).filter(Boolean).join(", ")}
+                            </option>
+                          ))}
+                        </datalist>
+
+                        <datalist id="modifier-memory-sub-option-groups-ar">
+                          {modifierMemory.subOptionGroups.map((group) => group.nameAr ? (
+                            <option key={`sub-group-ar-${group.id}-${group.nameAr}`} value={group.nameAr}>
+                              {group.name}
+                            </option>
+                          ) : null)}
+                        </datalist>
+
+                        <datalist id="modifier-memory-sub-option-choices">
+                          {modifierMemory.subOptionChoices.map((choice) => (
+                            <option key={`sub-choice-${choice.id}-${choice.name}`} value={choice.name}>
+                              {choice.price > 0 ? `+${money(choice.price)}` : "Free"}
+                            </option>
+                          ))}
+                        </datalist>
+
+                        <datalist id="modifier-memory-sub-option-choices-ar">
+                          {modifierMemory.subOptionChoices.map((choice) => choice.nameAr ? (
+                            <option key={`sub-choice-ar-${choice.id}-${choice.nameAr}`} value={choice.nameAr}>
+                              {choice.name}
+                            </option>
+                          ) : null)}
+                        </datalist>
+
                         <div className="option-builder-card">
                           <div className="option-builder-head">
                             <div>
                               <h4>Customer choices / add-ons</h4>
-                              <p>Use this for “choice of potato,” sauce options, doneness, extras, or paid add-ons.</p>
+                              <p>Use this for “choice of potato,” sauce options, doneness, extras, or paid add-ons. Saved options from other items appear as dropdown suggestions while typing.</p>
                             </div>
                             <button className="btn small secondary" type="button" onClick={addOptionGroupToDraft}>Add option group</button>
                           </div>
@@ -10334,16 +10661,18 @@ export default function Page() {
                                   <div className="option-group-grid">
                                     <Field label="Option group">
                                       <input
+                                        list="modifier-memory-option-groups"
                                         value={group.name}
-                                        onChange={(e) => updateOptionGroupInDraft(group.id, { name: e.target.value })}
+                                        onChange={(e) => applyReusableOptionGroupName(group.id, e.target.value)}
                                         placeholder="Example: Choice of potato"
                                       />
                                     </Field>
                                     <Field label="Arabic option group">
                                       <input
+                                        list="modifier-memory-option-groups-ar"
                                         dir="rtl"
                                         value={group.nameAr}
-                                        onChange={(e) => updateOptionGroupInDraft(group.id, { nameAr: e.target.value })}
+                                        onChange={(e) => applyReusableOptionGroupNameAr(group.id, e.target.value)}
                                         placeholder="مثال: اختيار البطاطا"
                                       />
                                     </Field>
@@ -10376,14 +10705,16 @@ export default function Page() {
                                       <div className="option-choice-with-nesting" key={choice.id}>
                                         <div className="option-choice-editor">
                                           <input
+                                            list="modifier-memory-option-choices"
                                             value={choice.name}
-                                            onChange={(e) => updateOptionChoiceInDraft(group.id, choice.id, { name: e.target.value })}
+                                            onChange={(e) => applyReusableOptionChoiceName(group.id, choice.id, e.target.value)}
                                             placeholder="French fries"
                                           />
                                           <input
+                                            list="modifier-memory-option-choices-ar"
                                             dir="rtl"
                                             value={choice.nameAr}
-                                            onChange={(e) => updateOptionChoiceInDraft(group.id, choice.id, { nameAr: e.target.value })}
+                                            onChange={(e) => applyReusableOptionChoiceNameAr(group.id, choice.id, e.target.value)}
                                             placeholder="بطاطا مقلية"
                                           />
                                           <input
@@ -10406,16 +10737,18 @@ export default function Page() {
                                                 <div className="option-group-grid">
                                                   <Field label="Sub-option group">
                                                     <input
+                                                      list="modifier-memory-sub-option-groups"
                                                       value={subGroup.name}
-                                                      onChange={(e) => updateOptionGroupInDraft(subGroup.id, { name: e.target.value })}
+                                                      onChange={(e) => applyReusableOptionGroupName(subGroup.id, e.target.value, true)}
                                                       placeholder="Example: Gravy type"
                                                     />
                                                   </Field>
                                                   <Field label="Arabic sub-option group">
                                                     <input
+                                                      list="modifier-memory-sub-option-groups-ar"
                                                       dir="rtl"
                                                       value={subGroup.nameAr}
-                                                      onChange={(e) => updateOptionGroupInDraft(subGroup.id, { nameAr: e.target.value })}
+                                                      onChange={(e) => applyReusableOptionGroupNameAr(subGroup.id, e.target.value, true)}
                                                       placeholder="مثال: نوع الصوص"
                                                     />
                                                   </Field>
@@ -10447,14 +10780,16 @@ export default function Page() {
                                                   {subGroup.choices.map((subChoice) => (
                                                     <div className="option-choice-editor" key={subChoice.id}>
                                                       <input
+                                                        list="modifier-memory-sub-option-choices"
                                                         value={subChoice.name}
-                                                        onChange={(e) => updateOptionChoiceInDraft(subGroup.id, subChoice.id, { name: e.target.value })}
+                                                        onChange={(e) => applyReusableOptionChoiceName(subGroup.id, subChoice.id, e.target.value, true)}
                                                         placeholder="Brown gravy"
                                                       />
                                                       <input
+                                                        list="modifier-memory-sub-option-choices-ar"
                                                         dir="rtl"
                                                         value={subChoice.nameAr}
-                                                        onChange={(e) => updateOptionChoiceInDraft(subGroup.id, subChoice.id, { nameAr: e.target.value })}
+                                                        onChange={(e) => applyReusableOptionChoiceNameAr(subGroup.id, subChoice.id, e.target.value, true)}
                                                         placeholder="صوص بني"
                                                       />
                                                       <input
