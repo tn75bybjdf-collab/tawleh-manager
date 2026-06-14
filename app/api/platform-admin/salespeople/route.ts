@@ -24,7 +24,7 @@ function getBearerToken(request: NextRequest) {
   return match?.[1] || "";
 }
 
-async function requirePlatformAdmin(admin: ReturnType<typeof createClient>, request: NextRequest) {
+async function requirePlatformAdmin(admin: any, request: NextRequest) {
   const token = getBearerToken(request);
 
   if (!token) {
