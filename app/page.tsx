@@ -2736,6 +2736,492 @@ main.customer-only-shell .name-entry-error-text {
   }
 }
 
+
+
+/* =========================================================
+   PREMIUM CUSTOMER CHECKOUT SCREEN
+   Replaces the rough order review with a clean checkout-style screen.
+   ========================================================= */
+
+main.customer-only-shell .phone-content:has(.tawleh-checkout-page) {
+  padding: 8px 10px 18px !important;
+}
+
+main.customer-only-shell .tawleh-checkout-page {
+  display: grid !important;
+  gap: 12px !important;
+  padding: 4px 0 18px !important;
+}
+
+main.customer-only-shell .checkout-top-card,
+main.customer-only-shell .checkout-item-card,
+main.customer-only-shell .checkout-summary-card {
+  background: rgba(255, 255, 255, 0.68) !important;
+  border: 1px solid rgba(255, 255, 255, 0.42) !important;
+  box-shadow: 0 18px 42px rgba(38, 25, 17, 0.16) !important;
+  backdrop-filter: blur(16px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.08) !important;
+}
+
+main.customer-only-shell .checkout-top-card {
+  position: relative !important;
+  overflow: hidden !important;
+  border-radius: 28px !important;
+  padding: 13px !important;
+}
+
+main.customer-only-shell .checkout-top-card::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(211, 109, 71, 0.22), transparent 36%),
+    linear-gradient(135deg, rgba(255, 252, 247, 0.74), rgba(255, 244, 230, 0.38)) !important;
+  pointer-events: none !important;
+}
+
+main.customer-only-shell .checkout-top-card > * {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+main.customer-only-shell .checkout-top-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin-bottom: 13px !important;
+}
+
+main.customer-only-shell .checkout-back-button,
+main.customer-only-shell .checkout-table-pill {
+  height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 999px !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .checkout-back-button {
+  border: 1px solid rgba(189, 83, 56, 0.16) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: #9f422d !important;
+}
+
+main.customer-only-shell .checkout-table-pill {
+  background: rgba(48, 33, 26, 0.86) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 22px rgba(48, 33, 26, 0.18) !important;
+}
+
+main.customer-only-shell .checkout-brand-row {
+  display: grid !important;
+  grid-template-columns: 66px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  align-items: center !important;
+}
+
+main.customer-only-shell .checkout-restaurant-mark {
+  width: 66px !important;
+  height: 66px !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  border-radius: 23px !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid rgba(255, 255, 255, 0.52) !important;
+  box-shadow: 0 12px 26px rgba(38, 25, 17, 0.12) !important;
+}
+
+main.customer-only-shell .checkout-restaurant-mark img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  padding: 7px !important;
+}
+
+main.customer-only-shell .checkout-restaurant-mark span {
+  color: #bd5338 !important;
+  font-size: 20px !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .checkout-title-copy p {
+  margin: 0 0 3px !important;
+  color: #bd5338 !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.13em !important;
+}
+
+main.customer-only-shell .checkout-title-copy h4 {
+  margin: 0 !important;
+  color: #2d211b !important;
+  font-size: 31px !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.055em !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .checkout-title-copy span {
+  display: block !important;
+  margin-top: 5px !important;
+  color: #6e584a !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+}
+
+main.customer-only-shell .checkout-metrics {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 9px !important;
+  margin-top: 13px !important;
+}
+
+main.customer-only-shell .checkout-metrics div {
+  min-height: 62px !important;
+  padding: 10px !important;
+  border-radius: 19px !important;
+  background: rgba(255, 255, 255, 0.58) !important;
+  border: 1px solid rgba(255, 255, 255, 0.40) !important;
+}
+
+main.customer-only-shell .checkout-metrics span {
+  display: block !important;
+  color: #7b6354 !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+}
+
+main.customer-only-shell .checkout-metrics strong {
+  display: block !important;
+  margin-top: 4px !important;
+  color: #2d211b !important;
+  font-size: 21px !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .checkout-section-title {
+  display: flex !important;
+  justify-content: space-between !important;
+  padding: 2px 3px 0 !important;
+}
+
+main.customer-only-shell .checkout-section-title span {
+  display: block !important;
+  color: #bd5338 !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.13em !important;
+}
+
+main.customer-only-shell .checkout-section-title strong {
+  display: block !important;
+  margin-top: 2px !important;
+  color: #2d211b !important;
+  font-size: 18px !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.03em !important;
+}
+
+main.customer-only-shell .checkout-items-list {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+main.customer-only-shell .checkout-item-card {
+  display: grid !important;
+  grid-template-columns: 72px minmax(0, 1fr) !important;
+  gap: 11px !important;
+  align-items: start !important;
+  border-radius: 24px !important;
+  padding: 10px !important;
+}
+
+main.customer-only-shell .checkout-item-photo {
+  width: 72px !important;
+  height: 72px !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, rgba(211, 109, 71, 0.12), rgba(151, 114, 77, 0.10)), #fff7ef !important;
+  color: #bd5338 !important;
+  font-size: 20px !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .checkout-item-photo img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+}
+
+main.customer-only-shell .checkout-item-main {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 7px !important;
+}
+
+main.customer-only-shell .checkout-item-title-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  align-items: flex-start !important;
+}
+
+main.customer-only-shell .checkout-item-title-row strong {
+  display: block !important;
+  color: #2d211b !important;
+  font-size: 15px !important;
+  line-height: 1.1 !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .checkout-item-title-row span {
+  display: block !important;
+  margin-top: 2px !important;
+  color: #7b6354 !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+}
+
+main.customer-only-shell .checkout-item-title-row b {
+  flex: 0 0 auto !important;
+  color: #bd5338 !important;
+  font-size: 14px !important;
+  font-weight: 1000 !important;
+  white-space: nowrap !important;
+}
+
+main.customer-only-shell .checkout-item-subline {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+}
+
+main.customer-only-shell .checkout-item-subline span {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: fit-content !important;
+  min-height: 24px !important;
+  padding: 4px 8px !important;
+  border-radius: 999px !important;
+  background: rgba(189, 83, 56, 0.08) !important;
+  color: #805b49 !important;
+  font-size: 10.5px !important;
+  font-weight: 950 !important;
+}
+
+main.customer-only-shell .checkout-detail-box {
+  display: grid !important;
+  gap: 3px !important;
+  padding: 8px 9px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 250, 243, 0.72) !important;
+  border: 1px dashed rgba(189, 83, 56, 0.20) !important;
+}
+
+main.customer-only-shell .checkout-detail-box small {
+  color: #bd5338 !important;
+  font-size: 10px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+}
+
+main.customer-only-shell .checkout-detail-box p {
+  margin: 0 !important;
+  color: #3b2a23 !important;
+  font-size: 11.5px !important;
+  line-height: 1.35 !important;
+  font-weight: 850 !important;
+}
+
+main.customer-only-shell .checkout-detail-box.note {
+  background: rgba(255, 255, 255, 0.76) !important;
+}
+
+main.customer-only-shell .checkout-item-actions {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: 2px !important;
+}
+
+main.customer-only-shell .checkout-qty-control {
+  display: grid !important;
+  grid-template-columns: 30px 30px 30px !important;
+  align-items: center !important;
+  justify-items: center !important;
+  height: 38px !important;
+  border-radius: 999px !important;
+  padding: 4px !important;
+  background: rgba(255, 255, 255, 0.74) !important;
+  border: 1px solid rgba(189, 83, 56, 0.15) !important;
+}
+
+main.customer-only-shell .checkout-qty-control button {
+  width: 29px !important;
+  height: 29px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  display: grid !important;
+  place-items: center !important;
+  background: linear-gradient(135deg, #d36d47, #bd5338) !important;
+  color: #fff !important;
+  font-size: 18px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+}
+
+main.customer-only-shell .checkout-qty-control button:first-child {
+  background: #fff !important;
+  color: #bd5338 !important;
+  border: 1px solid rgba(189, 83, 56, 0.18) !important;
+}
+
+main.customer-only-shell .checkout-qty-control strong {
+  color: #2d211b !important;
+  font-size: 14px !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .checkout-remove-button {
+  min-height: 34px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  padding: 0 10px !important;
+  background: rgba(255, 255, 255, 0.66) !important;
+  color: #a33a2b !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .checkout-summary-card {
+  position: sticky !important;
+  bottom: 10px !important;
+  z-index: 50 !important;
+  display: grid !important;
+  gap: 10px !important;
+  border-radius: 27px !important;
+  padding: 13px !important;
+  background: rgba(45, 33, 27, 0.88) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 20px 52px rgba(30, 20, 14, 0.34) !important;
+}
+
+main.customer-only-shell .checkout-summary-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+}
+
+main.customer-only-shell .checkout-summary-head span {
+  display: block !important;
+  color: #f4c99f !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.10em !important;
+}
+
+main.customer-only-shell .checkout-summary-head strong {
+  display: block !important;
+  margin-top: 2px !important;
+  color: #fff !important;
+  font-size: 28px !important;
+  line-height: 1 !important;
+  font-weight: 1000 !important;
+}
+
+main.customer-only-shell .checkout-summary-head em {
+  padding: 7px 9px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.10) !important;
+  color: #fff8f0 !important;
+  font-style: normal !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+}
+
+main.customer-only-shell .checkout-summary-lines {
+  display: grid !important;
+  gap: 6px !important;
+  padding: 9px 0 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.10) !important;
+}
+
+main.customer-only-shell .checkout-summary-lines div {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+}
+
+main.customer-only-shell .checkout-kitchen-note {
+  margin: 0 !important;
+  color: rgba(255, 248, 240, 0.72) !important;
+  font-size: 11.5px !important;
+  line-height: 1.35 !important;
+  font-weight: 800 !important;
+}
+
+main.customer-only-shell .checkout-error {
+  border-radius: 14px !important;
+  background: rgba(255, 230, 230, 0.12) !important;
+  color: #ffd2d2 !important;
+  border: 1px solid rgba(255, 180, 180, 0.22) !important;
+}
+
+main.customer-only-shell .checkout-confirm-button {
+  min-height: 54px !important;
+  width: 100% !important;
+  border: 0 !important;
+  border-radius: 19px !important;
+  background: linear-gradient(135deg, #d36d47, #bd5338) !important;
+  color: #fff !important;
+  font-size: 16px !important;
+  font-weight: 1000 !important;
+  box-shadow: 0 15px 30px rgba(203, 94, 61, 0.32) !important;
+}
+
+main.customer-only-shell .checkout-confirm-button:disabled {
+  opacity: 0.62 !important;
+}
+
+@media (max-width: 390px) {
+  main.customer-only-shell .checkout-title-copy h4 {
+    font-size: 28px !important;
+  }
+
+  main.customer-only-shell .checkout-item-card {
+    grid-template-columns: 64px minmax(0, 1fr) !important;
+    gap: 9px !important;
+  }
+
+  main.customer-only-shell .checkout-item-photo {
+    width: 64px !important;
+    height: 64px !important;
+    border-radius: 16px !important;
+  }
+
+  main.customer-only-shell .checkout-summary-head strong {
+    font-size: 25px !important;
+  }
+}
+
 `;
 
 
@@ -9718,14 +10204,17 @@ export default function Page() {
                         )
                       ) : (
                         orderReviewOpen ? (
-                          <div className="order-review-page darik-review-page">
-                            <div className="review-hero-card">
-                              <button className="review-back-button prestige-back-button" type="button" onClick={() => setOrderReviewOpen(false)}>
-                                Back to menu
-                              </button>
+                          <div className="order-review-page tawleh-checkout-page">
+                            <div className="checkout-top-card">
+                              <div className="checkout-top-row">
+                                <button className="checkout-back-button" type="button" onClick={() => setOrderReviewOpen(false)}>
+                                  ← Menu
+                                </button>
+                                <span className="checkout-table-pill">Table {activeTable}</span>
+                              </div>
 
-                              <div className="review-hero-main">
-                                <div className="review-restaurant-mark">
+                              <div className="checkout-brand-row">
+                                <div className="checkout-restaurant-mark">
                                   {state.profile.logoDataUrl ? (
                                     <img src={state.profile.logoDataUrl} alt={businessName} />
                                   ) : (
@@ -9733,14 +10222,14 @@ export default function Page() {
                                   )}
                                 </div>
 
-                                <div>
-                                  <p className="review-eyebrow">Confirm before kitchen</p>
-                                  <h4>Review your order</h4>
-                                  <p className="review-subtitle">Table {activeTable} - {state.currentGuest}</p>
+                                <div className="checkout-title-copy">
+                                  <p>Ready to send</p>
+                                  <h4>Checkout</h4>
+                                  <span>{state.currentGuest} • Pay at restaurant</span>
                                 </div>
                               </div>
 
-                              <div className="review-hero-stats">
+                              <div className="checkout-metrics">
                                 <div>
                                   <span>Items</span>
                                   <strong>{orderCartItemCount}</strong>
@@ -9752,13 +10241,20 @@ export default function Page() {
                               </div>
                             </div>
 
-                            <div className="review-line-list darik-review-list">
+                            <div className="checkout-section-title">
+                              <div>
+                                <span>Kitchen ticket</span>
+                                <strong>Check everything before sending</strong>
+                              </div>
+                            </div>
+
+                            <div className="checkout-items-list">
                               {orderCartLines.map((line) => {
                                 const itemImage = line.item.imageThumbUrl || line.item.imageFullUrl;
 
                                 return (
-                                  <div className="review-product-card" key={line.item.id}>
-                                    <div className="review-product-photo">
+                                  <div className="checkout-item-card" key={line.item.id}>
+                                    <div className="checkout-item-photo">
                                       {itemImage ? (
                                         <img src={itemImage} alt={line.item.name} />
                                       ) : (
@@ -9766,8 +10262,8 @@ export default function Page() {
                                       )}
                                     </div>
 
-                                    <div className="review-product-info">
-                                      <div className="review-product-title-row">
+                                    <div className="checkout-item-main">
+                                      <div className="checkout-item-title-row">
                                         <div>
                                           <strong>{line.item.name}</strong>
                                           {line.item.nameAr ? <span dir="rtl">{line.item.nameAr}</span> : null}
@@ -9775,57 +10271,72 @@ export default function Page() {
                                         <b>{money(line.lineTotal)}</b>
                                       </div>
 
-                                      <p>{line.item.desc}</p>
+                                      <div className="checkout-item-subline">
+                                        <span>{line.item.categoryName || "Menu item"}</span>
+                                        <span>{money(line.unitTotal)} each</span>
+                                      </div>
 
                                       {line.selectedModifiers.length ? (
-                                        <p className="review-product-modifiers">{formatOrderModifiers(line.selectedModifiers)}</p>
+                                        <div className="checkout-detail-box">
+                                          <small>Options</small>
+                                          <p>{formatOrderModifiers(line.selectedModifiers)}</p>
+                                        </div>
                                       ) : null}
 
                                       {line.customization.specialInstructions ? (
-                                        <p className="review-product-instructions">Note: {line.customization.specialInstructions}</p>
+                                        <div className="checkout-detail-box note">
+                                          <small>Special instructions</small>
+                                          <p>{line.customization.specialInstructions}</p>
+                                        </div>
                                       ) : null}
 
-                                      <div className="review-product-meta">
-                                        <span>{line.item.categoryName || "Menu item"}</span>
-                                        <span>{money(line.unitTotal)} each{line.addonsTotal > 0 ? ` (${money(line.addonsTotal)} add-ons)` : ""}</span>
-                                      </div>
-                                    </div>
+                                      <div className="checkout-item-actions">
+                                        <div className="checkout-qty-control">
+                                          <button type="button" onClick={() => changeCartQuantity(line.item.id, line.quantity - 1)}>-</button>
+                                          <strong>{line.quantity}</strong>
+                                          <button type="button" onClick={() => changeCartQuantity(line.item.id, line.quantity + 1)}>+</button>
+                                        </div>
 
-                                    <div className="review-product-actions">
-                                      <div className="review-qty-stepper">
-                                        <button type="button" onClick={() => changeCartQuantity(line.item.id, line.quantity - 1)}>-</button>
-                                        <strong>{line.quantity}</strong>
-                                        <button type="button" onClick={() => changeCartQuantity(line.item.id, line.quantity + 1)}>+</button>
+                                        <button className="checkout-remove-button" type="button" onClick={() => removeCartItem(line.item.id)}>
+                                          Remove
+                                        </button>
                                       </div>
-
-                                      <button className="remove-line review-delete-button" type="button" onClick={() => removeCartItem(line.item.id)}>
-                                        Delete
-                                      </button>
                                     </div>
                                   </div>
                                 );
                               })}
                             </div>
 
-                            <div className="review-summary-card">
-                              <div className="review-summary-row">
-                                <span>Subtotal</span>
-                                <strong>{money(orderCartTotal)}</strong>
+                            <div className="checkout-summary-card">
+                              <div className="checkout-summary-head">
+                                <div>
+                                  <span>Order total</span>
+                                  <strong>{money(orderCartTotal)}</strong>
+                                </div>
+                                <em>{orderCartItemCount} item{orderCartItemCount === 1 ? "" : "s"}</em>
                               </div>
-                              <div className="review-summary-row muted">
-                                <span>Payment</span>
-                                <strong>Pay at restaurant</strong>
+
+                              <div className="checkout-summary-lines">
+                                <div>
+                                  <span>Subtotal</span>
+                                  <strong>{money(orderCartTotal)}</strong>
+                                </div>
+                                <div>
+                                  <span>Payment</span>
+                                  <strong>At restaurant</strong>
+                                </div>
                               </div>
-                              <p>When you tap looks good, this order goes straight to the kitchen screen.</p>
+
+                              <p className="checkout-kitchen-note">This sends the order directly to the kitchen screen.</p>
 
                               {orderSendError ? (
-                                <div className="order-send-error">
+                                <div className="order-send-error checkout-error">
                                   {orderSendError}
                                 </div>
                               ) : null}
 
-                              <button className="review-confirm-button" type="button" onClick={confirmOrderToKitchen} disabled={orderSendBusy || !orderCartLines.length}>
-                                {orderSendBusy ? "Sending..." : "Looks good - send to kitchen"}
+                              <button className="checkout-confirm-button" type="button" onClick={confirmOrderToKitchen} disabled={orderSendBusy || !orderCartLines.length}>
+                                {orderSendBusy ? "Sending..." : "Send to kitchen"}
                               </button>
                             </div>
                           </div>
