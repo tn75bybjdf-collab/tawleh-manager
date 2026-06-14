@@ -1,9 +1,14 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+const IDLE_SESSION_MINUTES = 45;
+const MIN_ORDER_SECONDS = 20;
 
 type BusinessRow = {
   id: string;
@@ -36,6 +41,7 @@ type OrderModifierPayload = {
 type TableOrderInsertRow = {
   business_account_id: string;
   auth_user_id: string;
+  table_session_id: string | null;
   table_number: number;
   guest_name: string;
   item_id: string;
@@ -51,6 +57,17 @@ type TableOrderInsertRow = {
   status: "New";
 };
 
+type TableSessionRow = {
+  id: string;
+  business_account_id: string;
+  table_number: number;
+  session_token: string;
+  status: string;
+  expires_at: string | null;
+  idle_expires_at: string | null;
+  last_order_at: string | null;
+};
+
 function isTableOrderInsertRow(row: TableOrderInsertRow | null): row is TableOrderInsertRow {
   return row !== null;
 }
@@ -58,15 +75,10 @@ function isTableOrderInsertRow(row: TableOrderInsertRow | null): row is TableOrd
 const allowedStatuses = new Set(["New", "Preparing", "Ready", "Picked up", "Served"]);
 
 function serverClient() {
-  if (!supabaseUrl) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
-  }
+  if (!supabaseUrl) throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
 
   const key = serviceRoleKey || anonKey;
-
-  if (!key) {
-    throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  }
+  if (!key) throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_ANON_KEY");
 
   return createClient(supabaseUrl, key, {
     auth: {
@@ -89,14 +101,16 @@ function cleanText(value: unknown, fallback = "") {
 }
 
 function cleanGuestName(value: unknown) {
-  return cleanText(value)
-    .replace(/\s+/g, " ")
-    .slice(0, 40);
+  return cleanText(value).replace(/\s+/g, " ").slice(0, 40);
+}
+
+function cleanToken(value: unknown) {
+  return cleanText(value).replace(/[^a-zA-Z0-9_\-:.]/g, "").slice(0, 220);
 }
 
 function cleanTable(value: unknown) {
   const table = Number(value || 1);
-  return Math.max(1, Math.min(999, Number.isFinite(table) ? table : 1));
+  return Math.max(1, Math.min(999, Number.isFinite(table) ? Math.floor(table) : 1));
 }
 
 function cleanPrice(value: unknown) {
@@ -156,6 +170,9 @@ function modifierTotal(modifiers: OrderModifierPayload[]) {
   return Math.round(modifiers.reduce((sum, modifier) => sum + cleanPrice(modifier.price || 0), 0) * 1000) / 1000;
 }
 
+function addMinutes(date: Date, minutes: number) {
+  return new Date(date.getTime() + minutes * 60_000);
+}
 
 function jsonError(message: string, status = 500) {
   return NextResponse.json(
@@ -167,35 +184,22 @@ function jsonError(message: string, status = 500) {
   );
 }
 
-async function findBusiness(
-  db: SupabaseClient,
-  businessId: string,
-  username = "",
-  fallbackAuthUserId = ""
-) {
-  if (businessId && !isUuid(businessId)) {
-    throw new Error("Invalid business account id");
-  }
+function orderSelect() {
+  return "id, business_account_id, auth_user_id, table_session_id, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, special_instructions, modifiers, modifiers_total_jod, base_price_jod, unit_total_jod, status, created_at";
+}
+
+async function findBusiness(db: SupabaseClient, businessId: string, username = "", fallbackAuthUserId = "") {
+  if (businessId && !isUuid(businessId)) throw new Error("Invalid business account id");
 
   if (!usingServiceRole() && businessId && fallbackAuthUserId) {
-    return {
-      id: businessId,
-      auth_user_id: fallbackAuthUserId,
-      username: username || null,
-    } as BusinessRow;
+    return { id: businessId, auth_user_id: fallbackAuthUserId, username: username || null } as BusinessRow;
   }
 
-  let query = db
-    .from("business_accounts")
-    .select("id, auth_user_id, username");
+  let query = db.from("business_accounts").select("id, auth_user_id, username");
 
-  if (businessId) {
-    query = query.eq("id", businessId);
-  } else if (username) {
-    query = query.eq("username", username.toLowerCase());
-  } else {
-    throw new Error("Missing business account");
-  }
+  if (businessId) query = query.eq("id", businessId);
+  else if (username) query = query.eq("username", username.toLowerCase());
+  else throw new Error("Missing business account");
 
   const { data, error } = await query.maybeSingle();
 
@@ -205,19 +209,94 @@ async function findBusiness(
   return data as BusinessRow;
 }
 
+async function expireOldSessions(db: SupabaseClient, businessId: string, tableNumber: number) {
+  const now = new Date().toISOString();
+  const { error } = await db
+    .from("table_sessions")
+    .update({ status: "expired", closed_at: now, updated_at: now })
+    .eq("business_account_id", businessId)
+    .eq("table_number", tableNumber)
+    .in("status", ["pending", "active"])
+    .or(`expires_at.lt.${now},idle_expires_at.lt.${now}`);
+
+  if (error && error.code !== "42P01" && error.code !== "42703") throw error;
+}
+
+async function requireActiveTableSession(
+  db: SupabaseClient,
+  businessId: string,
+  tableNumber: number,
+  sessionToken: string
+) {
+  if (!sessionToken) {
+    throw new Error("This QR page is missing its table session. Please scan the table QR again.");
+  }
+
+  await expireOldSessions(db, businessId, tableNumber);
+
+  const { data, error } = await db
+    .from("table_sessions")
+    .select("id, business_account_id, table_number, session_token, status, expires_at, idle_expires_at, last_order_at")
+    .eq("business_account_id", businessId)
+    .eq("table_number", tableNumber)
+    .eq("session_token", sessionToken)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data?.id) throw new Error("This table session is no longer valid. Please scan the table QR again.");
+
+  const session = data as TableSessionRow;
+  const now = new Date();
+  const nowTime = now.getTime();
+  const hardExpired = session.expires_at ? new Date(session.expires_at).getTime() <= nowTime : false;
+  const idleExpired = session.idle_expires_at ? new Date(session.idle_expires_at).getTime() <= nowTime : false;
+
+  if (hardExpired || idleExpired) {
+    await db
+      .from("table_sessions")
+      .update({ status: "expired", closed_at: now.toISOString(), updated_at: now.toISOString() })
+      .eq("id", session.id);
+
+    throw new Error("This table session expired. Please ask the waiter to reset or approve the table again.");
+  }
+
+  if (session.status === "pending") {
+    throw new Error("A waiter must approve this table before orders go to the kitchen.");
+  }
+
+  if (session.status !== "active") {
+    throw new Error("This table session is closed. Please ask the waiter to reset or approve the table again.");
+  }
+
+  if (session.last_order_at) {
+    const secondsSinceLastOrder = (nowTime - new Date(session.last_order_at).getTime()) / 1000;
+    if (secondsSinceLastOrder >= 0 && secondsSinceLastOrder < MIN_ORDER_SECONDS) {
+      throw new Error(`Please wait ${Math.ceil(MIN_ORDER_SECONDS - secondsSinceLastOrder)} seconds before sending another order.`);
+    }
+  }
+
+  await db
+    .from("table_sessions")
+    .update({
+      last_seen_at: now.toISOString(),
+      idle_expires_at: addMinutes(now, IDLE_SESSION_MINUTES).toISOString(),
+      updated_at: now.toISOString(),
+    })
+    .eq("id", session.id);
+
+  return session;
+}
+
 async function fetchOrders(db: SupabaseClient, businessId: string, tableNumber?: number | null) {
   let query = db
     .from("table_orders")
-    .select("id, business_account_id, auth_user_id, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, special_instructions, modifiers, modifiers_total_jod, base_price_jod, unit_total_jod, status, created_at")
+    .select(orderSelect())
     .eq("business_account_id", businessId)
     .order("created_at", { ascending: false });
 
-  if (tableNumber) {
-    query = query.eq("table_number", tableNumber);
-  }
+  if (tableNumber) query = query.eq("table_number", tableNumber);
 
   const { data, error } = await query;
-
   if (error) throw error;
 
   return data || [];
@@ -232,25 +311,14 @@ export async function GET(request: NextRequest) {
     const wantsAll = request.nextUrl.searchParams.get("all") === "1";
     const tableNumber = wantsAll ? null : cleanTable(request.nextUrl.searchParams.get("table"));
 
-    if (!businessId && !username) {
-      return jsonError("Missing business account for kitchen order lookup", 400);
-    }
+    if (!businessId && !username) return jsonError("Missing business account for kitchen order lookup", 400);
 
     const business = await findBusiness(db, businessId, username, authUserId);
     const orders = await fetchOrders(db, business.id, tableNumber);
 
     return NextResponse.json(
-      {
-        ok: true,
-        mode: usingServiceRole() ? "service_role" : "anon_fallback",
-        orders,
-        table: tableNumber,
-      },
-      {
-        headers: {
-          "Cache-Control": "no-store, max-age=0",
-        },
-      }
+      { ok: true, mode: usingServiceRole() ? "service_role" : "anon_fallback", orders, table: tableNumber },
+      { headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   } catch (error) {
     return jsonError(error instanceof Error ? error.message : "Could not load orders");
@@ -267,25 +335,17 @@ export async function POST(request: NextRequest) {
     const username = cleanText(body.username);
     const tableNumber = cleanTable(body.table);
     const guestName = cleanGuestName(body.guestName);
+    const sessionToken = cleanToken(body.sessionToken);
     const items = Array.isArray(body.items) ? (body.items as OrderItemPayload[]) : [];
 
-    if (!businessId || !isUuid(businessId)) {
-      return jsonError("Missing or invalid businessId. Create a fresh QR code.", 400);
-    }
-
-    if (!guestName) {
-      return jsonError("Guest name is required", 400);
-    }
-
-    if (!items.length) {
-      return jsonError("At least one item is required", 400);
-    }
+    if (!businessId || !isUuid(businessId)) return jsonError("Missing or invalid businessId. Create a fresh QR code.", 400);
+    if (!guestName) return jsonError("Guest name is required", 400);
+    if (!items.length) return jsonError("At least one item is required", 400);
 
     const business = await findBusiness(db, businessId, username, authUserId);
+    if (!business.auth_user_id) return jsonError("Missing auth_user_id for restaurant. Refresh the QR page.", 400);
 
-    if (!business.auth_user_id) {
-      return jsonError("Missing auth_user_id for restaurant. Refresh the QR page.", 400);
-    }
+    const session = await requireActiveTableSession(db, business.id, tableNumber, sessionToken);
 
     const rows: TableOrderInsertRow[] = items
       .map((item): TableOrderInsertRow | null => {
@@ -294,9 +354,7 @@ export async function POST(request: NextRequest) {
         const quantity = cleanQuantity(item.quantity);
         const basePrice = cleanPrice(item.basePrice || item.price);
         const modifiers = cleanModifiers(item.modifiers || []);
-        const modifiersTotal = item.addonsTotal === undefined
-          ? modifierTotal(modifiers)
-          : cleanPrice(item.addonsTotal);
+        const modifiersTotal = item.addonsTotal === undefined ? modifierTotal(modifiers) : cleanPrice(item.addonsTotal);
         const price = cleanPrice(item.price || basePrice + modifiersTotal);
         const unitTotal = Math.round(price * 1000) / 1000;
 
@@ -305,6 +363,7 @@ export async function POST(request: NextRequest) {
         return {
           business_account_id: business.id,
           auth_user_id: business.auth_user_id,
+          table_session_id: session.id,
           table_number: tableNumber,
           guest_name: guestName,
           item_id: itemId,
@@ -322,31 +381,28 @@ export async function POST(request: NextRequest) {
       })
       .filter(isTableOrderInsertRow);
 
-    if (!rows.length) {
-      return jsonError("No valid items to send", 400);
-    }
+    if (!rows.length) return jsonError("No valid items to send", 400);
 
     const { data: orders, error } = await db
       .from("table_orders")
       .insert(rows)
-      .select("id, business_account_id, auth_user_id, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, special_instructions, modifiers, modifiers_total_jod, base_price_jod, unit_total_jod, status, created_at");
+      .select(orderSelect());
 
-    if (error) {
-      return jsonError(`Supabase insert failed: ${error.message}`, 500);
-    }
+    if (error) return jsonError(`Supabase insert failed: ${error.message}`, 500);
+
+    await db
+      .from("table_sessions")
+      .update({
+        last_order_at: new Date().toISOString(),
+        last_seen_at: new Date().toISOString(),
+        idle_expires_at: addMinutes(new Date(), IDLE_SESSION_MINUTES).toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", session.id);
 
     return NextResponse.json(
-      {
-        ok: true,
-        mode: usingServiceRole() ? "service_role" : "anon_fallback",
-        orders: orders || [],
-        table: tableNumber,
-      },
-      {
-        headers: {
-          "Cache-Control": "no-store, max-age=0",
-        },
-      }
+      { ok: true, mode: usingServiceRole() ? "service_role" : "anon_fallback", orders: orders || [], table: tableNumber },
+      { headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   } catch (error) {
     return jsonError(error instanceof Error ? error.message : "Could not send order");
@@ -364,46 +420,25 @@ export async function PATCH(request: NextRequest) {
     const orderId = cleanText(body.orderId);
     const status = cleanText(body.status, "New");
 
-    if (!businessId || !isUuid(businessId)) {
-      return jsonError("Missing or invalid businessId", 400);
-    }
-
-    if (!orderId || !isUuid(orderId)) {
-      return jsonError("Invalid order", 400);
-    }
-
-    if (!allowedStatuses.has(status)) {
-      return jsonError("Invalid order status", 400);
-    }
+    if (!businessId || !isUuid(businessId)) return jsonError("Missing or invalid businessId", 400);
+    if (!orderId || !isUuid(orderId)) return jsonError("Invalid order", 400);
+    if (!allowedStatuses.has(status)) return jsonError("Invalid order status", 400);
 
     const business = await findBusiness(db, businessId, username, authUserId);
 
     const { data: order, error } = await db
       .from("table_orders")
-      .update({
-        status,
-        updated_at: new Date().toISOString(),
-      })
+      .update({ status, updated_at: new Date().toISOString() })
       .eq("id", orderId)
       .eq("business_account_id", business.id)
-      .select("id, business_account_id, auth_user_id, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, special_instructions, modifiers, modifiers_total_jod, base_price_jod, unit_total_jod, status, created_at")
+      .select(orderSelect())
       .single();
 
-    if (error) {
-      return jsonError(`Supabase update failed: ${error.message}`, 500);
-    }
+    if (error) return jsonError(`Supabase update failed: ${error.message}`, 500);
 
     return NextResponse.json(
-      {
-        ok: true,
-        mode: usingServiceRole() ? "service_role" : "anon_fallback",
-        order,
-      },
-      {
-        headers: {
-          "Cache-Control": "no-store, max-age=0",
-        },
-      }
+      { ok: true, mode: usingServiceRole() ? "service_role" : "anon_fallback", order },
+      { headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   } catch (error) {
     return jsonError(error instanceof Error ? error.message : "Could not update order");

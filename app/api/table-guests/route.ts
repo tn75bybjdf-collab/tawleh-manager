@@ -1,9 +1,12 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
+
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+const IDLE_SESSION_MINUTES = 45;
 
 type BusinessRow = {
   id: string;
@@ -11,27 +14,27 @@ type BusinessRow = {
   username: string | null;
 };
 
-function serverClient() {
-  if (!supabaseUrl) {
-    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL");
+type TableSessionRow = {
+  id: string;
+  business_account_id: string;
+  table_number: number;
+  session_token: string;
+  status: string;
+  expires_at: string | null;
+  idle_expires_at: string | null;
+};
+
+function adminClient() {
+  if (!supabaseUrl || !serviceRoleKey) {
+    throw new Error("Missing Supabase server environment keys");
   }
 
-  const key = serviceRoleKey || anonKey;
-
-  if (!key) {
-    throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_ANON_KEY");
-  }
-
-  return createClient(supabaseUrl, key, {
+  return createClient(supabaseUrl, serviceRoleKey, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
     },
   });
-}
-
-function usingServiceRole() {
-  return Boolean(serviceRoleKey);
 }
 
 function isUuid(value: string) {
@@ -43,49 +46,27 @@ function cleanText(value: unknown, fallback = "") {
 }
 
 function cleanGuestName(value: unknown) {
-  return cleanText(value)
-    .replace(/\s+/g, " ")
-    .slice(0, 40);
+  return cleanText(value).replace(/\s+/g, " ").slice(0, 40);
+}
+
+function cleanToken(value: unknown) {
+  return cleanText(value).replace(/[^a-zA-Z0-9_\-:.]/g, "").slice(0, 220);
 }
 
 function cleanTable(value: unknown) {
   const table = Number(value || 1);
-  return Math.max(1, Math.min(999, Number.isFinite(table) ? table : 1));
+  return Math.max(1, Math.min(999, Number.isFinite(table) ? Math.floor(table) : 1));
 }
 
-function jsonError(message: string, status = 500) {
-  return NextResponse.json(
-    {
-      error: message,
-      mode: usingServiceRole() ? "service_role" : "anon_fallback",
-    },
-    { status }
-  );
+function addMinutes(date: Date, minutes: number) {
+  return new Date(date.getTime() + minutes * 60_000);
 }
 
-async function findBusiness(
-  db: SupabaseClient,
-  businessId: string,
-  username = "",
-  fallbackAuthUserId = ""
-) {
-  if (businessId && !isUuid(businessId)) {
-    throw new Error("Invalid business account id");
-  }
-
-  if (!usingServiceRole() && businessId && fallbackAuthUserId) {
-    return {
-      id: businessId,
-      auth_user_id: fallbackAuthUserId,
-      username: username || null,
-    } as BusinessRow;
-  }
-
-  let query = db
-    .from("business_accounts")
-    .select("id, auth_user_id, username");
+async function findBusiness(admin: SupabaseClient, businessId: string, username = "") {
+  let query = admin.from("business_accounts").select("id, auth_user_id, username");
 
   if (businessId) {
+    if (!isUuid(businessId)) throw new Error("Invalid business account");
     query = query.eq("id", businessId);
   } else if (username) {
     query = query.eq("username", username.toLowerCase());
@@ -94,137 +75,152 @@ async function findBusiness(
   }
 
   const { data, error } = await query.maybeSingle();
-
   if (error) throw error;
   if (!data) throw new Error("Restaurant account was not found");
 
   return data as BusinessRow;
 }
 
-async function fetchGuests(db: SupabaseClient, businessId: string, tableNumber: number) {
-  const { data, error } = await db
+async function fetchGuests(admin: SupabaseClient, businessId: string, tableNumber: number) {
+  const { data, error } = await admin
     .from("table_guests")
-    .select("id, business_account_id, auth_user_id, table_number, guest_name, active, created_at, last_seen_at")
+    .select("id, business_account_id, table_session_id, table_number, guest_name, active, created_at, last_seen_at")
     .eq("business_account_id", businessId)
     .eq("table_number", tableNumber)
     .eq("active", true)
     .order("created_at", { ascending: true });
 
   if (error) throw error;
-
   return data || [];
+}
+
+async function expireOldSessions(admin: SupabaseClient, businessId: string, tableNumber: number) {
+  const now = new Date().toISOString();
+  const { error } = await admin
+    .from("table_sessions")
+    .update({ status: "expired", closed_at: now, updated_at: now })
+    .eq("business_account_id", businessId)
+    .eq("table_number", tableNumber)
+    .in("status", ["pending", "active"])
+    .or(`expires_at.lt.${now},idle_expires_at.lt.${now}`);
+
+  if (error && error.code !== "42P01" && error.code !== "42703") throw error;
+}
+
+async function requireJoinableSession(admin: SupabaseClient, businessId: string, tableNumber: number, sessionToken: string) {
+  if (!sessionToken) throw new Error("This QR page is missing its table session. Please scan the table QR again.");
+
+  await expireOldSessions(admin, businessId, tableNumber);
+
+  const { data, error } = await admin
+    .from("table_sessions")
+    .select("id, business_account_id, table_number, session_token, status, expires_at, idle_expires_at")
+    .eq("business_account_id", businessId)
+    .eq("table_number", tableNumber)
+    .eq("session_token", sessionToken)
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data?.id) throw new Error("This table session is no longer valid. Please scan the table QR again.");
+
+  const session = data as TableSessionRow;
+  if (!["pending", "active"].includes(String(session.status || ""))) {
+    throw new Error("This table session is closed. Please ask the waiter to reset or approve the table again.");
+  }
+
+  const now = new Date();
+  await admin
+    .from("table_sessions")
+    .update({
+      last_seen_at: now.toISOString(),
+      idle_expires_at: addMinutes(now, IDLE_SESSION_MINUTES).toISOString(),
+      updated_at: now.toISOString(),
+    })
+    .eq("id", session.id);
+
+  return session;
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const db = serverClient();
+    const admin = adminClient();
     const businessId = cleanText(request.nextUrl.searchParams.get("businessId"));
-    const authUserId = cleanText(request.nextUrl.searchParams.get("authUserId"));
     const username = cleanText(request.nextUrl.searchParams.get("username"));
     const tableNumber = cleanTable(request.nextUrl.searchParams.get("table"));
 
-    if (!businessId && !username) {
-      return jsonError("Missing business account for seated guests", 400);
-    }
-
-    const business = await findBusiness(db, businessId, username, authUserId);
-    const guests = await fetchGuests(db, business.id, tableNumber);
+    const business = await findBusiness(admin, businessId, username);
+    const guests = await fetchGuests(admin, business.id, tableNumber);
 
     return NextResponse.json(
-      {
-        ok: true,
-        mode: usingServiceRole() ? "service_role" : "anon_fallback",
-        guests,
-        table: tableNumber,
-      },
-      {
-        headers: {
-          "Cache-Control": "no-store, max-age=0",
-        },
-      }
+      { guests, table: tableNumber },
+      { headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   } catch (error) {
-    return jsonError(error instanceof Error ? error.message : "Could not load seated guests");
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Could not load seated guests" },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const db = serverClient();
+    const admin = adminClient();
     const body = await request.json();
 
     const businessId = cleanText(body.businessId);
-    const authUserId = cleanText(body.authUserId);
     const username = cleanText(body.username);
     const tableNumber = cleanTable(body.table);
     const guestName = cleanGuestName(body.guestName);
+    const sessionToken = cleanToken(body.sessionToken);
 
-    if (!businessId || !isUuid(businessId)) {
-      return jsonError("Missing or invalid businessId. Create a fresh QR code.", 400);
-    }
+    if (!guestName) return NextResponse.json({ error: "Guest name is required" }, { status: 400 });
 
-    if (!authUserId || !isUuid(authUserId)) {
-      return jsonError("Missing restaurant owner id. Refresh the QR page.", 400);
-    }
-
-    if (!guestName) {
-      return jsonError("Guest name is required", 400);
-    }
-
-    const business = await findBusiness(db, businessId, username, authUserId);
-    const existingGuests = await fetchGuests(db, business.id, tableNumber);
+    const business = await findBusiness(admin, businessId, username);
+    const session = await requireJoinableSession(admin, business.id, tableNumber, sessionToken);
+    const existingGuests = await fetchGuests(admin, business.id, tableNumber);
     const existingGuest = existingGuests.find(
-      (guest: { id?: string; guest_name?: string }) =>
-        cleanGuestName(guest.guest_name).toLowerCase() === guestName.toLowerCase()
+      (guest: { guest_name?: string }) => cleanGuestName(guest.guest_name).toLowerCase() === guestName.toLowerCase()
     );
 
     if (existingGuest?.id) {
-      const { error } = await db
+      const { error: updateError } = await admin
         .from("table_guests")
-        .update({
-          active: true,
-          last_seen_at: new Date().toISOString(),
-        })
-        .eq("id", existingGuest.id)
-        .eq("business_account_id", business.id)
-        .eq("table_number", tableNumber);
+        .update({ active: true, table_session_id: session.id, last_seen_at: new Date().toISOString() })
+        .eq("id", existingGuest.id);
 
-      if (error) {
-        return jsonError(`Supabase guest update failed: ${error.message}`, 500);
-      }
+      if (updateError) throw updateError;
     } else {
-      const { error } = await db
+      const { error: insertError } = await admin
         .from("table_guests")
         .insert({
           business_account_id: business.id,
-          auth_user_id: business.auth_user_id || authUserId,
+          auth_user_id: business.auth_user_id,
+          table_session_id: session.id,
           table_number: tableNumber,
           guest_name: guestName,
           active: true,
           last_seen_at: new Date().toISOString(),
         });
 
-      if (error) {
-        return jsonError(`Supabase guest insert failed: ${error.message}`, 500);
-      }
+      if (insertError) throw insertError;
     }
 
-    const guests = await fetchGuests(db, business.id, tableNumber);
+    await admin
+      .from("table_sessions")
+      .update({ guest_name: guestName, last_seen_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+      .eq("id", session.id);
+
+    const guests = await fetchGuests(admin, business.id, tableNumber);
 
     return NextResponse.json(
-      {
-        ok: true,
-        mode: usingServiceRole() ? "service_role" : "anon_fallback",
-        guests,
-        table: tableNumber,
-      },
-      {
-        headers: {
-          "Cache-Control": "no-store, max-age=0",
-        },
-      }
+      { guests, table: tableNumber },
+      { headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   } catch (error) {
-    return jsonError(error instanceof Error ? error.message : "Could not save seated guest");
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Could not save seated guest" },
+      { status: 500 }
+    );
   }
 }

@@ -8212,6 +8212,43 @@ type TableGuestRow = {
   last_seen_at: string | null;
 };
 
+type TableSession = {
+  id: string;
+  businessId: string;
+  authUserId: string;
+  tableNumber: number;
+  token: string;
+  status: "pending" | "active" | "closed" | "expired" | "blocked";
+  guestName: string;
+  createdAt: string;
+  updatedAt: string;
+  lastSeenAt: string;
+  approvedAt: string;
+  closedAt: string;
+  expiresAt: string;
+  idleExpiresAt: string;
+  lastOrderAt: string;
+};
+
+type TableSessionRow = {
+  id: string;
+  business_account_id: string;
+  auth_user_id: string | null;
+  table_number: number | string | null;
+  session_token?: string | null;
+  token?: string | null;
+  status: string | null;
+  guest_name: string | null;
+  created_at: string | null;
+  updated_at: string | null;
+  last_seen_at: string | null;
+  approved_at: string | null;
+  closed_at: string | null;
+  expires_at: string | null;
+  idle_expires_at: string | null;
+  last_order_at: string | null;
+};
+
 type MenuDraft = {
   name: string;
   nameAr: string;
@@ -9257,6 +9294,29 @@ function rowToGuestName(row: TableGuestRow) {
   return (row.guest_name || "").trim();
 }
 
+function rowToTableSession(row: TableSessionRow): TableSession {
+  const rawStatus = String(row.status || "pending").toLowerCase();
+  const allowedStatuses = new Set(["pending", "active", "closed", "expired", "blocked"]);
+
+  return {
+    id: String(row.id || ""),
+    businessId: String(row.business_account_id || ""),
+    authUserId: String(row.auth_user_id || ""),
+    tableNumber: Math.max(1, Math.min(999, Number(row.table_number || 1))),
+    token: String(row.session_token || row.token || ""),
+    status: (allowedStatuses.has(rawStatus) ? rawStatus : "pending") as TableSession["status"],
+    guestName: String(row.guest_name || ""),
+    createdAt: String(row.created_at || ""),
+    updatedAt: String(row.updated_at || ""),
+    lastSeenAt: String(row.last_seen_at || ""),
+    approvedAt: String(row.approved_at || ""),
+    closedAt: String(row.closed_at || ""),
+    expiresAt: String(row.expires_at || ""),
+    idleExpiresAt: String(row.idle_expires_at || ""),
+    lastOrderAt: String(row.last_order_at || ""),
+  };
+}
+
 function uniqueGuestNames(names: string[]) {
   const seen = new Set<string>();
   const cleanNames: string[] = [];
@@ -9636,7 +9696,8 @@ async function joinTableGuestInSupabase(
   authUserId: string,
   tableNumber: number,
   guestName: string,
-  username = ""
+  username = "",
+  sessionToken = ""
 ) {
   const response = await fetch("/api/table-guests", {
     method: "POST",
@@ -9649,6 +9710,7 @@ async function joinTableGuestInSupabase(
       username,
       table: tableNumber,
       guestName,
+      sessionToken,
     }),
   });
 
@@ -9656,6 +9718,78 @@ async function joinTableGuestInSupabase(
   const rows = (result.guests || []) as TableGuestRow[];
 
   return uniqueGuestNames(rows.map((row) => rowToGuestName(row)));
+}
+
+async function startTableSessionInSupabase(
+  businessId: string,
+  authUserId: string,
+  tableNumber: number,
+  username = "",
+  qrToken = ""
+) {
+  const response = await fetch("/api/table-sessions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      businessId,
+      authUserId,
+      username,
+      table: tableNumber,
+      qrToken,
+    }),
+  });
+
+  const result = await readApiJson(response);
+  return rowToTableSession((result.session || {}) as TableSessionRow);
+}
+
+async function fetchTableSessionsFromSupabase(
+  businessId: string,
+  username = ""
+) {
+  const params = new URLSearchParams({
+    businessId,
+    username,
+    all: "1",
+  });
+
+  const headers = await getManagerAuthHeaders();
+
+  const response = await fetch(`/api/table-sessions?${params.toString()}`, {
+    method: "GET",
+    headers,
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  const rows = (result.sessions || []) as TableSessionRow[];
+
+  return rows.map((row) => rowToTableSession(row));
+}
+
+async function updateTableSessionStatusInSupabase(
+  businessId: string,
+  username: string,
+  sessionId: string,
+  status: "active" | "closed" | "blocked"
+) {
+  const headers = await getManagerAuthHeaders();
+
+  const response = await fetch("/api/table-sessions", {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({
+      businessId,
+      username,
+      sessionId,
+      status,
+    }),
+  });
+
+  const result = await readApiJson(response);
+  return rowToTableSession((result.session || {}) as TableSessionRow);
 }
 
 async function fetchTableOrdersFromSupabase(
@@ -9693,7 +9827,8 @@ async function sendCartOrderToSupabase(
   tableNumber: number,
   guestName: string,
   cartLines: CartLine[],
-  username = ""
+  username = "",
+  sessionToken = ""
 ) {
   const response = await fetch("/api/table-orders", {
     method: "POST",
@@ -9706,6 +9841,7 @@ async function sendCartOrderToSupabase(
       username,
       table: tableNumber,
       guestName,
+      sessionToken,
       items: cartLines.map((line) => ({
         itemId: line.item.id,
         itemName: line.item.name,
@@ -10277,6 +10413,11 @@ export default function Page() {
     paymentDueDate: "",
     balanceDueJod: 0,
   });
+  const [tableSession, setTableSession] = useState<TableSession | null>(null);
+  const [tableSessions, setTableSessions] = useState<TableSession[]>([]);
+  const [tableSessionBusy, setTableSessionBusy] = useState(false);
+  const [tableSessionMessage, setTableSessionMessage] = useState("");
+  const tableSessionLoadedKeyRef = useRef("");
   const [activeTable, setActiveTable] = useState(DEMO_TABLE);
   const [tableSortMode, setTableSortMode] = useState<"number" | "active" | "needsHelp" | "openOrders" | "billHigh" | "empty">("number");
 
@@ -10289,6 +10430,8 @@ export default function Page() {
 
       if (adminMode) {
         setPublicTableMode(false);
+        setTableSession(null);
+        setTableSessionMessage("");
         setAuthTab("platformAdmin");
         setState(defaultState);
         setSignupProfile(defaultState.profile);
@@ -10305,6 +10448,8 @@ export default function Page() {
 
       if (qrMode) {
         setPublicTableMode(true);
+        setTableSession(null);
+        setTableSessionMessage("");
         setActiveTable(tableNumber);
         setPhoneTab("menu");
 
@@ -10564,6 +10709,87 @@ export default function Page() {
     };
   }, [state.profile.businessId, state.profile.username, activeTable, publicCustomerMode]);
 
+
+  useEffect(() => {
+    if (!publicCustomerMode || !state.profile.businessId || !state.profile.authUserId || publicSuspension.suspended) return;
+
+    let cancelled = false;
+
+    async function refreshTableSession() {
+      const qrToken = new URLSearchParams(window.location.search).get("token") || "";
+      const sessionKey = `${state.profile.businessId}:${activeTable}:${qrToken}`;
+
+      try {
+        const session = await startTableSessionInSupabase(
+          state.profile.businessId,
+          state.profile.authUserId,
+          activeTable,
+          state.profile.username,
+          qrToken
+        );
+
+        if (cancelled) return;
+
+        tableSessionLoadedKeyRef.current = sessionKey;
+        setTableSession(session);
+
+        if (session.status === "pending") {
+          setTableSessionMessage("This table is waiting for waiter approval before orders can go to the kitchen.");
+        } else if (session.status === "active") {
+          setTableSessionMessage("");
+        } else {
+          setTableSessionMessage("This table session expired. Please ask the waiter to reset or approve the table again.");
+        }
+      } catch (error) {
+        if (cancelled) return;
+        const message = getErrorMessage(error);
+        setTableSessionMessage(message);
+        console.error("Table session refresh failed", error);
+      }
+    }
+
+    void refreshTableSession();
+
+    const interval = window.setInterval(() => {
+      void refreshTableSession();
+    }, 5000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [publicCustomerMode, state.profile.businessId, state.profile.authUserId, state.profile.username, activeTable, publicSuspension.suspended]);
+
+  useEffect(() => {
+    if (publicCustomerMode || !state.profile.businessId || !state.profileComplete) return;
+
+    let cancelled = false;
+
+    async function refreshTableSessions() {
+      try {
+        const sessions = await fetchTableSessionsFromSupabase(
+          state.profile.businessId,
+          state.profile.username
+        );
+
+        if (cancelled) return;
+        setTableSessions(sessions);
+      } catch (error) {
+        console.error("Table session dashboard refresh failed", error);
+      }
+    }
+
+    void refreshTableSessions();
+
+    const interval = window.setInterval(() => {
+      void refreshTableSessions();
+    }, 7000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [publicCustomerMode, state.profile.businessId, state.profile.username, state.profileComplete]);
 
   useEffect(() => {
     if (publicCustomerMode) return;
@@ -10946,6 +11172,8 @@ export default function Page() {
     acc[order.guest].push(order);
     return acc;
   }, {});
+  const selectedPendingSession = tableSessions.find((session) => session.tableNumber === activeTable && session.status === "pending") || null;
+  const selectedLiveSession = tableSessions.find((session) => session.tableNumber === activeTable && session.status === "active") || null;
 
   const tableDashboardRows = useMemo(() => {
     return Array.from({ length: state.profile.tableCount }, (_, index) => {
@@ -10958,7 +11186,9 @@ export default function Page() {
         ? uniqueGuestNames(state.guests).length
         : tableGuestsFromOrders.length;
       const needsHelp = waitingRequests.some((request) => Number(request.table || activeTable) === tableNumber);
-      const active = tableGuestCount > 0 || tableOpenOrders > 0 || tableBillTotal > 0;
+      const pendingSession = tableSessions.find((session) => session.tableNumber === tableNumber && session.status === "pending") || null;
+      const liveSession = tableSessions.find((session) => session.tableNumber === tableNumber && session.status === "active") || null;
+      const active = Boolean(tableGuestCount > 0 || tableOpenOrders > 0 || tableBillTotal > 0 || pendingSession || liveSession);
 
       return {
         tableNumber,
@@ -10966,6 +11196,8 @@ export default function Page() {
         tableOpenOrders,
         tableBillTotal,
         tableGuestCount,
+        pendingSession,
+        liveSession,
         needsHelp,
         active,
       };
@@ -11002,7 +11234,7 @@ export default function Page() {
 
       return a.tableNumber - b.tableNumber;
     });
-  }, [activeTable, state.guests, state.orders, state.profile.tableCount, tableSortMode, waitingRequests]);
+  }, [activeTable, state.guests, state.orders, state.profile.tableCount, tableSortMode, waitingRequests, tableSessions]);
 
   const activeTableDashboardCount = tableDashboardRows.filter((row) => row.active).length;
 
@@ -12041,6 +12273,60 @@ export default function Page() {
     show("Enter your name first");
   }
 
+  async function ensurePublicTableSession(requireActive = false) {
+    if (!publicCustomerMode) return tableSession;
+
+    if (!state.profile.businessId || !state.profile.authUserId) {
+      throw new Error("Missing table session restaurant details. Refresh this QR page.");
+    }
+
+    let session = tableSession;
+
+    if (!session?.token || session.status === "closed" || session.status === "expired" || session.status === "blocked") {
+      const qrToken = new URLSearchParams(window.location.search).get("token") || "";
+      session = await startTableSessionInSupabase(
+        state.profile.businessId,
+        state.profile.authUserId,
+        activeTable,
+        state.profile.username,
+        qrToken
+      );
+      setTableSession(session);
+    }
+
+    if (requireActive && session?.status !== "active") {
+      const message = session?.status === "pending"
+        ? "A waiter must approve this table before orders go to the kitchen."
+        : "This table session is no longer active. Please scan the table QR again or ask the waiter to reset the table.";
+      setTableSessionMessage(message);
+      throw new Error(message);
+    }
+
+    return session;
+  }
+
+  async function approveTableSession(sessionId: string) {
+    if (!state.profile.businessId || !sessionId || tableSessionBusy) return;
+
+    setTableSessionBusy(true);
+
+    try {
+      const session = await updateTableSessionStatusInSupabase(
+        state.profile.businessId,
+        state.profile.username,
+        sessionId,
+        "active"
+      );
+
+      setTableSessions((current) => current.map((item) => (item.id === session.id ? session : item)));
+      show(`Table ${session.tableNumber} approved for ordering`);
+    } catch (error) {
+      show(`Could not approve table: ${getErrorMessage(error)}`);
+    } finally {
+      setTableSessionBusy(false);
+    }
+  }
+
   async function joinGuest(name: string) {
     const clean = name.trim().replace(/\s+/g, " ");
 
@@ -12075,12 +12361,15 @@ export default function Page() {
 
     if (publicCustomerMode && state.profile.businessId) {
       try {
+        const session = await ensurePublicTableSession(false);
+
         const savedGuests = await joinTableGuestInSupabase(
           state.profile.businessId,
           state.profile.authUserId,
           activeTable,
           clean,
-          state.profile.username
+          state.profile.username,
+          session?.token || ""
         );
 
         const mergedGuests = mergeGuestLists(savedGuests, readCachedTableGuests(state.profile.businessId, activeTable), [clean]);
@@ -12318,13 +12607,16 @@ export default function Page() {
     setOrderSendError("");
 
     try {
+      const session = publicCustomerMode ? await ensurePublicTableSession(true) : tableSession;
+
       const savedOrders = await sendCartOrderToSupabase(
         state.profile.businessId,
         state.profile.authUserId,
         activeTable,
         state.currentGuest,
         orderCartLines,
-        state.profile.username
+        state.profile.username,
+        session?.token || ""
       );
 
       if (!savedOrders.length) {
@@ -13304,6 +13596,13 @@ export default function Page() {
           state.profile.username
         );
 
+        setTableSessions((current) => current.filter((session) => session.tableNumber !== cleanTableNumber));
+
+        if (publicCustomerMode && cleanTableNumber === activeTable) {
+          setTableSession(null);
+          setTableSessionMessage("This table was reset. Please ask the waiter to approve a new table session.");
+        }
+
         writeCachedTableGuests(state.profile.businessId, cleanTableNumber, []);
       }
 
@@ -14097,6 +14396,7 @@ export default function Page() {
 
               <div className="panel-body">
                 {publicTableError ? <div className="inline-error">{publicTableError}</div> : null}
+                {publicCustomerMode && tableSessionMessage ? <div className="inline-error">{tableSessionMessage}</div> : null}
                 <div className="customer-phone">
                   <div className="phone-screen">
                     <div className="phone-status">9:41 &nbsp; Tawleh</div>
@@ -15191,6 +15491,8 @@ export default function Page() {
                           const tableOpenOrders = row.tableOpenOrders;
                           const tableBillTotal = row.tableBillTotal;
                           const tableGuestCount = row.tableGuestCount;
+                          const pendingSession = row.pendingSession;
+                          const liveSession = row.liveSession;
                           const isSelected = tableNumber === activeTable;
 
                           return (
@@ -15208,8 +15510,19 @@ export default function Page() {
                                       : "Available"}
                                   </p>
                                 </div>
-                                <span className={`status ${needsHelp ? "waiting" : active ? "ready" : "served"}`}>{needsHelp ? "Needs waiter" : active ? "Active" : "Empty"}</span>
+                                <span className={`status ${pendingSession ? "waiting" : needsHelp ? "waiting" : active ? "ready" : "served"}`}>{pendingSession ? "Needs approval" : needsHelp ? "Needs waiter" : liveSession ? "Session active" : active ? "Active" : "Empty"}</span>
                               </button>
+
+                              {pendingSession ? (
+                                <button
+                                  className="table-reset-button"
+                                  type="button"
+                                  onClick={() => approveTableSession(pendingSession.id)}
+                                  disabled={tableSessionBusy}
+                                >
+                                  {tableSessionBusy ? "Approving..." : "Approve ordering"}
+                                </button>
+                              ) : null}
 
                               <button
                                 className="table-reset-button"
@@ -15228,6 +15541,18 @@ export default function Page() {
                     <div className="manager-card">
                       <h3>Table {activeTable} Bill</h3>
                       <p className="sub">This is the selected table only. Reset after guests leave to clear the next QR session.</p>
+                      {selectedPendingSession ? (
+                        <div className="inline-error" style={{ marginBottom: 12 }}>
+                          Customer is waiting for approval on Table {activeTable}. Old saved QR/history pages cannot send kitchen orders unless you approve this session.
+                          <div style={{ marginTop: 10 }}>
+                            <button className="btn secondary small" type="button" onClick={() => approveTableSession(selectedPendingSession.id)} disabled={tableSessionBusy}>
+                              {tableSessionBusy ? "Approving..." : "Approve ordering for this table"}
+                            </button>
+                          </div>
+                        </div>
+                      ) : selectedLiveSession ? (
+                        <div className="success-box" style={{ marginBottom: 12 }}>Live QR session active. Reset table when guests leave to kill this session.</div>
+                      ) : null}
                       <GuestBillRows billByGuest={selectedTableBillByGuest} />
                       <div className="bill-total"><span>Total</span><span>{money(selectedTableTotal)}</span></div>
                       <div className="table-reset-summary">
