@@ -5806,6 +5806,89 @@ main.customer-only-shell .image-modal-card > img {
   }
 }
 
+
+
+/* =========================================================
+   TABLE RESET DASHBOARD
+   Reset table clears seated guests, waiter requests, orders, and bill total.
+   ========================================================= */
+
+.resettable-table-map {
+  gap: 12px !important;
+}
+
+.resettable-table-card {
+  display: grid !important;
+  gap: 10px !important;
+  padding: 12px !important;
+}
+
+.resettable-table-card.selected-table-card {
+  outline: 2px solid rgba(189, 83, 56, 0.42) !important;
+  box-shadow: 0 16px 36px rgba(189, 83, 56, 0.13) !important;
+}
+
+.resettable-table-card .table-card-main {
+  width: 100% !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  border: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  text-align: left !important;
+  cursor: pointer !important;
+}
+
+.resettable-table-card .table-card-main h4 {
+  margin: 0 !important;
+}
+
+.resettable-table-card .table-card-main p {
+  margin: 5px 0 0 !important;
+  line-height: 1.35 !important;
+}
+
+.table-reset-button {
+  min-height: 38px !important;
+  width: 100% !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: rgba(189, 83, 56, 0.10) !important;
+  color: #a33a2b !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+  cursor: pointer !important;
+}
+
+.table-reset-button:not(:disabled):hover {
+  background: rgba(189, 83, 56, 0.18) !important;
+}
+
+.table-reset-button:disabled {
+  opacity: 0.46 !important;
+  cursor: not-allowed !important;
+}
+
+.table-reset-summary {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  margin: 12px 0 !important;
+}
+
+.table-reset-summary span {
+  display: grid !important;
+  min-height: 38px !important;
+  place-items: center !important;
+  border-radius: 14px !important;
+  background: rgba(189, 83, 56, 0.08) !important;
+  color: #6c4c3f !important;
+  font-size: 12px !important;
+  font-weight: 950 !important;
+}
+
 `;
 
 
@@ -7107,6 +7190,34 @@ async function updateTableOrderStatusInSupabase(
   return rowToOrder(result.order as TableOrderRow);
 }
 
+async function resetTableInSupabase(
+  businessId: string,
+  authUserId: string,
+  tableNumber: number,
+  username = ""
+) {
+  const response = await fetch("/api/table-reset", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      businessId,
+      authUserId,
+      username,
+      table: tableNumber,
+    }),
+  });
+
+  const result = await readApiJson(response);
+
+  return {
+    clearedGuests: Number(result.clearedGuests || 0),
+    clearedOrders: Number(result.clearedOrders || 0),
+    table: Number(result.table || tableNumber),
+  };
+}
+
 async function insertMenuItemIntoSupabase(businessId: string, item: MenuItem) {
   const headers = await getManagerAuthHeaders();
 
@@ -7209,6 +7320,7 @@ export default function Page() {
   const [expandedMenuCategories, setExpandedMenuCategories] = useState<Record<string, boolean>>({});
   const [imageBusy, setImageBusy] = useState(false);
   const [menuBusy, setMenuBusy] = useState(false);
+  const [resettingTable, setResettingTable] = useState<number | null>(null);
   const [selectedMenuImage, setSelectedMenuImage] = useState<MenuItem | null>(null);
   const [customerBgImageUrl, setCustomerBgImageUrl] = useState("");
   const [toast, setToast] = useState("");
@@ -7374,16 +7486,32 @@ export default function Page() {
 
         if (cancelled) return;
 
+        if (!savedGuests.length) {
+          writeCachedTableGuests(state.profile.businessId, activeTable, []);
+
+          updateState((current) => ({
+            ...current,
+            currentGuest: "",
+            guests: [],
+          }));
+
+          setOrderCart({});
+          setOrderCustomizations({});
+          setOrderReviewOpen(false);
+          setPhoneTab("menu");
+          setActiveMenuCategory("__home");
+          return;
+        }
+
         const cachedGuests = readCachedTableGuests(state.profile.businessId, activeTable);
         const mergedGuests = mergeGuestLists(savedGuests, cachedGuests);
 
-        if (mergedGuests.length) {
-          writeCachedTableGuests(state.profile.businessId, activeTable, mergedGuests);
-        }
+        writeCachedTableGuests(state.profile.businessId, activeTable, mergedGuests);
 
         updateState((current) => ({
           ...current,
-          guests: mergedGuests.length ? mergedGuests : current.guests,
+          guests: mergedGuests,
+          currentGuest: current.currentGuest && mergedGuests.includes(current.currentGuest) ? current.currentGuest : "",
         }));
       } catch (error) {
         console.error("Table guest refresh failed", error);
@@ -7803,6 +7931,15 @@ export default function Page() {
   }, {});
 
   const billByGuest = state.orders.reduce<Record<string, Order[]>>((acc, order) => {
+    acc[order.guest] = acc[order.guest] || [];
+    acc[order.guest].push(order);
+    return acc;
+  }, {});
+
+  const selectedTableOrders = state.orders.filter((order) => Number(order.table || activeTable) === activeTable);
+  const selectedTableTotal = selectedTableOrders.reduce((sum, order) => sum + orderLineTotal(order), 0);
+  const selectedTableOpenOrderCount = selectedTableOrders.filter((order) => order.status !== "Served").length;
+  const selectedTableBillByGuest = selectedTableOrders.reduce<Record<string, Order[]>>((acc, order) => {
     acc[order.guest] = acc[order.guest] || [];
     acc[order.guest].push(order);
     return acc;
@@ -9457,19 +9594,63 @@ export default function Page() {
     show(`${item.name} removed from saved menu`);
   }
 
-  function closeTable() {
-    const ok = window.confirm(`Close Table ${activeTable} session and clear all guests, orders, and requests?`);
+  async function closeTable(tableNumber = activeTable) {
+    const cleanTableNumber = Math.max(1, Math.min(999, Number(tableNumber || activeTable || 1)));
+    const ok = window.confirm(`Reset Table ${cleanTableNumber}? This clears seated names, bill totals, open orders, and waiter requests for this table.`);
     if (!ok) return;
 
-    updateState((current) => ({
-      ...current,
-      currentGuest: "",
-      guests: [],
-      orders: [],
-      requests: [],
-    }));
+    setResettingTable(cleanTableNumber);
 
-    show(`Table ${activeTable} session closed`);
+    try {
+      if (state.profile.businessId) {
+        await resetTableInSupabase(
+          state.profile.businessId,
+          state.profile.authUserId,
+          cleanTableNumber,
+          state.profile.username
+        );
+
+        writeCachedTableGuests(state.profile.businessId, cleanTableNumber, []);
+      }
+
+      let latestOrders: Order[] | null = null;
+
+      if (state.profile.businessId) {
+        try {
+          latestOrders = await fetchTableOrdersFromSupabase(
+            state.profile.businessId,
+            state.profile.authUserId,
+            null,
+            state.profile.username
+          );
+        } catch (error) {
+          console.error("Post-reset order refresh failed", error);
+        }
+      }
+
+      updateState((current) => ({
+        ...current,
+        currentGuest: cleanTableNumber === activeTable ? "" : current.currentGuest,
+        guests: cleanTableNumber === activeTable ? [] : current.guests,
+        orders: latestOrders || current.orders.filter((order) => Number(order.table || activeTable) !== cleanTableNumber),
+        requests: current.requests.filter((request) => Number(request.table || activeTable) !== cleanTableNumber),
+      }));
+
+      if (cleanTableNumber === activeTable) {
+        setGuestName("");
+        setOrderCart({});
+        setOrderCustomizations({});
+        setOrderReviewOpen(false);
+        setPhoneTab("menu");
+        setActiveMenuCategory("__home");
+      }
+
+      show(`Table ${cleanTableNumber} reset`);
+    } catch (error) {
+      show(`Table reset failed: ${getErrorMessage(error)}`);
+    } finally {
+      setResettingTable(null);
+    }
   }
 
   function loadDemoTable() {
@@ -10798,20 +10979,47 @@ export default function Page() {
                   <div className="two-col">
                     <div className="manager-card">
                       <h3>Floor Tables</h3>
-                      <p className="sub">A table becomes active after someone scans and joins.</p>
-                      <div className="table-map">
+                      <p className="sub">Tap a table to view it. Reset clears names, bill totals, open orders, and waiter requests for that table.</p>
+                      <div className="table-map resettable-table-map">
                         {Array.from({ length: state.profile.tableCount }, (_, index) => {
                           const tableNumber = index + 1;
-                          const isDemo = tableNumber === activeTable;
-                          const active = isDemo && state.guests.length > 0;
-                          const needsHelp = isDemo && waitingRequests.length > 0;
+                          const tableOrders = state.orders.filter((order) => Number(order.table || activeTable) === tableNumber);
+                          const tableOpenOrders = tableOrders.filter((order) => order.status !== "Served").length;
+                          const tableBillTotal = tableOrders.reduce((sum, order) => sum + orderLineTotal(order), 0);
+                          const tableGuestsFromOrders = uniqueGuestNames(tableOrders.map((order) => order.guest));
+                          const tableGuestCount = tableNumber === activeTable && state.guests.length
+                            ? uniqueGuestNames(state.guests).length
+                            : tableGuestsFromOrders.length;
+                          const active = tableGuestCount > 0 || tableOpenOrders > 0 || tableBillTotal > 0;
+                          const needsHelp = waitingRequests.some((request) => Number(request.table || activeTable) === tableNumber);
+                          const isSelected = tableNumber === activeTable;
+
                           return (
-                            <div key={tableNumber} className={`table-card ${active ? "active-table" : ""} ${needsHelp ? "needs-help" : ""}`}>
-                              <div>
-                                <h4>Table {tableNumber}</h4>
-                                <p>{active ? `${state.guests.length} seated  ${openOrderCount} open orders` : "Available"}</p>
-                              </div>
-                              <span className={`status ${needsHelp ? "waiting" : active ? "ready" : "served"}`}>{needsHelp ? "Needs waiter" : active ? "Active" : "Empty"}</span>
+                            <div key={tableNumber} className={`table-card resettable-table-card ${active ? "active-table" : ""} ${needsHelp ? "needs-help" : ""} ${isSelected ? "selected-table-card" : ""}`}>
+                              <button
+                                className="table-card-main"
+                                type="button"
+                                onClick={() => setActiveTable(tableNumber)}
+                              >
+                                <div>
+                                  <h4>Table {tableNumber}</h4>
+                                  <p>
+                                    {active
+                                      ? `${tableGuestCount} seated • ${tableOpenOrders} open • ${money(tableBillTotal)}`
+                                      : "Available"}
+                                  </p>
+                                </div>
+                                <span className={`status ${needsHelp ? "waiting" : active ? "ready" : "served"}`}>{needsHelp ? "Needs waiter" : active ? "Active" : "Empty"}</span>
+                              </button>
+
+                              <button
+                                className="table-reset-button"
+                                type="button"
+                                onClick={() => closeTable(tableNumber)}
+                                disabled={resettingTable === tableNumber || (!active && !needsHelp)}
+                              >
+                                {resettingTable === tableNumber ? "Resetting..." : "Reset table"}
+                              </button>
                             </div>
                           );
                         })}
@@ -10820,10 +11028,16 @@ export default function Page() {
 
                     <div className="manager-card">
                       <h3>Table {activeTable} Bill</h3>
-                      <p className="sub">Grouped by guest, but can also be paid together.</p>
-                      <GuestBillRows billByGuest={billByGuest} />
-                      <div className="bill-total"><span>Total</span><span>{money(tableTotal)}</span></div>
-                      <button className="btn secondary full" onClick={closeTable}>Close Table Session</button>
+                      <p className="sub">This is the selected table only. Reset after guests leave to clear the next QR session.</p>
+                      <GuestBillRows billByGuest={selectedTableBillByGuest} />
+                      <div className="bill-total"><span>Total</span><span>{money(selectedTableTotal)}</span></div>
+                      <div className="table-reset-summary">
+                        <span>{selectedTableOpenOrderCount} open order{selectedTableOpenOrderCount === 1 ? "" : "s"}</span>
+                        <span>{uniqueGuestNames(selectedTableOrders.map((order) => order.guest)).length || (activeTable === Number(activeTable) ? uniqueGuestNames(state.guests).length : 0)} guest{uniqueGuestNames(selectedTableOrders.map((order) => order.guest)).length === 1 ? "" : "s"}</span>
+                      </div>
+                      <button className="btn danger full" onClick={() => closeTable(activeTable)} disabled={resettingTable === activeTable}>
+                        {resettingTable === activeTable ? "Resetting table..." : `Reset Table ${activeTable}`}
+                      </button>
                     </div>
                   </div>
                 )}
