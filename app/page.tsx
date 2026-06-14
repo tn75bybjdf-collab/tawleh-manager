@@ -7266,6 +7266,273 @@ main.customer-only-shell .service-suspended-card {
   border: 2px solid rgba(185, 28, 28, 0.20) !important;
 }
 
+
+
+/* =========================================================
+   TABLE-BASED PRICING PREVIEW
+   Pricing is 1 JOD per table per month, minimum 25 QR codes/month, set during signup.
+   ========================================================= */
+
+.price-preview-helper {
+  padding: 10px 12px !important;
+  border-radius: 14px !important;
+  background: rgba(104, 112, 68, 0.10) !important;
+  color: #59613c !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-weight: 1000 !important;
+}
+
+.price-preview-helper span {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #74685d !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+}
+
+
+
+/* =========================================================
+   CLIQ PAYMENT MODAL + ADMIN NOTIFICATIONS
+   Restaurant sends payment notice; platform admin sees it.
+   ========================================================= */
+
+.cliq-payment-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1200 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 18px !important;
+  background: rgba(22, 18, 15, 0.58) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+
+.cliq-payment-modal {
+  width: min(720px, 100%) !important;
+  max-height: min(90vh, 860px) !important;
+  overflow-y: auto !important;
+  display: grid !important;
+  gap: 16px !important;
+  padding: 20px !important;
+  border-radius: 30px !important;
+  background: rgba(255, 253, 248, 0.96) !important;
+  border: 1px solid rgba(91, 71, 48, 0.14) !important;
+  box-shadow: 0 32px 90px rgba(18, 13, 10, 0.34) !important;
+}
+
+.cliq-payment-modal-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+}
+
+.cliq-payment-modal-head span,
+.cliq-send-to-box span,
+.cliq-payment-due-box span,
+.cliq-admin-notification-head span {
+  display: block !important;
+  color: #bd5338 !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.10em !important;
+}
+
+.cliq-payment-modal-head h2 {
+  margin: 5px 0 4px !important;
+  color: #2f2a25 !important;
+  font-size: 32px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.055em !important;
+  font-weight: 1000 !important;
+}
+
+.cliq-payment-modal-head p {
+  margin: 0 !important;
+  color: #74685d !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+  font-weight: 850 !important;
+}
+
+.modal-close {
+  width: 38px !important;
+  height: 38px !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: rgba(47, 42, 37, 0.08) !important;
+  color: #2f2a25 !important;
+  font-size: 24px !important;
+  line-height: 1 !important;
+  font-weight: 1000 !important;
+  cursor: pointer !important;
+}
+
+.cliq-payment-due-box {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.cliq-payment-due-box div {
+  padding: 14px !important;
+  border-radius: 20px !important;
+  background: rgba(104, 112, 68, 0.10) !important;
+  border: 1px solid rgba(104, 112, 68, 0.13) !important;
+}
+
+.cliq-payment-due-box strong {
+  display: block !important;
+  margin-top: 6px !important;
+  color: #2f2a25 !important;
+  font-size: 22px !important;
+  font-weight: 1000 !important;
+}
+
+.cliq-send-to-box {
+  display: grid !important;
+  gap: 5px !important;
+  padding: 16px !important;
+  border-radius: 22px !important;
+  background: #2f2a25 !important;
+  color: #fff !important;
+}
+
+.cliq-send-to-box strong {
+  color: #fff !important;
+  font-size: 24px !important;
+  line-height: 1.05 !important;
+  letter-spacing: -0.04em !important;
+  font-weight: 1000 !important;
+}
+
+.cliq-send-to-box p {
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+}
+
+.cliq-payment-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.cliq-payment-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+}
+
+.cliq-admin-notification-card {
+  display: grid !important;
+  gap: 12px !important;
+  padding: 16px !important;
+  border-radius: 26px !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+  box-shadow: 0 16px 34px rgba(80, 52, 27, 0.08) !important;
+}
+
+.cliq-admin-notification-head {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+
+.cliq-admin-notification-head h3 {
+  margin: 5px 0 4px !important;
+  color: #2f2a25 !important;
+  font-size: 24px !important;
+  line-height: 1 !important;
+  font-weight: 1000 !important;
+  letter-spacing: -0.045em !important;
+}
+
+.cliq-admin-notification-head p {
+  margin: 0 !important;
+  color: #74685d !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  font-weight: 850 !important;
+}
+
+.cliq-admin-payment-list {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.cliq-admin-payment-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  padding: 13px !important;
+  border-radius: 20px !important;
+  background: rgba(255, 247, 239, 0.82) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+}
+
+.cliq-admin-payment-row strong {
+  display: block !important;
+  color: #2f2a25 !important;
+  font-size: 15px !important;
+  font-weight: 1000 !important;
+}
+
+.cliq-admin-payment-row span {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #5f5147 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-weight: 900 !important;
+}
+
+.cliq-admin-payment-row em {
+  display: block !important;
+  margin-top: 4px !important;
+  color: #817466 !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  font-style: normal !important;
+  font-weight: 800 !important;
+}
+
+.cliq-admin-payment-row b {
+  flex: 0 0 auto !important;
+  min-height: 32px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  border-radius: 999px !important;
+  padding: 0 10px !important;
+  background: #2f2a25 !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+  white-space: nowrap !important;
+}
+
+@media (max-width: 720px) {
+  .cliq-payment-due-box,
+  .cliq-payment-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cliq-payment-actions,
+  .cliq-admin-notification-head,
+  .cliq-admin-payment-row {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+}
+
 `;
 
 
@@ -7558,6 +7825,23 @@ type PlatformAdminBusiness = {
   serviceAdminNote: string;
 };
 
+type CliqPaymentRequest = {
+  id: string;
+  businessId: string;
+  username: string;
+  restaurantName: string;
+  branchName: string;
+  months: number;
+  monthlyFeeJod: number;
+  amountJod: number;
+  paymentDueDate: string;
+  referenceNumber: string;
+  senderCliqName: string;
+  senderCliqPhone: string;
+  status: string;
+  createdAt: string;
+};
+
 type AppState = {
   profileComplete: boolean;
   profile: Profile;
@@ -7624,7 +7908,7 @@ const defaultState: AppState = {
     restaurantName: "",
     branchName: "",
     businessType: "Cafe",
-    tableCount: 9,
+    tableCount: 25,
     locationCount: 1,
     businessEmail: "",
     username: "",
@@ -7639,7 +7923,7 @@ const defaultState: AppState = {
     serviceExpiresAt: "",
     servicePaymentDueDate: "",
     serviceBalanceDueJod: 0,
-    serviceMonthlyFeeJod: 100,
+    serviceMonthlyFeeJod: 25,
     serviceSuspendedReason: "",
   },
   currentGuest: "",
@@ -7655,6 +7939,10 @@ const defaultState: AppState = {
 
 function money(value: number) {
   return `${Number(value || 0).toFixed(2)} JOD`;
+}
+
+function monthlyTableFee(tableCount: number) {
+  return Math.max(25, Math.min(999, Number(tableCount || 25)));
 }
 
 function displayDate(value: string) {
@@ -7678,8 +7966,18 @@ function licenseStatusText(profile: Profile) {
   return "Not set";
 }
 
-function handlePayByCliq() {
-  window.alert("Pay By Cliq coming soon.");
+function automaticBalanceDueJod(profile: Profile) {
+  const manualDue = Number(profile.serviceBalanceDueJod || 0);
+  const monthlyFee = Number(profile.serviceMonthlyFeeJod || monthlyTableFee(profile.tableCount));
+
+  return Math.max(manualDue, monthlyFee);
+}
+
+function cliqAmountForMonths(profile: Profile, months: number) {
+  const safeMonths = Math.max(1, Math.min(24, Number(months || 1)));
+  const monthlyFee = Number(profile.serviceMonthlyFeeJod || monthlyTableFee(profile.tableCount));
+
+  return Math.round(monthlyFee * safeMonths * 1000) / 1000;
 }
 
 function slugify(value: string) {
@@ -8547,7 +8845,7 @@ function businessRowToProfile(row: BusinessProfileRow, fallback: Profile): Profi
     serviceExpiresAt: String(row.service_expires_at || fallback.serviceExpiresAt || "").slice(0, 10),
     servicePaymentDueDate: String(row.service_payment_due_date || fallback.servicePaymentDueDate || "").slice(0, 10),
     serviceBalanceDueJod: Number(row.service_balance_due_jod ?? fallback.serviceBalanceDueJod ?? 0),
-    serviceMonthlyFeeJod: Number(row.service_monthly_fee_jod ?? fallback.serviceMonthlyFeeJod ?? 100),
+    serviceMonthlyFeeJod: Number(row.service_monthly_fee_jod ?? fallback.serviceMonthlyFeeJod ?? monthlyTableFee(row.table_count || fallback.tableCount || 25)),
     serviceSuspendedReason: row.service_suspended_reason || fallback.serviceSuspendedReason || "",
   };
 }
@@ -8912,6 +9210,9 @@ async function deleteServiceItemFromSupabase(businessId: string, itemId: string,
 }
 
 function rowToPlatformBusiness(row: Record<string, unknown>): PlatformAdminBusiness {
+  const tableCount = Number(row.table_count || 25);
+  const monthlyFee = Number(row.service_monthly_fee_jod || monthlyTableFee(tableCount));
+
   return {
     id: String(row.id || ""),
     username: String(row.username || ""),
@@ -8919,16 +9220,35 @@ function rowToPlatformBusiness(row: Record<string, unknown>): PlatformAdminBusin
     branchName: String(row.branch_name || "Main Branch"),
     email: String(row.email || ""),
     phone: String(row.business_phone || ""),
-    tableCount: Number(row.table_count || 0),
+    tableCount,
     locationCount: Number(row.location_count || 0),
     createdAt: String(row.created_at || ""),
     serviceStatus: String(row.service_status || "active"),
     serviceExpiresAt: String(row.service_expires_at || ""),
     servicePaymentDueDate: String(row.service_payment_due_date || ""),
-    serviceBalanceDueJod: Number(row.service_balance_due_jod || 0),
-    serviceMonthlyFeeJod: Number(row.service_monthly_fee_jod || 100),
+    serviceBalanceDueJod: Math.max(Number(row.service_balance_due_jod || 0), monthlyFee),
+    serviceMonthlyFeeJod: monthlyFee,
     serviceSuspendedReason: String(row.service_suspended_reason || ""),
     serviceAdminNote: String(row.service_admin_note || ""),
+  };
+}
+
+function rowToCliqPaymentRequest(row: Record<string, unknown>): CliqPaymentRequest {
+  return {
+    id: String(row.id || ""),
+    businessId: String(row.business_account_id || ""),
+    username: String(row.username || ""),
+    restaurantName: String(row.restaurant_name || "Restaurant"),
+    branchName: String(row.branch_name || "Main Branch"),
+    months: Number(row.months || 1),
+    monthlyFeeJod: Number(row.monthly_fee_jod || 0),
+    amountJod: Number(row.amount_jod || 0),
+    paymentDueDate: String(row.payment_due_date || ""),
+    referenceNumber: String(row.reference_number || ""),
+    senderCliqName: String(row.sender_cliq_name || ""),
+    senderCliqPhone: String(row.sender_cliq_phone || ""),
+    status: String(row.status || "pending"),
+    createdAt: String(row.created_at || ""),
   };
 }
 
@@ -8962,6 +9282,42 @@ async function fetchPlatformBusinessesFromServer() {
   return ((result.businesses || []) as Record<string, unknown>[]).map((row) => rowToPlatformBusiness(row));
 }
 
+async function fetchCliqPaymentsForAdmin() {
+  const headers = await getPlatformAdminHeaders();
+
+  const response = await fetch("/api/cliq-payments", {
+    method: "GET",
+    headers,
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  return ((result.payments || []) as Record<string, unknown>[]).map((row) => rowToCliqPaymentRequest(row));
+}
+
+async function submitCliqPaymentToServer(payload: {
+  businessId: string;
+  username: string;
+  months: number;
+  monthlyFeeJod: number;
+  amountJod: number;
+  paymentDueDate: string;
+  referenceNumber: string;
+  senderCliqName: string;
+  senderCliqPhone: string;
+}) {
+  const headers = await getManagerAuthHeaders();
+
+  const response = await fetch("/api/cliq-payments", {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  const result = await readApiJson(response);
+  return rowToCliqPaymentRequest(result.payment as Record<string, unknown>);
+}
+
 async function updatePlatformBusinessInServer(business: PlatformAdminBusiness) {
   const headers = await getPlatformAdminHeaders();
 
@@ -8973,8 +9329,8 @@ async function updatePlatformBusinessInServer(business: PlatformAdminBusiness) {
       serviceStatus: business.serviceStatus,
       serviceExpiresAt: business.serviceExpiresAt || null,
       servicePaymentDueDate: business.servicePaymentDueDate || null,
-      serviceBalanceDueJod: Number(business.serviceBalanceDueJod || 0),
-      serviceMonthlyFeeJod: Number(business.serviceMonthlyFeeJod || 100),
+      serviceBalanceDueJod: Math.max(Number(business.serviceBalanceDueJod || 0), Number(business.serviceMonthlyFeeJod || monthlyTableFee(business.tableCount))),
+      serviceMonthlyFeeJod: Number(business.serviceMonthlyFeeJod || monthlyTableFee(business.tableCount)),
       serviceSuspendedReason: business.serviceSuspendedReason,
       serviceAdminNote: business.serviceAdminNote,
     }),
@@ -9015,8 +9371,16 @@ export default function Page() {
   const [platformAdminPasswordBusy, setPlatformAdminPasswordBusy] = useState(false);
   const [platformAdminLoggedIn, setPlatformAdminLoggedIn] = useState(false);
   const [platformAdminBusinesses, setPlatformAdminBusinesses] = useState<PlatformAdminBusiness[]>([]);
+  const [platformAdminPayments, setPlatformAdminPayments] = useState<CliqPaymentRequest[]>([]);
   const [platformAdminBusy, setPlatformAdminBusy] = useState(false);
   const [platformAdminMessage, setPlatformAdminMessage] = useState("");
+  const [cliqPayOpen, setCliqPayOpen] = useState(false);
+  const [cliqMonths, setCliqMonths] = useState(1);
+  const [cliqReferenceNumber, setCliqReferenceNumber] = useState("");
+  const [cliqSenderName, setCliqSenderName] = useState("");
+  const [cliqSenderPhone, setCliqSenderPhone] = useState("");
+  const [cliqPayBusy, setCliqPayBusy] = useState(false);
+  const [cliqPayMessage, setCliqPayMessage] = useState("");
   const [qrInput, setQrInput] = useState(String(DEMO_TABLE));
   const [menuDraft, setMenuDraft] = useState<MenuDraft>(emptyMenuDraft);
   const menuBuilderFormRef = useRef<HTMLDivElement | null>(null);
@@ -9123,7 +9487,7 @@ export default function Page() {
             serviceExpiresAt: String(business.service_expires_at || "").slice(0, 10),
             servicePaymentDueDate: String(business.service_payment_due_date || "").slice(0, 10),
             serviceBalanceDueJod: Number(business.service_balance_due_jod || 0),
-            serviceMonthlyFeeJod: Number(business.service_monthly_fee_jod || 100),
+            serviceMonthlyFeeJod: Number(business.service_monthly_fee_jod || monthlyTableFee(Number(business.table_count || 25))),
             serviceSuspendedReason: business.service_suspended_reason || "",
           };
 
@@ -9378,6 +9742,11 @@ export default function Page() {
     : activeMenuCategory === "uncategorized"
       ? state.menu.filter((item) => !item.categoryId)
       : state.menu.filter((item) => item.categoryId === activeMenuCategory);
+
+  const autoBalanceDueJod = automaticBalanceDueJod(state.profile);
+  const cliqMonthlyFeeJod = Number(state.profile.serviceMonthlyFeeJod || monthlyTableFee(state.profile.tableCount));
+  const cliqPaymentAmountJod = cliqAmountForMonths(state.profile, cliqMonths);
+  const pendingCliqPayments = platformAdminPayments.filter((payment) => payment.status === "pending");
 
   const customerBackgroundImages = useMemo(() => {
     const seen = new Set<string>();
@@ -10257,7 +10626,7 @@ export default function Page() {
       return;
     }
 
-    const cleanTableCount = Math.max(1, Math.min(999, Number(signupProfile.tableCount || 1)));
+    const cleanTableCount = Math.max(25, Math.min(999, Number(signupProfile.tableCount || 25)));
     const cleanLocationCount = Math.max(1, Math.min(25, Number(signupProfile.locationCount || 1)));
     const cleanLocation = cleanLocations[0];
 
@@ -10278,6 +10647,7 @@ export default function Page() {
           businessType: signupProfile.businessType,
           businessPhone: cleanPhone,
           tableCount: cleanTableCount,
+          serviceMonthlyFeeJod: monthlyTableFee(cleanTableCount),
           locationCount: cleanLocationCount,
           locations: cleanLocations,
           welcomeMessage: signupProfile.welcomeMessage.trim() || defaultState.profile.welcomeMessage,
@@ -10321,6 +10691,12 @@ export default function Page() {
         locationCount: cleanLocationCount,
         signupIp: result.signupIp || "",
         tableCount: cleanTableCount,
+        serviceStatus: result.business?.service_status || "trial",
+        serviceExpiresAt: String(result.business?.service_expires_at || "").slice(0, 10),
+        servicePaymentDueDate: String(result.business?.service_payment_due_date || "").slice(0, 10),
+        serviceBalanceDueJod: Number(result.business?.service_balance_due_jod || 0),
+        serviceMonthlyFeeJod: Number(result.business?.service_monthly_fee_jod || monthlyTableFee(cleanTableCount)),
+        serviceSuspendedReason: result.business?.service_suspended_reason || "",
         welcomeMessage: signupProfile.welcomeMessage.trim() || defaultState.profile.welcomeMessage,
       };
 
@@ -10424,7 +10800,7 @@ export default function Page() {
         serviceExpiresAt: String(business.service_expires_at || "").slice(0, 10),
         servicePaymentDueDate: String(business.service_payment_due_date || "").slice(0, 10),
         serviceBalanceDueJod: Number(business.service_balance_due_jod || 0),
-        serviceMonthlyFeeJod: Number(business.service_monthly_fee_jod || 100),
+        serviceMonthlyFeeJod: Number(business.service_monthly_fee_jod || monthlyTableFee(Number(business.table_count || 25))),
         serviceSuspendedReason: business.service_suspended_reason || "",
       };
 
@@ -10450,10 +10826,14 @@ export default function Page() {
     setPlatformAdminMessage("");
 
     try {
-      const businesses = await fetchPlatformBusinessesFromServer();
+      const [businesses, payments] = await Promise.all([
+        fetchPlatformBusinessesFromServer(),
+        fetchCliqPaymentsForAdmin(),
+      ]);
       setPlatformAdminBusinesses(businesses);
+      setPlatformAdminPayments(payments);
       setPlatformAdminLoggedIn(true);
-      setPlatformAdminMessage(`${businesses.length} companies loaded`);
+      setPlatformAdminMessage(`${businesses.length} companies loaded • ${payments.length} CliQ payment notification${payments.length === 1 ? "" : "s"}`);
     } catch (error) {
       setPlatformAdminMessage(getErrorMessage(error));
       show(`Admin load failed: ${getErrorMessage(error)}`);
@@ -10486,10 +10866,14 @@ export default function Page() {
 
       if (error) throw error;
 
-      const businesses = await fetchPlatformBusinessesFromServer();
+      const [businesses, payments] = await Promise.all([
+        fetchPlatformBusinessesFromServer(),
+        fetchCliqPaymentsForAdmin(),
+      ]);
       setPlatformAdminBusinesses(businesses);
+      setPlatformAdminPayments(payments);
       setPlatformAdminLoggedIn(true);
-      setPlatformAdminMessage(`${businesses.length} companies loaded`);
+      setPlatformAdminMessage(`${businesses.length} companies loaded • ${payments.length} CliQ payment notification${payments.length === 1 ? "" : "s"}`);
       show("Platform admin logged in");
     } catch (error) {
       setPlatformAdminLoggedIn(false);
@@ -10513,7 +10897,13 @@ export default function Page() {
     setPlatformAdminMessage("");
 
     try {
-      const saved = await updatePlatformBusinessInServer(business);
+      const saved = await updatePlatformBusinessInServer({
+        ...business,
+        serviceBalanceDueJod: Math.max(
+          Number(business.serviceBalanceDueJod || 0),
+          Number(business.serviceMonthlyFeeJod || monthlyTableFee(business.tableCount))
+        ),
+      });
 
       setPlatformAdminBusinesses((current) =>
         current.map((item) => (item.id === saved.id ? saved : item))
@@ -10526,6 +10916,71 @@ export default function Page() {
       show(`Admin save failed: ${getErrorMessage(error)}`);
     } finally {
       setPlatformAdminBusy(false);
+    }
+  }
+
+  function openPayByCliqModal() {
+    setCliqMonths(1);
+    setCliqReferenceNumber("");
+    setCliqSenderName("");
+    setCliqSenderPhone("");
+    setCliqPayMessage("");
+    setCliqPayOpen(true);
+  }
+
+  async function submitCliqPaymentRequest(event: FormEvent) {
+    event.preventDefault();
+
+    if (!state.profile.businessId) {
+      setCliqPayMessage("Login again before submitting a CliQ payment");
+      return;
+    }
+
+    const cleanReference = cliqReferenceNumber.trim();
+    const cleanSenderName = cliqSenderName.trim();
+    const cleanSenderPhone = normalizePhone(cliqSenderPhone);
+
+    if (!cleanReference) {
+      setCliqPayMessage("Enter the CliQ reference number");
+      return;
+    }
+
+    if (!cleanSenderName) {
+      setCliqPayMessage("Enter the CliQ name you sent from");
+      return;
+    }
+
+    if (!cleanSenderPhone || cleanSenderPhone.length < 8) {
+      setCliqPayMessage("Enter the CliQ phone number you sent from");
+      return;
+    }
+
+    setCliqPayBusy(true);
+    setCliqPayMessage("");
+
+    try {
+      await submitCliqPaymentToServer({
+        businessId: state.profile.businessId,
+        username: state.profile.username,
+        months: cliqMonths,
+        monthlyFeeJod: Number(state.profile.serviceMonthlyFeeJod || monthlyTableFee(state.profile.tableCount)),
+        amountJod: cliqAmountForMonths(state.profile, cliqMonths),
+        paymentDueDate: state.profile.servicePaymentDueDate || "",
+        referenceNumber: cleanReference,
+        senderCliqName: cleanSenderName,
+        senderCliqPhone: cleanSenderPhone,
+      });
+
+      setCliqPayMessage("CliQ payment notification sent to Tawleh admin");
+      show("CliQ payment notification sent");
+      setCliqReferenceNumber("");
+      setCliqSenderName("");
+      setCliqSenderPhone("");
+    } catch (error) {
+      setCliqPayMessage(getErrorMessage(error));
+      show(`CliQ payment notification failed: ${getErrorMessage(error)}`);
+    } finally {
+      setCliqPayBusy(false);
     }
   }
 
@@ -10577,6 +11032,7 @@ export default function Page() {
 
     setPlatformAdminLoggedIn(false);
     setPlatformAdminBusinesses([]);
+    setPlatformAdminPayments([]);
     setPlatformAdminPassword("");
     setPlatformAdminNewPassword("");
     setPlatformAdminConfirmPassword("");
@@ -11895,7 +12351,7 @@ export default function Page() {
                 <div className="price-icon">OK</div>
                 <div>
                   <strong>30-day free trial</strong>
-                  <span>Then 100 JOD/month per branch. No setup fee.</span>
+                  <span>Minimum 25 QR codes/month. 1 JOD per QR/table. 50 tables = 50 JOD/month.</span>
                 </div>
               </div>
             </aside>
@@ -12027,6 +12483,40 @@ export default function Page() {
 
                         {platformAdminMessage ? <div className="admin-message">{platformAdminMessage}</div> : null}
 
+                        <div className="cliq-admin-notification-card">
+                          <div className="cliq-admin-notification-head">
+                            <div>
+                              <span>CliQ payment notifications</span>
+                              <h3>{pendingCliqPayments.length} pending</h3>
+                              <p>Restaurants submit the reference number, sender name, sender phone, months, and amount after sending CliQ.</p>
+                            </div>
+                            <button className="btn ghost small" type="button" onClick={loadPlatformAdminBusinesses} disabled={platformAdminBusy}>
+                              Refresh payments
+                            </button>
+                          </div>
+
+                          <div className="cliq-admin-payment-list">
+                            {platformAdminPayments.length ? (
+                              platformAdminPayments.map((payment) => (
+                                <div className={`cliq-admin-payment-row ${payment.status}`} key={payment.id}>
+                                  <div>
+                                    <strong>{payment.restaurantName}</strong>
+                                    <span>
+                                      @{payment.username || "no_username"} sent a {payment.months} month CliQ payment from {payment.senderCliqName} / {payment.senderCliqPhone}
+                                    </span>
+                                    <em>
+                                      Reference: {payment.referenceNumber} • {new Date(payment.createdAt).toLocaleString()} • Due date: {payment.paymentDueDate || "not set"}
+                                    </em>
+                                  </div>
+                                  <b>{money(payment.amountJod)}</b>
+                                </div>
+                              ))
+                            ) : (
+                              <Empty text="No CliQ payment notifications yet." />
+                            )}
+                          </div>
+                        </div>
+
                         <div className="platform-business-list">
                           {platformAdminBusinesses.map((business) => (
                             <div className={`platform-business-card ${business.serviceStatus === "suspended" ? "suspended" : ""}`} key={business.id}>
@@ -12067,14 +12557,13 @@ export default function Page() {
                                   />
                                 </Field>
 
-                                <Field label="Balance due JOD">
+                                <Field label="Auto balance due JOD">
                                   <input
                                     type="number"
-                                    min={0}
-                                    step="0.001"
-                                    value={business.serviceBalanceDueJod}
-                                    onChange={(event) => updatePlatformBusinessLocal(business.id, { serviceBalanceDueJod: Number(event.target.value || 0) })}
+                                    readOnly
+                                    value={Math.max(Number(business.serviceBalanceDueJod || 0), Number(business.serviceMonthlyFeeJod || monthlyTableFee(business.tableCount)))}
                                   />
+                                  <div className="helper">Auto calculated from monthly QR fee. You only set the due dates.</div>
                                 </Field>
 
                                 <Field label="Monthly fee JOD">
@@ -12106,7 +12595,7 @@ export default function Page() {
 
                               <div className="platform-business-footer">
                                 <span>
-                                  Example: {business.restaurantName} owes {money(business.serviceBalanceDueJod)} by {business.servicePaymentDueDate || business.serviceExpiresAt || "date not set"}
+                                  Example: {business.restaurantName} owes {money(Math.max(Number(business.serviceBalanceDueJod || 0), Number(business.serviceMonthlyFeeJod || monthlyTableFee(business.tableCount))))} by {business.servicePaymentDueDate || business.serviceExpiresAt || "date not set"}
                                 </span>
                                 <button className="btn small" type="button" onClick={() => savePlatformBusiness(business.id)} disabled={platformAdminBusy}>
                                   Save billing
@@ -12173,7 +12662,7 @@ export default function Page() {
                   <form className="signup-panel" onSubmit={submitSignup}>
                     <div className="auth-heading">
                       <h2>Create your account</h2>
-                      <p>Start your 30-day free trial. No credit card required.</p>
+                      <p>Start your 30-day free trial. Minimum billing is 25 QR codes per month.</p>
                     </div>
 
                     <div className="signup-grid">
@@ -12256,11 +12745,15 @@ export default function Page() {
                       <Field label="Number of tables">
                         <input
                           type="number"
-                          min={1}
+                          min={25}
                           max={999}
                           value={signupProfile.tableCount}
-                          onChange={(e) => setSignupProfile({ ...signupProfile, tableCount: Number(e.target.value) })}
+                          onChange={(e) => setSignupProfile({ ...signupProfile, tableCount: Math.max(25, Number(e.target.value || 25)), serviceMonthlyFeeJod: monthlyTableFee(Number(e.target.value)) })}
                         />
+                        <div className="helper price-preview-helper">
+                          Monthly price: {money(monthlyTableFee(signupProfile.tableCount))} / month
+                          <span>Minimum 25 QR codes/month. If they have fewer than 25 tables, they still pay 25 JOD/month.</span>
+                        </div>
                       </Field>
 
                       <Field label="Number of locations">
@@ -14241,10 +14734,10 @@ export default function Page() {
                       <div className="profile-payment-card">
                         <div>
                           <span>Account billing</span>
-                          <strong>{money(state.profile.serviceBalanceDueJod || 0)}</strong>
+                          <strong>{money(autoBalanceDueJod)}</strong>
                           <p>Due by {displayDate(state.profile.servicePaymentDueDate)} • Expires {displayDate(state.profile.serviceExpiresAt)}</p>
                         </div>
-                        <button className="btn dark" type="button" onClick={handlePayByCliq}>Pay By Cliq</button>
+                        <button className="btn dark" type="button" onClick={openPayByCliqModal}>Pay By Cliq</button>
                       </div>
 
                       <div className="restaurant-logo-upload-card">
@@ -14275,8 +14768,8 @@ export default function Page() {
                         <div className="bill-row"><span>License status</span><strong>{state.profile.serviceStatus || "active"}</strong></div>
                         <div className="bill-row"><span>Payment due date</span><strong>{displayDate(state.profile.servicePaymentDueDate)}</strong></div>
                         <div className="bill-row"><span>Expiration date</span><strong>{displayDate(state.profile.serviceExpiresAt)}</strong></div>
-                        <div className="bill-row"><span>Balance due</span><strong>{money(state.profile.serviceBalanceDueJod || 0)}</strong></div>
-                        <div className="bill-row"><span>Pricing</span><strong>{money(state.profile.serviceMonthlyFeeJod || 100)}/month</strong></div>
+                        <div className="bill-row"><span>Balance due</span><strong>{money(autoBalanceDueJod)}</strong></div>
+                        <div className="bill-row"><span>Pricing</span><strong>{money(state.profile.serviceMonthlyFeeJod || monthlyTableFee(state.profile.tableCount))}/month minimum</strong></div>
                         <div className="bill-row"><span>Trial</span><strong>30 days free</strong></div>
                       </div>
                     </div>
@@ -14292,6 +14785,92 @@ export default function Page() {
             </section>
             )}
           </section>
+
+          {cliqPayOpen ? (
+            <div className="modal-backdrop cliq-payment-backdrop">
+              <form className="cliq-payment-modal" onSubmit={submitCliqPaymentRequest}>
+                <div className="cliq-payment-modal-head">
+                  <div>
+                    <span>Pay by CliQ</span>
+                    <h2>{businessName} payment due</h2>
+                    <p>Send CliQ first, then submit the reference details here so Tawleh admin can verify the payment.</p>
+                  </div>
+                  <button className="modal-close" type="button" onClick={() => setCliqPayOpen(false)}>×</button>
+                </div>
+
+                <div className="cliq-payment-due-box">
+                  <div>
+                    <span>Monthly fee</span>
+                    <strong>{money(cliqMonthlyFeeJod)}</strong>
+                  </div>
+                  <div>
+                    <span>Selected months</span>
+                    <strong>{cliqMonths}</strong>
+                  </div>
+                  <div>
+                    <span>Total to send</span>
+                    <strong>{money(cliqPaymentAmountJod)}</strong>
+                  </div>
+                </div>
+
+                <div className="cliq-send-to-box">
+                  <span>Send CliQ to</span>
+                  <strong>0793009420-Jihad Saleh</strong>
+                  <p>Payment due date: {displayDate(state.profile.servicePaymentDueDate)}</p>
+                </div>
+
+                <div className="cliq-payment-grid">
+                  <Field label="How many months are you paying?">
+                    <select
+                      value={cliqMonths}
+                      onChange={(event) => setCliqMonths(Math.max(1, Math.min(24, Number(event.target.value || 1))))}
+                    >
+                      <option value={1}>1 month</option>
+                      <option value={2}>2 months</option>
+                      <option value={3}>3 months</option>
+                      <option value={6}>6 months</option>
+                      <option value={12}>1 year / 12 months</option>
+                    </select>
+                  </Field>
+
+                  <Field label="CliQ reference number">
+                    <input
+                      value={cliqReferenceNumber}
+                      onChange={(event) => setCliqReferenceNumber(event.target.value)}
+                      placeholder="Enter bank reference number"
+                    />
+                  </Field>
+
+                  <Field label="CliQ name sent from">
+                    <input
+                      value={cliqSenderName}
+                      onChange={(event) => setCliqSenderName(event.target.value)}
+                      placeholder="Name shown on CliQ transfer"
+                    />
+                  </Field>
+
+                  <Field label="CliQ phone sent from">
+                    <input
+                      value={cliqSenderPhone}
+                      onChange={(event) => setCliqSenderPhone(event.target.value)}
+                      placeholder="07XXXXXXXX"
+                    />
+                  </Field>
+                </div>
+
+                {cliqPayMessage ? <div className="admin-message">{cliqPayMessage}</div> : null}
+
+                <div className="cliq-payment-actions">
+                  <button className="btn ghost" type="button" onClick={() => setCliqPayOpen(false)}>
+                    Close
+                  </button>
+                  <button className="btn dark" type="submit" disabled={cliqPayBusy}>
+                    {cliqPayBusy ? "Sending..." : "Send payment notification"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : null}
 
           <section className="print-sheet">
             <div className="print-page">
