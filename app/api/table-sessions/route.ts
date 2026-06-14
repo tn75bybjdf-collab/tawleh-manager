@@ -141,7 +141,7 @@ async function findBusiness(admin: SupabaseClient, businessId: string, username 
     // Keep this soft. Public QR links may carry stale authUserId, but the business id is the source of truth.
   }
 
-  return data as BusinessRow;
+  return data as unknown as BusinessRow;
 }
 
 async function expireOldSessions(admin: SupabaseClient, businessId: string, tableNumber?: number) {
@@ -246,7 +246,7 @@ export async function POST(request: NextRequest) {
 
     if (existingError) throw existingError;
 
-    const existing = (existingRows || [])[0] as TableSessionRow | undefined;
+    const existing = ((existingRows || []) as unknown as TableSessionRow[])[0];
 
     if (existing?.id) {
       const nextIdle = addMinutes(now, IDLE_SESSION_MINUTES).toISOString();

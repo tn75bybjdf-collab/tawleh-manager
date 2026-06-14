@@ -192,7 +192,7 @@ async function findBusiness(db: SupabaseClient, businessId: string, username = "
   if (businessId && !isUuid(businessId)) throw new Error("Invalid business account id");
 
   if (!usingServiceRole() && businessId && fallbackAuthUserId) {
-    return { id: businessId, auth_user_id: fallbackAuthUserId, username: username || null } as BusinessRow;
+    return { id: businessId, auth_user_id: fallbackAuthUserId, username: username || null } as unknown as BusinessRow;
   }
 
   let query = db.from("business_accounts").select("id, auth_user_id, username");
@@ -206,7 +206,7 @@ async function findBusiness(db: SupabaseClient, businessId: string, username = "
   if (error) throw error;
   if (!data) throw new Error("Restaurant account was not found");
 
-  return data as BusinessRow;
+  return data as unknown as BusinessRow;
 }
 
 async function expireOldSessions(db: SupabaseClient, businessId: string, tableNumber: number) {
@@ -245,7 +245,7 @@ async function requireActiveTableSession(
   if (error) throw error;
   if (!data?.id) throw new Error("This table session is no longer valid. Please scan the table QR again.");
 
-  const session = data as TableSessionRow;
+  const session = data as unknown as TableSessionRow;
   const now = new Date();
   const nowTime = now.getTime();
   const hardExpired = session.expires_at ? new Date(session.expires_at).getTime() <= nowTime : false;

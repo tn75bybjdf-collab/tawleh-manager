@@ -78,7 +78,7 @@ async function findBusiness(admin: SupabaseClient, businessId: string, username 
   if (error) throw error;
   if (!data) throw new Error("Restaurant account was not found");
 
-  return data as BusinessRow;
+  return data as unknown as BusinessRow;
 }
 
 async function fetchGuests(admin: SupabaseClient, businessId: string, tableNumber: number) {
@@ -123,7 +123,7 @@ async function requireJoinableSession(admin: SupabaseClient, businessId: string,
   if (error) throw error;
   if (!data?.id) throw new Error("This table session is no longer valid. Please scan the table QR again.");
 
-  const session = data as TableSessionRow;
+  const session = data as unknown as TableSessionRow;
   if (!["pending", "active"].includes(String(session.status || ""))) {
     throw new Error("This table session is closed. Please ask the waiter to reset or approve the table again.");
   }
