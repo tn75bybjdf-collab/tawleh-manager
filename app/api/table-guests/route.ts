@@ -125,17 +125,25 @@ async function requireJoinableSession(admin: SupabaseClient, businessId: string,
 
   const session = data as unknown as TableSessionRow;
   if (!["pending", "active"].includes(String(session.status || ""))) {
-    throw new Error("This table session is closed. Please ask the waiter to reset or approve the table again.");
+    throw new Error("This table session is closed. Please scan the table QR again or ask the waiter to reset the table.");
   }
 
   const now = new Date();
+  const updates: Record<string, unknown> = {
+    last_seen_at: now.toISOString(),
+    idle_expires_at: addMinutes(now, IDLE_SESSION_MINUTES).toISOString(),
+    updated_at: now.toISOString(),
+  };
+
+  if (String(session.status || "") === "pending") {
+    updates.status = "active";
+    updates.approved_at = now.toISOString();
+    session.status = "active";
+  }
+
   await admin
     .from("table_sessions")
-    .update({
-      last_seen_at: now.toISOString(),
-      idle_expires_at: addMinutes(now, IDLE_SESSION_MINUTES).toISOString(),
-      updated_at: now.toISOString(),
-    })
+    .update(updates)
     .eq("id", session.id);
 
   return session;

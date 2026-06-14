@@ -253,6 +253,8 @@ export async function POST(request: NextRequest) {
       const { data, error } = await admin
         .from("table_sessions")
         .update({
+          status: "active",
+          approved_at: existing.approved_at || nowIso,
           last_seen_at: nowIso,
           idle_expires_at: nextIdle,
           guest_name: guestName || existing.guest_name || null,
@@ -275,7 +277,8 @@ export async function POST(request: NextRequest) {
         table_number: tableNumber,
         session_token: token,
         qr_token: qrToken || null,
-        status: "pending",
+        status: "active",
+        approved_at: nowIso,
         guest_name: guestName || null,
         last_seen_at: nowIso,
         expires_at: addHours(now, HARD_SESSION_HOURS).toISOString(),

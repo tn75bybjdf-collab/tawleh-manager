@@ -257,15 +257,25 @@ async function requireActiveTableSession(
       .update({ status: "expired", closed_at: now.toISOString(), updated_at: now.toISOString() })
       .eq("id", session.id);
 
-    throw new Error("This table session expired. Please ask the waiter to reset or approve the table again.");
+    throw new Error("This table session expired. Please scan the table QR again or ask the waiter to reset the table.");
   }
 
   if (session.status === "pending") {
-    throw new Error("A waiter must approve this table before orders go to the kitchen.");
+    await db
+      .from("table_sessions")
+      .update({
+        status: "active",
+        approved_at: now.toISOString(),
+        last_seen_at: now.toISOString(),
+        idle_expires_at: addMinutes(now, IDLE_SESSION_MINUTES).toISOString(),
+        updated_at: now.toISOString(),
+      })
+      .eq("id", session.id);
+    session.status = "active";
   }
 
   if (session.status !== "active") {
-    throw new Error("This table session is closed. Please ask the waiter to reset or approve the table again.");
+    throw new Error("This table session is closed. Please scan the table QR again or ask the waiter to reset the table.");
   }
 
   if (session.last_order_at) {
