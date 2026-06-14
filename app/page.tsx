@@ -2420,6 +2420,234 @@ main.customer-only-shell .name-entry-error-text {
   }
 }
 
+
+
+/* =========================================================
+   MENU MODIFIERS / ADD-ONS / SPECIAL INSTRUCTIONS
+   Dashboard creates option groups. Customer chooses add-ons and notes.
+   ========================================================= */
+
+.option-builder-card {
+  margin: 16px 0 6px !important;
+  padding: 16px !important;
+  border-radius: 22px !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  background: rgba(255, 250, 243, 0.76) !important;
+  box-shadow: 0 12px 28px rgba(74, 45, 19, 0.06) !important;
+}
+
+.option-builder-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  margin-bottom: 14px !important;
+}
+
+.option-builder-head h4 {
+  margin: 0 !important;
+  color: #2f2a25 !important;
+  font-size: 20px !important;
+}
+
+.option-builder-head p,
+.option-empty-helper {
+  margin: 5px 0 0 !important;
+  color: #817466 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+.option-builder-stack {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+.option-group-editor {
+  padding: 14px !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,0.78) !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+}
+
+.option-group-grid,
+.option-choice-editor {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.option-group-grid.compact {
+  margin-top: 10px !important;
+}
+
+.option-choice-editor-list {
+  display: grid !important;
+  gap: 8px !important;
+  margin-top: 12px !important;
+}
+
+.option-choice-editor {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) 96px auto !important;
+  align-items: center !important;
+}
+
+.option-actions {
+  margin-top: 10px !important;
+}
+
+.modifier-summary {
+  display: inline-flex !important;
+  width: fit-content !important;
+  margin-top: 4px !important;
+  padding: 4px 8px !important;
+  border-radius: 999px !important;
+  background: rgba(207, 95, 59, 0.10) !important;
+  color: #9a442f !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+}
+
+.customer-only-shell .menu-item.has-customization {
+  grid-template-columns: 76px minmax(0, 1fr) auto !important;
+}
+
+.customer-customize-panel {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  gap: 10px !important;
+  margin-top: 2px !important;
+  padding: 12px !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.56) !important;
+  border: 1px solid rgba(255, 255, 255, 0.34) !important;
+  backdrop-filter: blur(14px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.08) !important;
+}
+
+.customer-option-groups {
+  display: grid !important;
+  gap: 11px !important;
+}
+
+.customer-option-group {
+  display: grid !important;
+  gap: 8px !important;
+}
+
+.customer-option-group-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+.customer-option-group-head strong {
+  color: #2d211b !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+}
+
+.customer-option-group-head span {
+  color: #7b6354 !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  text-align: right !important;
+}
+
+.customer-option-choice-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+.customer-option-choice {
+  min-height: 42px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 6px !important;
+  border-radius: 13px !important;
+  border: 1px solid rgba(136, 94, 62, 0.16) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: #3c2b24 !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  padding: 8px !important;
+}
+
+.customer-option-choice.selected {
+  background: linear-gradient(135deg, rgba(211, 109, 71, 0.92), rgba(189, 83, 56, 0.92)) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+.customer-option-choice b {
+  font-size: 10px !important;
+  white-space: nowrap !important;
+}
+
+.customer-special-instructions {
+  display: grid !important;
+  gap: 6px !important;
+}
+
+.customer-special-instructions span {
+  color: #3b2a22 !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+}
+
+.customer-special-instructions textarea {
+  min-height: 70px !important;
+  resize: vertical !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(136, 94, 62, 0.16) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: #2d211b !important;
+  padding: 10px !important;
+  font-size: 13px !important;
+  outline: none !important;
+}
+
+.review-product-modifiers,
+.review-product-instructions,
+.order-modifiers,
+.order-special-instructions {
+  margin: 5px 0 0 !important;
+  color: #6f5142 !important;
+  font-size: 12px !important;
+  line-height: 1.28 !important;
+  font-weight: 850 !important;
+}
+
+.ticket-line em,
+.bill-row em {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #7a6254 !important;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+  font-style: normal !important;
+}
+
+@media (max-width: 720px) {
+  .option-builder-head,
+  .option-group-grid,
+  .option-choice-editor {
+    grid-template-columns: 1fr !important;
+    display: grid !important;
+  }
+
+  .option-choice-editor {
+    grid-template-columns: 1fr !important;
+  }
+
+  .customer-option-choice-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 `;
 
 
@@ -4628,6 +4856,234 @@ main.customer-only-shell .image-modal-card > img {
   }
 }
 
+
+
+/* =========================================================
+   MENU MODIFIERS / ADD-ONS / SPECIAL INSTRUCTIONS
+   Dashboard creates option groups. Customer chooses add-ons and notes.
+   ========================================================= */
+
+.option-builder-card {
+  margin: 16px 0 6px !important;
+  padding: 16px !important;
+  border-radius: 22px !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  background: rgba(255, 250, 243, 0.76) !important;
+  box-shadow: 0 12px 28px rgba(74, 45, 19, 0.06) !important;
+}
+
+.option-builder-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  margin-bottom: 14px !important;
+}
+
+.option-builder-head h4 {
+  margin: 0 !important;
+  color: #2f2a25 !important;
+  font-size: 20px !important;
+}
+
+.option-builder-head p,
+.option-empty-helper {
+  margin: 5px 0 0 !important;
+  color: #817466 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+.option-builder-stack {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+.option-group-editor {
+  padding: 14px !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,0.78) !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+}
+
+.option-group-grid,
+.option-choice-editor {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.option-group-grid.compact {
+  margin-top: 10px !important;
+}
+
+.option-choice-editor-list {
+  display: grid !important;
+  gap: 8px !important;
+  margin-top: 12px !important;
+}
+
+.option-choice-editor {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) 96px auto !important;
+  align-items: center !important;
+}
+
+.option-actions {
+  margin-top: 10px !important;
+}
+
+.modifier-summary {
+  display: inline-flex !important;
+  width: fit-content !important;
+  margin-top: 4px !important;
+  padding: 4px 8px !important;
+  border-radius: 999px !important;
+  background: rgba(207, 95, 59, 0.10) !important;
+  color: #9a442f !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+}
+
+.customer-only-shell .menu-item.has-customization {
+  grid-template-columns: 76px minmax(0, 1fr) auto !important;
+}
+
+.customer-customize-panel {
+  grid-column: 1 / -1 !important;
+  display: grid !important;
+  gap: 10px !important;
+  margin-top: 2px !important;
+  padding: 12px !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.56) !important;
+  border: 1px solid rgba(255, 255, 255, 0.34) !important;
+  backdrop-filter: blur(14px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.08) !important;
+}
+
+.customer-option-groups {
+  display: grid !important;
+  gap: 11px !important;
+}
+
+.customer-option-group {
+  display: grid !important;
+  gap: 8px !important;
+}
+
+.customer-option-group-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  align-items: center !important;
+}
+
+.customer-option-group-head strong {
+  color: #2d211b !important;
+  font-size: 13px !important;
+  font-weight: 1000 !important;
+}
+
+.customer-option-group-head span {
+  color: #7b6354 !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  text-align: right !important;
+}
+
+.customer-option-choice-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 7px !important;
+}
+
+.customer-option-choice {
+  min-height: 42px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 6px !important;
+  border-radius: 13px !important;
+  border: 1px solid rgba(136, 94, 62, 0.16) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: #3c2b24 !important;
+  font-size: 11px !important;
+  font-weight: 950 !important;
+  padding: 8px !important;
+}
+
+.customer-option-choice.selected {
+  background: linear-gradient(135deg, rgba(211, 109, 71, 0.92), rgba(189, 83, 56, 0.92)) !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+
+.customer-option-choice b {
+  font-size: 10px !important;
+  white-space: nowrap !important;
+}
+
+.customer-special-instructions {
+  display: grid !important;
+  gap: 6px !important;
+}
+
+.customer-special-instructions span {
+  color: #3b2a22 !important;
+  font-size: 12px !important;
+  font-weight: 1000 !important;
+}
+
+.customer-special-instructions textarea {
+  min-height: 70px !important;
+  resize: vertical !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(136, 94, 62, 0.16) !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  color: #2d211b !important;
+  padding: 10px !important;
+  font-size: 13px !important;
+  outline: none !important;
+}
+
+.review-product-modifiers,
+.review-product-instructions,
+.order-modifiers,
+.order-special-instructions {
+  margin: 5px 0 0 !important;
+  color: #6f5142 !important;
+  font-size: 12px !important;
+  line-height: 1.28 !important;
+  font-weight: 850 !important;
+}
+
+.ticket-line em,
+.bill-row em {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #7a6254 !important;
+  font-size: 11px !important;
+  line-height: 1.25 !important;
+  font-style: normal !important;
+}
+
+@media (max-width: 720px) {
+  .option-builder-head,
+  .option-group-grid,
+  .option-choice-editor {
+    grid-template-columns: 1fr !important;
+    display: grid !important;
+  }
+
+  .option-choice-editor {
+    grid-template-columns: 1fr !important;
+  }
+
+  .customer-option-choice-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 `;
 
 
@@ -4669,6 +5125,35 @@ type MenuCategory = {
   nameAr: string;
 };
 
+type MenuOptionChoice = {
+  id: string;
+  name: string;
+  nameAr: string;
+  price: number;
+};
+
+type MenuOptionGroup = {
+  id: string;
+  name: string;
+  nameAr: string;
+  required: boolean;
+  multiple: boolean;
+  choices: MenuOptionChoice[];
+};
+
+type CartCustomization = {
+  specialInstructions: string;
+  selectedChoices: Record<string, string[]>;
+};
+
+type OrderModifier = {
+  groupId: string;
+  groupName: string;
+  choiceId: string;
+  choiceName: string;
+  price: number;
+};
+
 type MenuItem = {
   id: string;
   name: string;
@@ -4684,6 +5169,7 @@ type MenuItem = {
   availableTo: string;
   imageThumbUrl?: string;
   imageFullUrl?: string;
+  optionGroups: MenuOptionGroup[];
 };
 
 type MenuRow = {
@@ -4705,6 +5191,7 @@ type MenuRow = {
   image_full_url: string | null;
   image_url?: string | null;
   image_path?: string | null;
+  option_groups?: unknown;
   sort_order: number | null;
   created_at: string | null;
 };
@@ -4742,6 +5229,7 @@ type MenuDraft = {
   availableTo: string;
   imageThumbUrl: string;
   imageFullUrl: string;
+  optionGroups: MenuOptionGroup[];
 };
 
 type Order = {
@@ -4761,11 +5249,20 @@ type Order = {
   kitchenPrintedAt: string;
   customerBillPrintedAt: string;
   printNote: string;
+  specialInstructions: string;
+  modifiers: OrderModifier[];
+  modifiersTotal: number;
+  basePrice: number;
+  unitTotal: number;
 };
 
 type CartLine = {
   item: MenuItem;
   quantity: number;
+  customization: CartCustomization;
+  selectedModifiers: OrderModifier[];
+  addonsTotal: number;
+  unitTotal: number;
   lineTotal: number;
 };
 
@@ -4803,6 +5300,11 @@ type TableOrderRow = {
   kitchen_printed_at?: string | null;
   customer_bill_printed_at?: string | null;
   print_note?: string | null;
+  special_instructions?: string | null;
+  modifiers?: unknown;
+  modifiers_total_jod?: number | string | null;
+  base_price_jod?: number | string | null;
+  unit_total_jod?: number | string | null;
   created_at: string | null;
 };
 
@@ -4852,6 +5354,7 @@ const emptyMenuDraft: MenuDraft = {
   availableTo: "23:00",
   imageThumbUrl: "",
   imageFullUrl: "",
+  optionGroups: [],
 };
 
 const defaultState: AppState = {
@@ -4929,11 +5432,151 @@ function cleanPersistedImageUrl(value: unknown) {
   return text;
 }
 
+function cleanMenuOptionGroups(value: unknown): MenuOptionGroup[] {
+  let raw = value;
+
+  if (typeof raw === "string") {
+    try {
+      raw = JSON.parse(raw);
+    } catch {
+      raw = [];
+    }
+  }
+
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map((group, groupIndex): MenuOptionGroup | null => {
+      const groupRecord = group as Partial<MenuOptionGroup> & { choices?: unknown };
+      const name = String(groupRecord.name || "").trim();
+      const nameAr = String(groupRecord.nameAr || "").trim();
+      const choicesRaw = Array.isArray(groupRecord.choices) ? groupRecord.choices : [];
+      const choices = choicesRaw
+        .map((choice, choiceIndex): MenuOptionChoice | null => {
+          const choiceRecord = choice as Partial<MenuOptionChoice>;
+          const choiceName = String(choiceRecord.name || "").trim();
+          const choiceNameAr = String(choiceRecord.nameAr || "").trim();
+          const price = Number(choiceRecord.price || 0);
+
+          if (!choiceName && !choiceNameAr) return null;
+
+          return {
+            id: String(choiceRecord.id || `choice_${choiceIndex}_${Date.now()}`),
+            name: choiceName || choiceNameAr,
+            nameAr: choiceNameAr,
+            price: Number.isFinite(price) ? Math.max(0, Math.round(price * 1000) / 1000) : 0,
+          };
+        })
+        .filter((choice): choice is MenuOptionChoice => Boolean(choice));
+
+      if (!name && !nameAr && !choices.length) return null;
+
+      return {
+        id: String(groupRecord.id || `group_${groupIndex}_${Date.now()}`),
+        name: name || nameAr || "Options",
+        nameAr,
+        required: groupRecord.required === true,
+        multiple: groupRecord.multiple === true,
+        choices,
+      };
+    })
+    .filter((group): group is MenuOptionGroup => Boolean(group));
+}
+
+function cleanSelectedChoices(value: unknown): Record<string, string[]> {
+  if (!value || typeof value !== "object") return {};
+
+  return Object.entries(value as Record<string, unknown>).reduce<Record<string, string[]>>((acc, [groupId, choices]) => {
+    const cleanGroupId = String(groupId || "").trim();
+    if (!cleanGroupId || !Array.isArray(choices)) return acc;
+
+    const cleanChoices = choices.map((choice) => String(choice || "").trim()).filter(Boolean);
+    if (cleanChoices.length) acc[cleanGroupId] = cleanChoices;
+    return acc;
+  }, {});
+}
+
+function normalizeCartCustomization(value?: Partial<CartCustomization>): CartCustomization {
+  return {
+    specialInstructions: String(value?.specialInstructions || "").slice(0, 240),
+    selectedChoices: cleanSelectedChoices(value?.selectedChoices || {}),
+  };
+}
+
+function cleanOrderModifiers(value: unknown): OrderModifier[] {
+  let raw = value;
+
+  if (typeof raw === "string") {
+    try {
+      raw = JSON.parse(raw);
+    } catch {
+      raw = [];
+    }
+  }
+
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map((modifier): OrderModifier | null => {
+      const record = modifier as Partial<OrderModifier>;
+      const choiceName = String(record.choiceName || "").trim();
+      const groupName = String(record.groupName || "").trim();
+      const price = Number(record.price || 0);
+
+      if (!choiceName) return null;
+
+      return {
+        groupId: String(record.groupId || ""),
+        groupName: groupName || "Option",
+        choiceId: String(record.choiceId || ""),
+        choiceName,
+        price: Number.isFinite(price) ? Math.max(0, Math.round(price * 1000) / 1000) : 0,
+      };
+    })
+    .filter((modifier): modifier is OrderModifier => Boolean(modifier));
+}
+
+function getSelectedModifiersForItem(item: MenuItem, customization: CartCustomization): OrderModifier[] {
+  const selectedChoices = cleanSelectedChoices(customization.selectedChoices);
+  const modifiers: OrderModifier[] = [];
+
+  for (const group of item.optionGroups || []) {
+    const selectedIds = selectedChoices[group.id] || [];
+
+    for (const choice of group.choices) {
+      if (!selectedIds.includes(choice.id)) continue;
+
+      modifiers.push({
+        groupId: group.id,
+        groupName: group.name,
+        choiceId: choice.id,
+        choiceName: choice.name,
+        price: choice.price,
+      });
+    }
+  }
+
+  return modifiers;
+}
+
+function getModifiersTotal(modifiers: OrderModifier[]) {
+  return Math.round(modifiers.reduce((sum, modifier) => sum + Number(modifier.price || 0), 0) * 1000) / 1000;
+}
+
+function formatOrderModifiers(modifiers: OrderModifier[]) {
+  if (!modifiers.length) return "";
+
+  return modifiers
+    .map((modifier) => `${modifier.groupName}: ${modifier.choiceName}${modifier.price > 0 ? ` (+${money(modifier.price)})` : ""}`)
+    .join(" • ");
+}
+
 function cleanMenuItemForStorage(item: MenuItem): MenuItem {
   return {
     ...item,
     imageThumbUrl: cleanPersistedImageUrl(item.imageThumbUrl),
     imageFullUrl: cleanPersistedImageUrl(item.imageFullUrl),
+    optionGroups: cleanMenuOptionGroups(item.optionGroups),
   };
 }
 
@@ -4998,11 +5641,17 @@ function safeLoadState(): AppState {
         availableTo: item.availableTo || "23:00",
         imageThumbUrl: cleanPersistedImageUrl(item.imageThumbUrl),
         imageFullUrl: cleanPersistedImageUrl(item.imageFullUrl),
+        optionGroups: cleanMenuOptionGroups((item as MenuItem).optionGroups || []),
       })) : starterMenu,
       categories: parsed.categories || [],
       orders: (parsed.orders || []).map((order) => ({
         ...order,
         quantity: Math.max(1, Number(order.quantity || 1)),
+        specialInstructions: String((order as Order).specialInstructions || ""),
+        modifiers: cleanOrderModifiers((order as Order).modifiers || []),
+        modifiersTotal: Number((order as Order).modifiersTotal || 0),
+        basePrice: Number((order as Order).basePrice || order.price || 0),
+        unitTotal: Number((order as Order).unitTotal || order.price || 0),
       })),
       qrTokens: parsed.qrTokens || {},
     };
@@ -5136,6 +5785,7 @@ function rowToMenuItem(row: MenuRow): MenuItem {
     availableTo: row.available_to || "23:00",
     imageThumbUrl: cleanPersistedImageUrl(row.image_thumb_url || row.image_url || ""),
     imageFullUrl: cleanPersistedImageUrl(row.image_full_url || row.image_url || ""),
+    optionGroups: cleanMenuOptionGroups(row.option_groups || []),
   };
 }
 
@@ -5217,11 +5867,16 @@ function rowToOrder(row: TableOrderRow): Order {
     kitchenPrintedAt: row.kitchen_printed_at || "",
     customerBillPrintedAt: row.customer_bill_printed_at || "",
     printNote: row.print_note || "",
+    specialInstructions: row.special_instructions || "",
+    modifiers: cleanOrderModifiers(row.modifiers || []),
+    modifiersTotal: Number(row.modifiers_total_jod || 0),
+    basePrice: Number(row.base_price_jod || unitPrice || 0),
+    unitTotal: Number(row.unit_total_jod || unitPrice || 0),
   };
 }
 
 function orderLineTotal(order: Order) {
-  return Number(order.price || 0) * Math.max(1, Number(order.quantity || 1));
+  return Number(order.unitTotal || order.price || 0) * Math.max(1, Number(order.quantity || 1));
 }
 function timeToMinutes(value: string) {
   const [hourRaw, minuteRaw] = String(value || "").split(":");
@@ -5586,8 +6241,12 @@ async function sendCartOrderToSupabase(
       items: cartLines.map((line) => ({
         itemId: line.item.id,
         itemName: line.item.name,
-        price: line.item.price,
+        basePrice: line.item.price,
+        price: line.unitTotal,
+        addonsTotal: line.addonsTotal,
         quantity: line.quantity,
+        specialInstructions: line.customization.specialInstructions,
+        modifiers: line.selectedModifiers,
       })),
     }),
   });
@@ -5701,6 +6360,7 @@ export default function Page() {
   const [namePromptError, setNamePromptError] = useState(false);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
   const [orderCart, setOrderCart] = useState<Record<string, number>>({});
+  const [orderCustomizations, setOrderCustomizations] = useState<Record<string, CartCustomization>>({});
   const [orderReviewOpen, setOrderReviewOpen] = useState(false);
   const [orderSendBusy, setOrderSendBusy] = useState(false);
   const [orderSendError, setOrderSendError] = useState("");
@@ -6122,14 +6782,23 @@ export default function Page() {
 
         if (!item || cleanQuantity < 1) return null;
 
+        const customization = normalizeCartCustomization(orderCustomizations[itemId]);
+        const selectedModifiers = getSelectedModifiersForItem(item, customization);
+        const addonsTotal = getModifiersTotal(selectedModifiers);
+        const unitTotal = Math.round((item.price + addonsTotal) * 1000) / 1000;
+
         return {
           item,
           quantity: cleanQuantity,
-          lineTotal: item.price * cleanQuantity,
+          customization,
+          selectedModifiers,
+          addonsTotal,
+          unitTotal,
+          lineTotal: Math.round(unitTotal * cleanQuantity * 1000) / 1000,
         };
       })
       .filter((line): line is CartLine => Boolean(line));
-  }, [orderCart, state.menu]);
+  }, [orderCart, orderCustomizations, state.menu]);
 
   const orderCartItemCount = orderCartLines.reduce((sum, line) => sum + line.quantity, 0);
   const orderCartTotal = orderCartLines.reduce((sum, line) => sum + line.lineTotal, 0);
@@ -6216,7 +6885,7 @@ export default function Page() {
 
     return Object.entries(groups)
       .map(([key, orders]) => {
-        const sortedOrders = [...orders].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+        const sortedOrders = [...(orders as Order[])].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
         const first = sortedOrders[0];
 
         return {
@@ -6997,6 +7666,7 @@ export default function Page() {
 
     setGuestName("");
     setOrderCart({});
+    setOrderCustomizations({});
     setOrderReviewOpen(false);
 
     if (publicCustomerMode) {
@@ -7048,6 +7718,7 @@ export default function Page() {
     }
 
     setOrderCart({});
+    setOrderCustomizations({});
     setOrderReviewOpen(false);
 
     if (publicCustomerMode) {
@@ -7056,6 +7727,73 @@ export default function Page() {
     }
 
     show(`Welcome back, ${clean}`);
+  }
+
+  function updateCartSpecialInstructions(itemId: string, text: string) {
+    setOrderCustomizations((current) => ({
+      ...current,
+      [itemId]: {
+        ...normalizeCartCustomization(current[itemId]),
+        specialInstructions: text.slice(0, 240),
+      },
+    }));
+  }
+
+  function toggleCartOptionChoice(item: MenuItem, group: MenuOptionGroup, choice: MenuOptionChoice) {
+    if (!state.currentGuest) {
+      requireCustomerName();
+      return;
+    }
+
+    setOrderCustomizations((current) => {
+      const customization = normalizeCartCustomization(current[item.id]);
+      const selectedChoices = cleanSelectedChoices(customization.selectedChoices);
+      const currentChoices = selectedChoices[group.id] || [];
+      const alreadySelected = currentChoices.includes(choice.id);
+      let nextChoices: string[];
+
+      if (group.multiple) {
+        nextChoices = alreadySelected
+          ? currentChoices.filter((choiceId) => choiceId !== choice.id)
+          : [...currentChoices, choice.id];
+      } else {
+        nextChoices = alreadySelected ? [] : [choice.id];
+      }
+
+      const nextSelectedChoices = {
+        ...selectedChoices,
+        [group.id]: nextChoices,
+      };
+
+      if (!nextChoices.length) {
+        delete nextSelectedChoices[group.id];
+      }
+
+      return {
+        ...current,
+        [item.id]: {
+          ...customization,
+          selectedChoices: nextSelectedChoices,
+        },
+      };
+    });
+  }
+
+  function validateOrderCustomizations() {
+    for (const line of orderCartLines) {
+      for (const group of line.item.optionGroups || []) {
+        if (!group.required || !group.choices.length) continue;
+
+        const selected = line.customization.selectedChoices[group.id] || [];
+
+        if (!selected.length) {
+          show(`Choose ${group.name} for ${line.item.name}`);
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   function changeCartQuantity(menuId: string, nextQuantity: number) {
@@ -7073,6 +7811,11 @@ export default function Page() {
 
       if (quantity <= 0) {
         delete next[menuId];
+        setOrderCustomizations((currentCustomizations) => {
+          const nextCustomizations = { ...currentCustomizations };
+          delete nextCustomizations[menuId];
+          return nextCustomizations;
+        });
       } else {
         next[menuId] = quantity;
       }
@@ -7106,6 +7849,12 @@ export default function Page() {
       delete next[menuId];
       return next;
     });
+
+    setOrderCustomizations((current) => {
+      const next = { ...current };
+      delete next[menuId];
+      return next;
+    });
   }
 
   function beginOrderReview() {
@@ -7118,6 +7867,8 @@ export default function Page() {
       show("Add at least one item first");
       return;
     }
+
+    if (!validateOrderCustomizations()) return;
 
     setOrderSendError("");
     setOrderReviewOpen(true);
@@ -7133,6 +7884,8 @@ export default function Page() {
       show("Add at least one item first");
       return;
     }
+
+    if (!validateOrderCustomizations()) return;
 
     if (!state.profile.businessId) {
       const message = "Missing restaurant account on this QR link. Create a fresh QR code from Table QR.";
@@ -7178,6 +7931,7 @@ export default function Page() {
       }));
 
       setOrderCart({});
+    setOrderCustomizations({});
       setOrderReviewOpen(false);
       setPhoneTab("bill");
       show("Order sent to kitchen");
@@ -7399,6 +8153,93 @@ export default function Page() {
     }
   }
 
+  function addOptionGroupToDraft() {
+    const groupId = makeId("option_group");
+
+    setMenuDraft((current) => ({
+      ...current,
+      optionGroups: [
+        ...cleanMenuOptionGroups(current.optionGroups),
+        {
+          id: groupId,
+          name: "Choice",
+          nameAr: "",
+          required: false,
+          multiple: false,
+          choices: [
+            { id: makeId("option_choice"), name: "Option 1", nameAr: "", price: 0 },
+          ],
+        },
+      ],
+    }));
+  }
+
+  function updateOptionGroupInDraft(groupId: string, patch: Partial<MenuOptionGroup>) {
+    setMenuDraft((current) => ({
+      ...current,
+      optionGroups: cleanMenuOptionGroups(current.optionGroups).map((group) =>
+        group.id === groupId ? { ...group, ...patch } : group
+      ),
+    }));
+  }
+
+  function removeOptionGroupFromDraft(groupId: string) {
+    setMenuDraft((current) => ({
+      ...current,
+      optionGroups: cleanMenuOptionGroups(current.optionGroups).filter((group) => group.id !== groupId),
+    }));
+  }
+
+  function addOptionChoiceToDraft(groupId: string) {
+    setMenuDraft((current) => ({
+      ...current,
+      optionGroups: cleanMenuOptionGroups(current.optionGroups).map((group) =>
+        group.id === groupId
+          ? {
+              ...group,
+              choices: [
+                ...group.choices,
+                { id: makeId("option_choice"), name: "New choice", nameAr: "", price: 0 },
+              ],
+            }
+          : group
+      ),
+    }));
+  }
+
+  function updateOptionChoiceInDraft(groupId: string, choiceId: string, patch: Partial<MenuOptionChoice>) {
+    setMenuDraft((current) => ({
+      ...current,
+      optionGroups: cleanMenuOptionGroups(current.optionGroups).map((group) =>
+        group.id === groupId
+          ? {
+              ...group,
+              choices: group.choices.map((choice) =>
+                choice.id === choiceId
+                  ? {
+                      ...choice,
+                      ...patch,
+                      price: patch.price === undefined ? choice.price : Math.max(0, Math.round(Number(patch.price || 0) * 1000) / 1000),
+                    }
+                  : choice
+              ),
+            }
+          : group
+      ),
+    }));
+  }
+
+  function removeOptionChoiceFromDraft(groupId: string, choiceId: string) {
+    setMenuDraft((current) => ({
+      ...current,
+      optionGroups: cleanMenuOptionGroups(current.optionGroups).map((group) =>
+        group.id === groupId
+          ? { ...group, choices: group.choices.filter((choice) => choice.id !== choiceId) }
+          : group
+      ),
+    }));
+  }
+
   function buildMenuItemFromDraft(cleanName: string, cleanNameAr: string, cleanDesc: string, cleanPrice: number): MenuItem {
     const icon = (menuDraft.icon.trim() || menuIconFromName(cleanName)).slice(0, 3).toUpperCase();
     const selectedCategory = state.categories.find((category) => category.id === menuDraft.categoryId);
@@ -7418,6 +8259,7 @@ export default function Page() {
       availableTo: menuDraft.availableTo || "23:00",
       imageThumbUrl: menuDraft.imageThumbUrl,
       imageFullUrl: menuDraft.imageFullUrl,
+      optionGroups: cleanMenuOptionGroups(menuDraft.optionGroups),
     };
   }
 
@@ -7530,6 +8372,7 @@ export default function Page() {
       availableTo: item.availableTo || "23:00",
       imageThumbUrl: item.imageThumbUrl || "",
       imageFullUrl: item.imageFullUrl || "",
+      optionGroups: cleanMenuOptionGroups(item.optionGroups),
     });
     show(`Editing ${item.name}`);
   }
@@ -8422,9 +9265,17 @@ export default function Page() {
 
                                       <p>{line.item.desc}</p>
 
+                                      {line.selectedModifiers.length ? (
+                                        <p className="review-product-modifiers">{formatOrderModifiers(line.selectedModifiers)}</p>
+                                      ) : null}
+
+                                      {line.customization.specialInstructions ? (
+                                        <p className="review-product-instructions">Note: {line.customization.specialInstructions}</p>
+                                      ) : null}
+
                                       <div className="review-product-meta">
                                         <span>{line.item.categoryName || "Menu item"}</span>
-                                        <span>{money(line.item.price)} each</span>
+                                        <span>{money(line.unitTotal)} each{line.addonsTotal > 0 ? ` (${money(line.addonsTotal)} add-ons)` : ""}</span>
                                       </div>
                                     </div>
 
@@ -8551,8 +9402,15 @@ export default function Page() {
                                   <p>This table QR is connected, but no saved menu items were found for this restaurant account.</p>
                                 </div>
                               ) : visibleCustomerMenu.length ? (
-                                visibleCustomerMenu.map((item) => (
-                                  <div key={item.id} className={`menu-item ${isMenuItemCurrentlyAvailable(item) ? "" : "unavailable"}`}>
+                                visibleCustomerMenu.map((item) => {
+                                  const cartQuantity = Number(orderCart[item.id] || 0);
+                                  const customization = normalizeCartCustomization(orderCustomizations[item.id]);
+                                  const selectedModifiers = getSelectedModifiersForItem(item, customization);
+                                  const addonsTotal = getModifiersTotal(selectedModifiers);
+                                  const unitTotal = Math.round((item.price + addonsTotal) * 1000) / 1000;
+
+                                  return (
+                                  <div key={item.id} className={`menu-item ${cartQuantity > 0 ? "has-customization" : ""} ${isMenuItemCurrentlyAvailable(item) ? "" : "unavailable"}`}>
                                     {item.imageThumbUrl ? (
                                       <button className="item-photo-button" type="button" onClick={() => setSelectedMenuImage(item)}>
                                         <img src={item.imageThumbUrl} alt={item.name} />
@@ -8565,21 +9423,32 @@ export default function Page() {
                                       {item.nameAr ? <p className="arabic-item-name" dir="rtl">{item.nameAr}</p> : null}
                                       <p>{item.desc}</p>
                                       <p className="availability-line">{formatItemAvailability(item)}</p>
-                                      <div className="price">{money(item.price)}</div>
+                                      {item.optionGroups.length ? <p className="availability-line">Options available</p> : null}
+                                      <div className="price">{money(unitTotal)}{addonsTotal > 0 ? <span> with add-ons</span> : null}</div>
                                     </div>
-                                    {Number(orderCart[item.id] || 0) > 0 ? (
+                                    {cartQuantity > 0 ? (
                                       <div className="cart-quantity-control">
-                                        <button type="button" onClick={() => changeCartQuantity(item.id, Number(orderCart[item.id] || 0) - 1)}>-</button>
-                                        <strong>{Number(orderCart[item.id] || 0)}</strong>
-                                        <button type="button" onClick={() => changeCartQuantity(item.id, Number(orderCart[item.id] || 0) + 1)}>+</button>
+                                        <button type="button" onClick={() => changeCartQuantity(item.id, cartQuantity - 1)}>-</button>
+                                        <strong>{cartQuantity}</strong>
+                                        <button type="button" onClick={() => changeCartQuantity(item.id, cartQuantity + 1)}>+</button>
                                       </div>
                                     ) : (
                                       <button className="btn small" disabled={!isMenuItemCurrentlyAvailable(item)} onClick={() => addCartItem(item.id)}>
                                         {isMenuItemCurrentlyAvailable(item) ? "Add" : unavailableButtonText(item)}
                                       </button>
                                     )}
+
+                                    {cartQuantity > 0 ? (
+                                      <CustomerCustomizationPanel
+                                        item={item}
+                                        customization={customization}
+                                        onInstructions={(text) => updateCartSpecialInstructions(item.id, text)}
+                                        onToggleChoice={(group, choice) => toggleCartOptionChoice(item, group, choice)}
+                                      />
+                                    ) : null}
                                   </div>
-                                ))
+                                  );
+                                })
                               ) : (
                                 <div className="seat-card menu-empty-card">
                                   <h4>No items in this category</h4>
@@ -8655,6 +9524,7 @@ export default function Page() {
                               </div>
                               <button className="btn ghost full" onClick={() => {
                                 setOrderCart({});
+    setOrderCustomizations({});
                                 setOrderReviewOpen(false);
                                 updateState((current) => ({ ...current, currentGuest: "" }));
                               }}>Switch customer</button>
@@ -8794,6 +9664,8 @@ export default function Page() {
                                   {ticket.orders.map((order) => (
                                     <div className="ticket-line" key={order.id}>
                                       <span>{Math.max(1, Number(order.quantity || 1))}x {order.itemName}</span>
+                                      {order.modifiers.length ? <em>{formatOrderModifiers(order.modifiers)}</em> : null}
+                                      {order.specialInstructions ? <em>Note: {order.specialInstructions}</em> : null}
                                       <small>{order.status}</small>
                                     </div>
                                   ))}
@@ -9173,6 +10045,7 @@ export default function Page() {
                                   categoryName: state.categories.find((category) => category.id === menuDraft.categoryId)?.name || "Uncategorized",
                                   imageThumbUrl: menuDraft.imageThumbUrl,
                                   imageFullUrl: menuDraft.imageFullUrl,
+                                  optionGroups: cleanMenuOptionGroups(menuDraft.optionGroups),
                                 })}>
                                   <img src={menuDraft.imageThumbUrl} alt="Compressed item thumbnail" />
                                 </button>
@@ -9195,6 +10068,100 @@ export default function Page() {
                             </div>
                           </div>
                         </Field>
+
+                        <div className="option-builder-card">
+                          <div className="option-builder-head">
+                            <div>
+                              <h4>Customer choices / add-ons</h4>
+                              <p>Use this for “choice of potato,” sauce options, doneness, extras, or paid add-ons.</p>
+                            </div>
+                            <button className="btn small secondary" type="button" onClick={addOptionGroupToDraft}>Add option group</button>
+                          </div>
+
+                          {menuDraft.optionGroups.length ? (
+                            <div className="option-builder-stack">
+                              {menuDraft.optionGroups.map((group) => (
+                                <div className="option-group-editor" key={group.id}>
+                                  <div className="option-group-grid">
+                                    <Field label="Option group">
+                                      <input
+                                        value={group.name}
+                                        onChange={(e) => updateOptionGroupInDraft(group.id, { name: e.target.value })}
+                                        placeholder="Example: Choice of potato"
+                                      />
+                                    </Field>
+                                    <Field label="Arabic option group">
+                                      <input
+                                        dir="rtl"
+                                        value={group.nameAr}
+                                        onChange={(e) => updateOptionGroupInDraft(group.id, { nameAr: e.target.value })}
+                                        placeholder="مثال: اختيار البطاطا"
+                                      />
+                                    </Field>
+                                  </div>
+
+                                  <div className="option-group-grid compact">
+                                    <Field label="Required?">
+                                      <select
+                                        value={group.required ? "yes" : "no"}
+                                        onChange={(e) => updateOptionGroupInDraft(group.id, { required: e.target.value === "yes" })}
+                                      >
+                                        <option value="no">Optional</option>
+                                        <option value="yes">Required</option>
+                                      </select>
+                                    </Field>
+
+                                    <Field label="Customer can choose">
+                                      <select
+                                        value={group.multiple ? "multiple" : "single"}
+                                        onChange={(e) => updateOptionGroupInDraft(group.id, { multiple: e.target.value === "multiple" })}
+                                      >
+                                        <option value="single">One choice</option>
+                                        <option value="multiple">Multiple choices</option>
+                                      </select>
+                                    </Field>
+                                  </div>
+
+                                  <div className="option-choice-editor-list">
+                                    {group.choices.map((choice) => (
+                                      <div className="option-choice-editor" key={choice.id}>
+                                        <input
+                                          value={choice.name}
+                                          onChange={(e) => updateOptionChoiceInDraft(group.id, choice.id, { name: e.target.value })}
+                                          placeholder="French fries"
+                                        />
+                                        <input
+                                          dir="rtl"
+                                          value={choice.nameAr}
+                                          onChange={(e) => updateOptionChoiceInDraft(group.id, choice.id, { nameAr: e.target.value })}
+                                          placeholder="بطاطا مقلية"
+                                        />
+                                        <input
+                                          type="number"
+                                          min={0}
+                                          step="0.05"
+                                          value={choice.price}
+                                          onChange={(e) => updateOptionChoiceInDraft(group.id, choice.id, { price: Number(e.target.value || 0) })}
+                                          placeholder="0.00"
+                                        />
+                                        <button className="btn small ghost" type="button" onClick={() => removeOptionChoiceFromDraft(group.id, choice.id)}>Remove</button>
+                                      </div>
+                                    ))}
+                                  </div>
+
+                                  <div className="row-actions option-actions">
+                                    <button className="btn small secondary" type="button" onClick={() => addOptionChoiceToDraft(group.id)}>Add choice</button>
+                                    <button className="btn small danger" type="button" onClick={() => removeOptionGroupFromDraft(group.id)}>Remove group</button>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="option-empty-helper">
+                              Example: Group “Choice of potato” with choices “French fries — Free,” “Mashed potato — Free,” “Loaded potato — +1.00 JOD.”
+                            </div>
+                          )}
+                        </div>
 
                         <div className="row-actions">
                           <button className="btn" type="button" onClick={editingMenuItemId ? saveEditedMenuItemFromBuilder : addMenuItemFromBuilder} disabled={imageBusy || menuBusy}>
@@ -9276,6 +10243,7 @@ export default function Page() {
                                         <span className="category-line">{item.categoryName || "Uncategorized"}</span>
                                         <span>{item.desc}</span>
                                         <span className="availability-line">{formatItemAvailability(item)}</span>
+                                        {item.optionGroups.length ? <span className="modifier-summary">{item.optionGroups.length} option group{item.optionGroups.length === 1 ? "" : "s"}</span> : null}
                                         <em>{money(item.price)}</em>
                                       </div>
 
@@ -9619,6 +10587,69 @@ function Empty({ text, alignLeft }: { text: string; alignLeft?: boolean }) {
   return <div className={`empty ${alignLeft ? "left" : ""}`}>{text}</div>;
 }
 
+function CustomerCustomizationPanel({
+  item,
+  customization,
+  onInstructions,
+  onToggleChoice,
+}: {
+  item: MenuItem;
+  customization: CartCustomization;
+  onInstructions: (text: string) => void;
+  onToggleChoice: (group: MenuOptionGroup, choice: MenuOptionChoice) => void;
+}) {
+  const optionGroups = item.optionGroups || [];
+
+  return (
+    <div className="customer-customize-panel">
+      {optionGroups.length ? (
+        <div className="customer-option-groups">
+          {optionGroups.map((group) => {
+            const selected = new Set(customization.selectedChoices[group.id] || []);
+
+            return (
+              <div className="customer-option-group" key={group.id}>
+                <div className="customer-option-group-head">
+                  <strong>{group.name}</strong>
+                  <span>{group.required ? "Required" : "Optional"} • {group.multiple ? "Choose more than one" : "Choose one"}</span>
+                </div>
+
+                <div className="customer-option-choice-grid">
+                  {group.choices.map((choice) => {
+                    const isSelected = selected.has(choice.id);
+
+                    return (
+                      <button
+                        key={choice.id}
+                        className={`customer-option-choice ${isSelected ? "selected" : ""}`}
+                        type="button"
+                        onClick={() => onToggleChoice(group, choice)}
+                      >
+                        <span>{choice.name}</span>
+                        <b>{choice.price > 0 ? `+${money(choice.price)}` : "Free"}</b>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
+      <label className="customer-special-instructions">
+        <span>Special instructions</span>
+        <textarea
+          value={customization.specialInstructions}
+          onChange={(event) => onInstructions(event.target.value)}
+          placeholder="Example: no onions, sauce on the side, extra lemon..."
+          maxLength={240}
+        />
+      </label>
+    </div>
+  );
+}
+
 function BillRows({ orders }: { orders: Order[] }) {
   if (!orders.length) return <Empty text="No items under your name yet." />;
 
@@ -9626,7 +10657,11 @@ function BillRows({ orders }: { orders: Order[] }) {
     <div className="bill-list">
       {orders.map((order) => (
         <div className="bill-row" key={order.id}>
-          <span>{order.itemName} {Math.max(1, Number(order.quantity || 1)) > 1 ? `x${order.quantity}` : ""} <small> {order.status}</small></span>
+          <span>
+            {order.itemName} {Math.max(1, Number(order.quantity || 1)) > 1 ? `x${order.quantity}` : ""} <small> {order.status}</small>
+            {order.modifiers.length ? <em>{formatOrderModifiers(order.modifiers)}</em> : null}
+            {order.specialInstructions ? <em>Note: {order.specialInstructions}</em> : null}
+          </span>
           <strong>{money(orderLineTotal(order))}</strong>
         </div>
       ))}
@@ -9659,6 +10694,8 @@ function OrderRow({ order, onStatus }: { order: Order; onStatus: (id: string, st
       <div>
         <h4>{order.itemName} {Math.max(1, Number(order.quantity || 1)) > 1 ? `x${order.quantity}` : ""} for {order.guest}</h4>
         <p>Table {order.table}  {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+        {order.modifiers.length ? <p className="order-modifiers">{formatOrderModifiers(order.modifiers)}</p> : null}
+        {order.specialInstructions ? <p className="order-special-instructions">Note: {order.specialInstructions}</p> : null}
       </div>
 
       <div>

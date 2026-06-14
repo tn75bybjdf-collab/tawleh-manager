@@ -24,6 +24,7 @@ type MenuItemPayload = {
   availableTo?: unknown;
   imageThumbUrl?: unknown;
   imageFullUrl?: unknown;
+  optionGroups?: unknown;
 };
 
 function adminClient() {
@@ -60,6 +61,59 @@ function cleanTime(value: unknown, fallback: string) {
   const text = cleanText(value, fallback);
   return /^\d{2}:\d{2}$/.test(text) ? text : fallback;
 }
+
+function cleanOptionGroups(value: unknown) {
+  let raw = value;
+
+  if (typeof raw === "string") {
+    try {
+      raw = JSON.parse(raw);
+    } catch {
+      raw = [];
+    }
+  }
+
+  if (!Array.isArray(raw)) return [];
+
+  return raw
+    .map((group, groupIndex) => {
+      const source = group && typeof group === "object" ? (group as Record<string, unknown>) : {};
+      const choicesRaw = Array.isArray(source.choices) ? source.choices : [];
+      const choices = choicesRaw
+        .map((choice, choiceIndex) => {
+          const choiceSource = choice && typeof choice === "object" ? (choice as Record<string, unknown>) : {};
+          const name = cleanText(choiceSource.name);
+          const nameAr = cleanText(choiceSource.nameAr);
+          const price = moneyNumber(choiceSource.price || 0);
+
+          if (!name && !nameAr) return null;
+
+          return {
+            id: cleanText(choiceSource.id, `choice_${groupIndex}_${choiceIndex}`),
+            name: name || nameAr,
+            nameAr,
+            price: Math.max(0, price),
+          };
+        })
+        .filter(Boolean);
+
+      const name = cleanText(source.name);
+      const nameAr = cleanText(source.nameAr);
+
+      if (!name && !nameAr && !choices.length) return null;
+
+      return {
+        id: cleanText(source.id, `group_${groupIndex}`),
+        name: name || nameAr || "Options",
+        nameAr,
+        required: source.required === true,
+        multiple: source.multiple === true,
+        choices,
+      };
+    })
+    .filter(Boolean);
+}
+
 
 function getBearerToken(request: NextRequest) {
   const header = request.headers.get("authorization") || "";
@@ -113,7 +167,7 @@ async function requireBusinessAccess(request: NextRequest, businessId: string, u
   };
 }
 
-const MENU_SELECT = "id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, available_all_day, available_from, available_to, image_thumb_url, image_full_url, sort_order, created_at";
+const MENU_SELECT = "id, business_account_id, auth_user_id, category_id, category_name, item_name, item_name_ar, description, price_jod, short_code, available, available_all_day, available_from, available_to, image_url, image_path, image_thumb_url, image_full_url, option_groups, sort_order, created_at";
 
 async function fetchMenu(admin: SupabaseClient, businessId: string) {
   const { data, error } = await admin
@@ -160,6 +214,7 @@ async function buildItemUpdate(admin: SupabaseClient, businessId: string, item: 
     available_to: cleanTime(item.availableTo, "23:00"),
     image_thumb_url: cleanText(item.imageThumbUrl) || null,
     image_full_url: cleanText(item.imageFullUrl) || null,
+    option_groups: cleanOptionGroups(item.optionGroups || []),
   };
 }
 
