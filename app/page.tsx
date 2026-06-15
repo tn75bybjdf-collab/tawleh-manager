@@ -15273,6 +15273,27 @@ export default function Page() {
 
             {!publicCustomerMode && (
             <section className="panel manager-option2-shell">
+              <button
+                type="button"
+                onClick={restaurantLogout}
+                style={{
+                  position: "fixed",
+                  right: 18,
+                  bottom: 18,
+                  zIndex: 9999,
+                  border: 0,
+                  borderRadius: 999,
+                  padding: "12px 16px",
+                  background: "#dc2626",
+                  color: "#fff",
+                  fontWeight: 900,
+                  boxShadow: "0 16px 35px rgba(15, 23, 42, 0.25)",
+                  cursor: "pointer",
+                }}
+                aria-label="Logout restaurant dashboard"
+              >
+                Logout
+              </button>
               <aside className="manager-option2-sidebar">
                 <div className="sidebar-logo-block restaurant-brand-logo-block">
                   <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} customer />
@@ -15310,6 +15331,19 @@ export default function Page() {
                 </div>
 
                 <button className="sidebar-primary-action" type="button" onClick={() => setManagerTab("qr")}>View QR Tables →</button>
+                <button
+                  className="sidebar-primary-action"
+                  type="button"
+                  onClick={restaurantLogout}
+                  style={{
+                    marginTop: 10,
+                    background: "#dc2626",
+                    borderColor: "#dc2626",
+                    color: "#fff",
+                  }}
+                >
+                  Logout
+                </button>
               </aside>
 
               <div className="panel-header manager-option2-header">
@@ -15323,7 +15357,7 @@ export default function Page() {
                   <span className="manager-live-pill"><span className="dot" />Live</span>
                   <button className="btn ghost small" onClick={openMenuBuilder}>Edit menu</button>
                   <button className="btn secondary small" onClick={loadDemoTable}>Demo table</button>
-                  <button className="btn ghost small" type="button" onClick={restaurantLogout}>Logout</button>
+                  <button className="btn danger small" type="button" onClick={restaurantLogout}>Logout</button>
                   <button className="btn danger small" onClick={resetAll}>Reset</button>
                 </div>
               </div>
