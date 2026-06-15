@@ -99,6 +99,14 @@ function formatMonth(value: string) {
   return date.toLocaleDateString(undefined, { month: "long", year: "numeric" });
 }
 
+function salespersonReportHref(username: string, month: string, commissionRate: number) {
+  const cleanUsername = String(username || "").trim().toLowerCase();
+  const cleanMonth = String(month || currentYearMonth()).trim();
+  const cleanCommission = Number.isFinite(Number(commissionRate)) ? Number(commissionRate) : 33;
+  if (!cleanUsername) return "#";
+  return `/salesperson-reports/${encodeURIComponent(cleanUsername)}?month=${encodeURIComponent(cleanMonth)}&commissionRate=${encodeURIComponent(String(cleanCommission))}`;
+}
+
 function formatDateTime(value: string) {
   if (!value) return "Not generated yet";
   const date = new Date(value);
@@ -1270,6 +1278,16 @@ export default function ReportsPage() {
                             {person.fullName || "Salesperson"}
                             {person.phone ? ` • ${person.phone}` : ""}
                           </em>
+                          {person.username ? (
+                            <a
+                              href={salespersonReportHref(person.username, reports?.month || reportMonth, commissionRate)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ color: "#c8613f", fontWeight: 950, fontSize: 12, textDecoration: "none", marginTop: 6, display: "inline-flex" }}
+                            >
+                              Open salesperson report link
+                            </a>
+                          ) : null}
                         </div>
                         <span>{person.newAccountsMonth} month / {person.newAccountsYtd} YTD</span>
                         <span className="tm-money">{money(person.portfolioMonthlyRecurringJod)}</span>
