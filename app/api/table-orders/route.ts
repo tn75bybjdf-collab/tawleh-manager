@@ -45,6 +45,7 @@ type TableOrderInsertRow = {
   order_ticket_id: string;
   ticket_number: number;
   table_number: number;
+  table_label: string | null;
   guest_name: string;
   item_id: string;
   item_name: string;
@@ -125,6 +126,18 @@ function cleanTable(value: unknown) {
   return Math.max(1, Math.min(999, Number.isFinite(table) ? Math.floor(table) : 1));
 }
 
+function cleanTableLabel(value: unknown) {
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .replace(/[<>]/g, "")
+    .trim()
+    .slice(0, 60);
+}
+
+function tableDisplayName(tableNumber: number, tableLabel = "") {
+  return cleanTableLabel(tableLabel) || `Table ${tableNumber}`;
+}
+
 function cleanPrice(value: unknown) {
   const price = Number(value || 0);
   return Number.isFinite(price) ? Math.round(price * 1000) / 1000 : 0;
@@ -197,7 +210,7 @@ function jsonError(message: string, status = 500) {
 }
 
 function orderSelect() {
-  return "id, business_account_id, auth_user_id, table_session_id, order_ticket_id, ticket_number, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, special_instructions, modifiers, modifiers_total_jod, base_price_jod, unit_total_jod, status, created_at";
+  return "id, business_account_id, auth_user_id, table_session_id, order_ticket_id, ticket_number, table_number, table_label, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, special_instructions, modifiers, modifiers_total_jod, base_price_jod, unit_total_jod, status, created_at";
 }
 
 async function findBusiness(db: SupabaseClient, businessId: string, username = "", fallbackAuthUserId = "") {
@@ -341,6 +354,7 @@ function buildKitchenPayload(args: {
   orderTicketId: string;
   ticketNumber: number;
   tableNumber: number;
+  tableLabel: string;
   guestName: string;
   items: KitchenPrintPayloadItem[];
 }) {
@@ -350,7 +364,7 @@ function buildKitchenPayload(args: {
     (args.business.username || "TAWLEH").toUpperCase(),
     "KITCHEN TICKET",
     `Ticket #${args.ticketNumber}`,
-    `Table ${args.tableNumber}`,
+    `Location: ${tableDisplayName(args.tableNumber, args.tableLabel)}`,
     `Guest: ${args.guestName}`,
     "------------------------------",
     ...args.items.flatMap((item) => {
@@ -378,6 +392,8 @@ function buildKitchenPayload(args: {
     orderTicketId: args.orderTicketId,
     ticketNumber: args.ticketNumber,
     tableNumber: args.tableNumber,
+    tableLabel: cleanTableLabel(args.tableLabel),
+    tableDisplayName: tableDisplayName(args.tableNumber, args.tableLabel),
     guestName: args.guestName,
     subtotalJod: subtotal,
     currency: "JOD",
@@ -408,13 +424,14 @@ async function createKitchenPrintJob(
       order_ticket_id: args.orderTicketId,
       ticket_number: args.ticketNumber,
       table_number: args.tableNumber,
+      table_label: cleanTableLabel(args.tableLabel) || null,
       guest_name: args.guestName,
       job_type: "kitchen_ticket",
       printer_target: "kitchen",
       status: "pending",
       payload,
     })
-    .select("id, business_account_id, order_ticket_id, ticket_number, table_number, guest_name, job_type, printer_target, status, payload, created_at")
+    .select("id, business_account_id, order_ticket_id, ticket_number, table_number, table_label, guest_name, job_type, printer_target, status, payload, created_at")
     .single();
 
   if (error) throw error;
@@ -454,6 +471,7 @@ export async function POST(request: NextRequest) {
     const authUserId = cleanText(body.authUserId);
     const username = cleanText(body.username);
     const tableNumber = cleanTable(body.table);
+    const tableLabel = cleanTableLabel(body.tableLabel);
     const guestName = cleanGuestName(body.guestName);
     const sessionToken = cleanToken(body.sessionToken);
     const items = Array.isArray(body.items) ? (body.items as OrderItemPayload[]) : [];
@@ -503,6 +521,7 @@ export async function POST(request: NextRequest) {
           order_ticket_id: orderTicketId,
           ticket_number: ticketNumber,
           table_number: tableNumber,
+          table_label: tableLabel || null,
           guest_name: guestName,
           item_id: itemId,
           item_name: itemName,
@@ -536,6 +555,7 @@ export async function POST(request: NextRequest) {
         orderTicketId,
         ticketNumber,
         tableNumber,
+        tableLabel,
         guestName,
         items: kitchenItems,
       });

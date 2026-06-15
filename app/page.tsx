@@ -8206,6 +8206,7 @@ type TableGuestRow = {
   id: string;
   business_account_id: string;
   table_number: number;
+  table_label?: string | null;
   guest_name: string;
   active: boolean | null;
   created_at: string | null;
@@ -8268,6 +8269,7 @@ type MenuDraft = {
 type Order = {
   id: string;
   table: number;
+  tableLabel: string;
   guest: string;
   itemId: string;
   itemName: string;
@@ -8304,6 +8306,7 @@ type KitchenTicketGroup = {
   orderTicketId: string;
   ticketNumber: number | null;
   table: number;
+  tableLabel: string;
   guest: string;
   orders: Order[];
   itemCount: number;
@@ -8321,6 +8324,7 @@ type TableOrderRow = {
   order_ticket_id?: string | null;
   ticket_number?: number | string | null;
   table_number: number;
+  table_label?: string | null;
   guest_name: string;
   item_id: string;
   item_name: string;
@@ -8508,6 +8512,7 @@ type AppState = {
   requests: ServiceRequest[];
   serviceItems: ServiceItem[];
   qrTokens: Record<string, string>;
+  tableLabels: Record<string, string>;
   lastQrTable: number;
 };
 
@@ -8605,6 +8610,7 @@ const defaultState: AppState = {
   requests: [],
   serviceItems: defaultServiceItems,
   qrTokens: {},
+  tableLabels: {},
   lastQrTable: DEMO_TABLE,
 };
 
@@ -8982,6 +8988,7 @@ function safeSaveStateToLocalStorage(nextState: AppState) {
         categories: nextState.categories,
         serviceItems: cleanServiceItems(nextState.serviceItems).map(serviceItemForStorage),
         qrTokens: nextState.qrTokens,
+        tableLabels: nextState.tableLabels,
         lastQrTable: nextState.lastQrTable,
       };
 
@@ -9027,6 +9034,7 @@ function safeLoadState(): AppState {
         unitTotal: Number((order as Order).unitTotal || order.price || 0),
       })),
       qrTokens: parsed.qrTokens || {},
+      tableLabels: parsed.tableLabels || {},
     };
   } catch {
     return defaultState;
@@ -9036,6 +9044,14 @@ function safeLoadState(): AppState {
 function makeQrToken(restaurantName: string, branchName: string, tableNumber: number) {
   const raw = `${slugify(restaurantName)}-${slugify(branchName)}-table-${tableNumber}-${Date.now()}-${Math.random()}`;
   return `twl_${btoa(raw).replace(/[^a-zA-Z0-9]/g, "").slice(0, 24)}`;
+}
+
+function cleanTableLabel(value: unknown) {
+  return String(value || "")
+    .replace(/\s+/g, " ")
+    .replace(/[<>]/g, "")
+    .trim()
+    .slice(0, 60);
 }
 
 function readFileAsDataUrl(file: File) {
@@ -9369,6 +9385,7 @@ function rowToOrder(row: TableOrderRow): Order {
   return {
     id: row.id,
     table: Number(row.table_number || DEMO_TABLE),
+    tableLabel: cleanTableLabel(row.table_label),
     guest: row.guest_name || "Guest",
     itemId: row.item_id || "",
     itemName: row.item_name || "Menu item",
@@ -9802,6 +9819,7 @@ async function sendCartOrderToSupabase(
   businessId: string,
   authUserId: string,
   tableNumber: number,
+  tableLabel: string,
   guestName: string,
   cartLines: CartLine[],
   username = "",
@@ -9817,6 +9835,7 @@ async function sendCartOrderToSupabase(
       authUserId,
       username,
       table: tableNumber,
+      tableLabel: cleanTableLabel(tableLabel),
       guestName,
       sessionToken,
       items: cartLines.map((line) => ({
@@ -10386,6 +10405,7 @@ export default function Page() {
   const [cliqPayBusy, setCliqPayBusy] = useState(false);
   const [cliqPayMessage, setCliqPayMessage] = useState("");
   const [qrInput, setQrInput] = useState(String(DEMO_TABLE));
+  const [qrLabelInput, setQrLabelInput] = useState("");
   const [menuDraft, setMenuDraft] = useState<MenuDraft>(emptyMenuDraft);
   const menuBuilderFormRef = useRef<HTMLDivElement | null>(null);
   const [editingMenuItemId, setEditingMenuItemId] = useState("");
@@ -10446,6 +10466,7 @@ export default function Page() {
       const username = params.get("username") || "";
       const restaurantSlug = params.get("restaurant") || "";
       const tableNumber = Math.max(1, Math.min(999, Number(params.get("table") || DEMO_TABLE)));
+      const tableLabel = cleanTableLabel(params.get("tableLabel") || params.get("label") || "");
       const token = params.get("token") || "";
 
       if (qrMode) {
@@ -10524,6 +10545,7 @@ export default function Page() {
             ),
             orders: orderRows.map((row) => rowToOrder(row)),
             qrTokens: token ? { [String(tableNumber)]: token } : {},
+            tableLabels: tableLabel ? { [String(tableNumber)]: tableLabel } : {},
             lastQrTable: tableNumber,
           });
           writeCachedTableGuests(
@@ -10570,6 +10592,7 @@ export default function Page() {
       setState(loadedState);
       setSignupProfile(loadedState.profile);
       setQrInput(String(loadedState.lastQrTable || DEMO_TABLE));
+      setQrLabelInput(cleanTableLabel(loadedState.tableLabels?.[String(loadedState.lastQrTable || DEMO_TABLE)] || ""));
       setActiveTable(DEMO_TABLE);
       document.documentElement.style.setProperty("--brand", loadedState.profile.brandColor || "#c8613f");
       setLoaded(true);
@@ -11134,6 +11157,7 @@ export default function Page() {
           orderTicketId: first.orderTicketId,
           ticketNumber: first.ticketNumber,
           table: first.table,
+          tableLabel: first.tableLabel,
           guest: first.guest,
           orders: sortedOrders,
           itemCount: sortedOrders.reduce((sum, order) => sum + Math.max(1, Number(order.quantity || 1)), 0),
@@ -11148,6 +11172,9 @@ export default function Page() {
   }, [activeOrders]);
 
   const selectedQrTable = Math.max(1, Math.min(999, Number(state.lastQrTable || DEMO_TABLE)));
+  const selectedQrTableLabel = cleanTableLabel(state.tableLabels[String(selectedQrTable)] || "");
+  const activeTableLabel = cleanTableLabel(state.tableLabels[String(activeTable)] || "");
+  const tableDisplayName = (tableNumber: number, label = "") => cleanTableLabel(label || state.tableLabels[String(tableNumber)] || "") || `Table ${tableNumber}`;
   const selectedQrToken = state.qrTokens[String(selectedQrTable)] || "preview-token-create-qr-first";
   const selectedQrUrl = buildQrUrl(selectedQrTable, selectedQrToken);
   const selectedQrImage = `https://api.qrserver.com/v1/create-qr-code/?size=520x520&margin=18&ecc=H&data=${encodeURIComponent(selectedQrUrl)}`;
@@ -11335,7 +11362,7 @@ export default function Page() {
       branchName ? branchName : "KITCHEN TICKET",
       "KITCHEN TICKET",
       `Ticket ${ticketLabel}`,
-      `Table ${ticket.table}`,
+      `Location: ${tableDisplayName(ticket.table, ticket.tableLabel)}`,
       `Guest: ${ticket.guest}`,
       new Date(ticket.createdAt).toLocaleString([], {
         month: "short",
@@ -11571,6 +11598,9 @@ export default function Page() {
       table: String(tableNumber),
       token,
     });
+
+    const tableLabel = cleanTableLabel(state.tableLabels[String(tableNumber)] || "");
+    if (tableLabel) params.set("tableLabel", tableLabel);
 
     return `${PUBLIC_CUSTOMER_SITE_URL}/?${params.toString()}`;
   }
@@ -12644,6 +12674,7 @@ export default function Page() {
         state.profile.businessId,
         state.profile.authUserId,
         activeTable,
+        activeTableLabel,
         state.currentGuest,
         orderCartLines,
         state.profile.username,
@@ -13696,6 +13727,7 @@ export default function Page() {
     }
 
     const tableNumber = Math.max(1, Math.min(999, Number(qrInput || DEMO_TABLE)));
+    const tableLabel = cleanTableLabel(qrLabelInput);
     const token = makeQrToken(businessName, branchName, tableNumber);
 
     updateState((current) => ({
@@ -13705,9 +13737,13 @@ export default function Page() {
         ...current.qrTokens,
         [String(tableNumber)]: token,
       },
+      tableLabels: {
+        ...current.tableLabels,
+        [String(tableNumber)]: tableLabel,
+      },
     }));
 
-    show(`QR created for Table ${tableNumber}`);
+    show(`QR created for ${tableDisplayName(tableNumber, tableLabel)}`);
   }
 
   async function copyQrLink() {
@@ -14407,7 +14443,7 @@ export default function Page() {
 
             <div className="top-actions">
               {publicCustomerMode ? (
-                <span className="pill"><span className="dot" />Table {activeTable} live menu</span>
+                <span className="pill"><span className="dot" />{tableDisplayName(activeTable, activeTableLabel)} live menu</span>
               ) : (
                 <>
                   <span className="pill"><span className="dot" />{businessName} live</span>
@@ -14427,7 +14463,7 @@ export default function Page() {
                   <h2>{publicCustomerMode ? `Welcome to ${businessName}` : "Customer QR table flow"}</h2>
                   <p>{publicCustomerMode ? "Enter your name to begin ordering from your table." : "What the guest sees after scanning a table QR code."}</p>
                 </div>
-                <span className="pill">Table {activeTable}</span>
+                <span className="pill">{tableDisplayName(activeTable, activeTableLabel)}</span>
               </div>
 
               <div className="panel-body">
@@ -14497,7 +14533,7 @@ export default function Page() {
                           </div>
                           <div>
                             <span>You’re at</span>
-                            <strong>Table {activeTable}</strong>
+                            <strong>{tableDisplayName(activeTable, activeTableLabel)}</strong>
                             <em>{branchName}</em>
                           </div>
                           <b>›</b>
@@ -14513,7 +14549,7 @@ export default function Page() {
                           </div>
                         </div>
                         <p>{state.profile.welcomeMessage}</p>
-                        <div className="table-chip">Table {activeTable}  {branchName}</div>
+                        <div className="table-chip">{tableDisplayName(activeTable, activeTableLabel)}  {branchName}</div>
                       </div>
                     )}
 
@@ -14535,7 +14571,7 @@ export default function Page() {
                                   <span>{state.currentGuest.slice(0, 1).toUpperCase()}</span>
                                   <div>
                                     <strong>{state.currentGuest}</strong>
-                                    <small>Table {activeTable} • Current guest</small>
+                                    <small>{tableDisplayName(activeTable, activeTableLabel)} • Current guest</small>
                                   </div>
                                 </div>
 
@@ -14817,7 +14853,7 @@ export default function Page() {
                                 <button className="checkout-back-button" type="button" onClick={() => setOrderReviewOpen(false)}>
                                   ← Menu
                                 </button>
-                                <span className="checkout-table-pill">Table {activeTable}</span>
+                                <span className="checkout-table-pill">{tableDisplayName(activeTable, activeTableLabel)}</span>
                               </div>
 
                               <div className="checkout-brand-row">
@@ -15282,7 +15318,7 @@ export default function Page() {
                                 <div className="kitchen-ticket-top">
                                   <div>
                                     <span className="ticket-eyebrow">Kitchen Ticket {ticketLabel}</span>
-                                    <h4>Table {ticket.table} - {ticket.guest}</h4>
+                                    <h4>{tableDisplayName(ticket.table, ticket.tableLabel)} - {ticket.guest}</h4>
                                     <p>{new Date(ticket.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - {ticket.itemCount} item{ticket.itemCount === 1 ? "" : "s"}</p>
                                   </div>
 
@@ -15328,7 +15364,7 @@ export default function Page() {
                             return (
                               <div className="kitchen-table-group" key={tableNumber}>
                                 <div className="order-group-header">
-                                  <span>Table {tableNumber}</span>
+                                  <span>{tableDisplayName(tableNumber)}</span>
                                   <span>{tableOrders.length} active item{tableOrders.length === 1 ? "" : "s"}</span>
                                 </div>
 
@@ -15365,7 +15401,7 @@ export default function Page() {
                           <div className="request-row" key={order.id}>
                             <div>
                               <strong>{order.itemName} {Math.max(1, Number(order.quantity || 1)) > 1 ? `x${order.quantity}` : ""} for {order.guest}</strong>
-                              <span>Table {activeTable}  "{order.itemName} for {order.guest}?"</span>
+                              <span>{tableDisplayName(activeTable, activeTableLabel)}  "{order.itemName} for {order.guest}?"</span>
                             </div>
                             <button className="btn small ghost" onClick={() => setOrderStatus(order.id, "Served")}>Served</button>
                           </div>
@@ -15387,7 +15423,7 @@ export default function Page() {
                         waitingRequests.map((request) => (
                           <div className="request-row" key={request.id}>
                             <div>
-                              <strong>Table {request.table}  {request.guest} requested {request.type}</strong>
+                              <strong>{tableDisplayName(request.table)}  {request.guest} requested {request.type}</strong>
                               <span>{new Date(request.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}  {request.status}</span>
                             </div>
                             <button className="btn small success" onClick={() => resolveRequest(request.id)}>Resolve</button>
@@ -15539,7 +15575,7 @@ export default function Page() {
                                 onClick={() => setActiveTable(tableNumber)}
                               >
                                 <div>
-                                  <h4>Table {tableNumber}</h4>
+                                  <h4>{tableDisplayName(tableNumber)}</h4>
                                   <p>
                                     {active
                                       ? `${tableGuestCount} seated • ${tableOpenOrders} open • ${money(tableBillTotal)}`
@@ -15564,7 +15600,7 @@ export default function Page() {
                     </div>
 
                     <div className="manager-card">
-                      <h3>Table {activeTable} Bill</h3>
+                      <h3>{tableDisplayName(activeTable, activeTableLabel)} Bill</h3>
                       <p className="sub">This is the selected table only. Reset after guests leave to clear the next QR session.</p>
                       {(selectedLiveSession || selectedPendingSession) ? (
                         <div className="success-box" style={{ marginBottom: 12 }}>Live QR session active. Reset table when guests leave to kill this session.</div>
@@ -16212,16 +16248,28 @@ export default function Page() {
                   <div className="two-col">
                     <div className="manager-card">
                       <h3>Create a QR Code for a Table</h3>
-                      <p className="sub">The restaurant prints its own QR codes. Each QR is tied to this business, this branch, and one table number.</p>
+                      <p className="sub">The restaurant prints its own QR codes. Each QR is tied to this business, this branch, and one table/location. Use a name like Admin Office, ICU Nurses Station, Patio 1, or Table 7.</p>
 
                       <div className="qr-create-row">
-                        <Field label="Table number">
+                        <Field label="Table/location number">
                           <input
                             type="number"
                             min={1}
                             max={999}
                             value={qrInput}
-                            onChange={(e) => setQrInput(e.target.value)}
+                            onChange={(e) => {
+                              const nextTable = e.target.value;
+                              setQrInput(nextTable);
+                              setQrLabelInput(cleanTableLabel(state.tableLabels[String(Math.max(1, Math.min(999, Number(nextTable || DEMO_TABLE))))] || ""));
+                            }}
+                            onKeyDown={(e) => e.key === "Enter" && createQr()}
+                          />
+                        </Field>
+                        <Field label="Display name optional">
+                          <input
+                            value={qrLabelInput}
+                            placeholder="Example: Admin Office"
+                            onChange={(e) => setQrLabelInput(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && createQr()}
                           />
                         </Field>
@@ -16243,7 +16291,8 @@ export default function Page() {
                         <div className="bill-list">
                           <div className="bill-row"><span>Business</span><strong>{businessName}</strong></div>
                           <div className="bill-row"><span>Branch</span><strong>{branchName}</strong></div>
-                          <div className="bill-row"><span>Table</span><strong>{selectedQrTable}</strong></div>
+                          <div className="bill-row"><span>Location</span><strong>{tableDisplayName(selectedQrTable, selectedQrTableLabel)}</strong></div>
+                          <div className="bill-row"><span>Internal number</span><strong>{selectedQrTable}</strong></div>
                         </div>
 
                         <div className="qr-url-box">{selectedQrUrl}</div>
@@ -16261,9 +16310,9 @@ export default function Page() {
                       <div className="bill-list">
                         <div className="bill-row"><span>Restaurant account</span><strong>Locked</strong></div>
                         <div className="bill-row"><span>Branch</span><strong>Locked</strong></div>
-                        <div className="bill-row"><span>Table number</span><strong>Locked</strong></div>
+                        <div className="bill-row"><span>Table/location</span><strong>Locked</strong></div>
                         <div className="bill-row"><span>Customer name required</span><strong>Yes</strong></div>
-                        <div className="bill-row"><span>Kitchen receives</span><strong>Table + name</strong></div>
+                        <div className="bill-row"><span>Kitchen receives</span><strong>Location + name</strong></div>
                       </div>
                       <Empty alignLeft text={"Example:\nCustomer scans Table QR -> enters their name -> orders an item.\n\nKitchen sees: table number, customer name, and item name."} />
                     </div>
@@ -16630,7 +16679,7 @@ export default function Page() {
                     )}
                   </div>
                   <p>{branchName}</p>
-                  <div className="print-table-badge">Table {selectedQrTable}</div>
+                  <div className="print-table-badge">{tableDisplayName(selectedQrTable, selectedQrTableLabel)}</div>
                 </div>
 
                 <div className="print-hero-copy">
@@ -16953,7 +17002,7 @@ function OrderRow({ order, onStatus }: { order: Order; onStatus: (id: string, st
     <div className="order-row">
       <div>
         <h4>{order.itemName} {Math.max(1, Number(order.quantity || 1)) > 1 ? `x${order.quantity}` : ""} for {order.guest}</h4>
-        <p>Table {order.table}  {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+        <p>{order.tableLabel || `Table ${order.table}`}  {new Date(order.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
         {order.modifiers.length ? <p className="order-modifiers">{formatOrderModifiers(order.modifiers)}</p> : null}
         {order.specialInstructions ? <p className="order-special-instructions">Note: {order.specialInstructions}</p> : null}
       </div>
