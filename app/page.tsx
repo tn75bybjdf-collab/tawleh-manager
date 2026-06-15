@@ -10126,6 +10126,24 @@ async function deletePrinterSettingFromSupabase(businessId: string, printerId: s
   await readApiJson(response);
 }
 
+
+async function fetchPrintBridgeTokenFromSupabase(businessId: string, username = "") {
+  const headers = await getManagerAuthHeaders();
+  const params = new URLSearchParams({
+    businessId,
+    username: username || safeLoadState().profile.username || "",
+  });
+
+  const response = await fetch(`/api/print-bridge-token?${params.toString()}`, {
+    method: "GET",
+    headers,
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  return String(result.printBridgeToken || "");
+}
+
 function rowToPlatformBusiness(row: Record<string, unknown>): PlatformAdminBusiness {
   const tableCount = Number(row.table_count || 25);
   const monthlyFee = Number(row.service_monthly_fee_jod || monthlyTableFee(tableCount));
@@ -10471,6 +10489,9 @@ export default function Page() {
   const [printerDraft, setPrinterDraft] = useState<PrinterSetting>(emptyPrinterDraft);
   const [printerBusy, setPrinterBusy] = useState(false);
   const [printerMessage, setPrinterMessage] = useState("");
+  const [printBridgeToken, setPrintBridgeToken] = useState("");
+  const [printBridgeTokenBusy, setPrintBridgeTokenBusy] = useState(false);
+  const [printBridgeTokenMessage, setPrintBridgeTokenMessage] = useState("");
   const printersLoadedKeyRef = useRef("");
   const [selectedMenuImage, setSelectedMenuImage] = useState<MenuItem | null>(null);
   const [customerBgImageUrl, setCustomerBgImageUrl] = useState("");
@@ -12962,6 +12983,33 @@ export default function Page() {
 
 
 
+  async function refreshPrintBridgeTokenNow(showToast = false) {
+    if (!state.profile.businessId) {
+      if (showToast) show("Login first, then load the bridge token");
+      return;
+    }
+
+    setPrintBridgeTokenBusy(true);
+    setPrintBridgeTokenMessage("");
+
+    try {
+      const token = await fetchPrintBridgeTokenFromSupabase(
+        state.profile.businessId,
+        state.profile.username
+      );
+
+      setPrintBridgeToken(token);
+      setPrintBridgeTokenMessage(token ? "Bridge token loaded." : "No bridge token found.");
+      if (showToast) show("Bridge token loaded");
+    } catch (error) {
+      const message = `Bridge token load failed: ${getErrorMessage(error)}`;
+      setPrintBridgeTokenMessage(message);
+      if (showToast) show(message);
+    } finally {
+      setPrintBridgeTokenBusy(false);
+    }
+  }
+
   async function refreshPrinterSettingsNow(showToast = true) {
     if (!state.profile.businessId) {
       if (showToast) show("Login first, then refresh printer settings");
@@ -12978,6 +13026,18 @@ export default function Page() {
       );
 
       setPrinterSettings(savedPrinters);
+
+      try {
+        const token = await fetchPrintBridgeTokenFromSupabase(
+          state.profile.businessId,
+          state.profile.username
+        );
+        setPrintBridgeToken(token);
+        setPrintBridgeTokenMessage(token ? "Bridge token loaded." : "");
+      } catch (tokenError) {
+        setPrintBridgeTokenMessage(`Bridge token load failed: ${getErrorMessage(tokenError)}`);
+      }
+
       if (showToast) show("Printer settings refreshed");
     } catch (error) {
       const message = `Printer settings refresh failed: ${getErrorMessage(error)}`;
@@ -16838,6 +16898,50 @@ export default function Page() {
 
                       <div className="printer-ready-note">
                         Step 1: download and install the Tawleh Printer App on the restaurant Windows computer. Step 2: save the kitchen/cashier printer details here. The computer must be on the same network as the POS printer.
+                      </div>
+
+                      <div className="printer-ready-note" style={{ marginTop: 10 }}>
+                        <strong>Bridge token</strong>
+                        <div style={{ display: "grid", gap: 8, marginTop: 8 }}>
+                          <input
+                            readOnly
+                            value={printBridgeToken || ""}
+                            placeholder={printBridgeTokenBusy ? "Loading bridge token..." : "Press Load Bridge Token"}
+                            style={{
+                              width: "100%",
+                              fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                              fontSize: 12,
+                            }}
+                            onFocus={(event) => event.currentTarget.select()}
+                          />
+                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                            <button
+                              className="btn secondary small"
+                              type="button"
+                              onClick={() => refreshPrintBridgeTokenNow(true)}
+                              disabled={printBridgeTokenBusy}
+                            >
+                              {printBridgeTokenBusy ? "Loading..." : "Load Bridge Token"}
+                            </button>
+                            <button
+                              className="btn ghost small"
+                              type="button"
+                              disabled={!printBridgeToken}
+                              onClick={async () => {
+                                if (!printBridgeToken) return;
+                                await navigator.clipboard.writeText(printBridgeToken);
+                                setPrintBridgeTokenMessage("Bridge token copied.");
+                                show("Bridge token copied");
+                              }}
+                            >
+                              Copy Token
+                            </button>
+                          </div>
+                          <span className="sub">
+                            Paste this token into the Tawleh Printer App on the restaurant Windows computer.
+                          </span>
+                          {printBridgeTokenMessage ? <div className="admin-message">{printBridgeTokenMessage}</div> : null}
+                        </div>
                       </div>
 
                       <div className="printer-form-grid">
