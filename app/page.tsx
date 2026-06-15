@@ -10635,6 +10635,7 @@ export default function Page() {
         setTableSessionMessage("");
         setActiveTable(tableNumber);
         setPhoneTab("menu");
+        setActiveMenuCategory("__home");
 
         try {
           const query = new URLSearchParams({
@@ -10731,6 +10732,7 @@ export default function Page() {
             balanceDueJod: 0,
           });
           setPublicTableError(getErrorMessage(error));
+          setActiveMenuCategory("__home");
           setState({
             ...defaultState,
             profileComplete: true,
