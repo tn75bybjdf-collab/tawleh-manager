@@ -13,7 +13,9 @@ const SUPABASE_SERVICE_ROLE_KEY =
 
 function db() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error("Missing Supabase server environment variables");
+    throw new Error(
+      "Missing Supabase server environment variables. Check SUPABASE_SERVICE_ROLE_KEY in Vercel."
+    );
   }
 
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -24,9 +26,28 @@ function db() {
   });
 }
 
-function jsonError(message: string, status = 500) {
+function cleanText(value: unknown, fallback = "") {
+  return String(value ?? fallback).trim();
+}
+
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
+function jsonError(message: string, status = 500, detail?: unknown) {
   return NextResponse.json(
-    { ok: false, error: message },
+    {
+      ok: false,
+      error: message,
+      detail:
+        typeof detail === "string"
+          ? detail
+          : detail && typeof detail === "object" && "message" in detail
+            ? String((detail as { message?: unknown }).message || "")
+            : undefined,
+    },
     {
       status,
       headers: {
@@ -36,30 +57,12 @@ function jsonError(message: string, status = 500) {
   );
 }
 
-function cleanText(value: unknown, fallback = "") {
-  const text = String(value ?? fallback).trim();
-  return text;
-}
-
-function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-}
-
-function normalizeJobType(value: unknown) {
-  const text = cleanText(value).toLowerCase();
-
-  if (text === "customer_bill" || text === "receipt" || text === "cashier" || text === "bill") {
-    return "customer_bill";
-  }
-
-  return "kitchen_ticket";
-}
-
-function printerRoleFromJob(job: Record<string, unknown>) {
+function getPrinterRole(job: Record<string, unknown>) {
   const target = cleanText(job.printer_target || job.printerTarget).toLowerCase();
   const type = cleanText(job.job_type || job.jobType).toLowerCase();
 
-  if (target.includes("receipt") || target.includes("cashier") || type.includes("bill")) return "cashier";
+  if (target.includes("cashier") || target.includes("receipt") || target.includes("bill")) return "cashier";
+  if (type.includes("bill") || type.includes("receipt")) return "cashier";
   if (target.includes("bar")) return "bar";
   if (target.includes("expo")) return "expo";
   if (target.includes("backup")) return "backup";
@@ -68,11 +71,15 @@ function printerRoleFromJob(job: Record<string, unknown>) {
 }
 
 function normalizePayload(job: Record<string, unknown>) {
-  const payload = (job.payload && typeof job.payload === "object" ? job.payload : {}) as Record<string, unknown>;
+  const payload =
+    job.payload && typeof job.payload === "object"
+      ? (job.payload as Record<string, unknown>)
+      : {};
+
   const items = Array.isArray(payload.items) ? payload.items : [];
 
   const normalizedItems = items.map((raw) => {
-    const item = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+    const item = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
 
     return {
       itemId: cleanText(item.itemId || item.item_id),
@@ -102,21 +109,19 @@ function normalizePayload(job: Record<string, unknown>) {
 
 function normalizeJob(job: Record<string, unknown>) {
   const payload = normalizePayload(job);
-  const printerRole = printerRoleFromJob(job);
+  const printerRole = getPrinterRole(job);
 
   return {
     id: cleanText(job.id),
     businessAccountId: cleanText(job.business_account_id || job.businessAccountId),
-    orderTicketId: cleanText(job.order_ticket_id || job.orderTicketId),
-    ticketNumber: Number(job.ticket_number || job.ticketNumber || payload.ticketNumber || 0),
     tableNumber: Number(job.table_number || job.tableNumber || payload.tableNumber || 0),
     guestName: cleanText(job.guest_name || job.guestName || payload.guestName || "Guest"),
-    jobType: normalizeJobType(job.job_type || job.jobType),
+    jobType: cleanText(job.job_type || job.jobType || "kitchen_ticket"),
     type: printerRole,
     printerRole,
     printer_role: printerRole,
-    printerTarget: cleanText(job.printer_target || job.printerTarget),
-    status: cleanText(job.status),
+    printerTarget: cleanText(job.printer_target || job.printerTarget || printerRole),
+    status: cleanText(job.status || "pending"),
     attemptCount: Number(job.attempt_count || job.attemptCount || 0),
     createdAt: cleanText(job.created_at || job.createdAt),
     payload,
@@ -125,65 +130,67 @@ function normalizeJob(job: Record<string, unknown>) {
 
 async function getBusinessByBridgeToken(client: ReturnType<typeof db>, bridgeToken: string) {
   if (!bridgeToken || bridgeToken.length < 24) {
-    throw new Error("Missing or invalid bridge token");
+    throw new Error("Missing or invalid bridge token.");
   }
 
   const { data, error } = await client
     .from("business_accounts")
-    .select("id, auth_user_id, username, business_name, restaurant_name, print_bridge_token")
+    .select("id, username, restaurant_name, branch_name, print_bridge_token")
     .eq("print_bridge_token", bridgeToken)
     .maybeSingle();
 
-  if (error) throw error;
-  if (!data) throw new Error("Bridge token was not found");
+  if (error) {
+    throw new Error(`Business token lookup failed: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error("Bridge token was not found.");
+  }
 
   return data as unknown as {
     id: string;
-    auth_user_id: string | null;
     username: string | null;
-    business_name?: string | null;
-    restaurant_name?: string | null;
+    restaurant_name: string | null;
+    branch_name: string | null;
     print_bridge_token: string;
   };
 }
 
-async function markPrinted(client: ReturnType<typeof db>, jobId: string) {
-  const rpc = await client.rpc("mark_table_print_job_printed", {
-    p_job_id: jobId,
-  });
+async function safeUpdateJobStatus(
+  client: ReturnType<typeof db>,
+  businessAccountId: string,
+  jobId: string,
+  status: "pending" | "printing" | "printed" | "failed",
+  message = ""
+) {
+  // Keep this update minimal because your table_print_jobs schema may not have
+  // printed_at, updated_at, last_error, etc.
+  const patch: Record<string, unknown> = {
+    status,
+  };
 
-  if (!rpc.error) return;
+  if (status === "printing" || status === "failed") {
+    // attempt_count is confirmed from your SQL output.
+    const { data: existing } = await client
+      .from("table_print_jobs")
+      .select("attempt_count")
+      .eq("id", jobId)
+      .eq("business_account_id", businessAccountId)
+      .maybeSingle();
 
-  const fallback = await client
+    const currentAttempt = Number((existing as { attempt_count?: unknown } | null)?.attempt_count || 0);
+    patch.attempt_count = currentAttempt + 1;
+  }
+
+  const { error } = await client
     .from("table_print_jobs")
-    .update({
-      status: "printed",
-      printed_at: new Date().toISOString(),
-      last_error: null,
-    })
-    .eq("id", jobId);
+    .update(patch)
+    .eq("id", jobId)
+    .eq("business_account_id", businessAccountId);
 
-  if (fallback.error) throw fallback.error;
-}
-
-async function markFailed(client: ReturnType<typeof db>, jobId: string, message: string) {
-  const rpc = await client.rpc("mark_table_print_job_failed", {
-    p_job_id: jobId,
-    p_error: message || "Print failed",
-  });
-
-  if (!rpc.error) return;
-
-  const fallback = await client
-    .from("table_print_jobs")
-    .update({
-      status: "failed",
-      last_error: message || "Print failed",
-      updated_at: new Date().toISOString(),
-    })
-    .eq("id", jobId);
-
-  if (fallback.error) throw fallback.error;
+  if (error) {
+    throw new Error(`Could not update print job ${jobId} to ${status}: ${error.message}`);
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -194,10 +201,14 @@ export async function GET(request: NextRequest) {
 
     const business = await getBusinessByBridgeToken(client, bridgeToken);
 
+    // IMPORTANT:
+    // This select only uses columns confirmed by your Supabase query:
+    // id, business_account_id, table_number, guest_name, job_type,
+    // printer_target, status, attempt_count, payload, created_at
     const { data, error } = await client
       .from("table_print_jobs")
       .select(
-        "id, business_account_id, auth_user_id, order_ticket_id, ticket_number, table_number, guest_name, job_type, printer_target, status, payload, attempt_count, printed_at, last_error, created_at, updated_at"
+        "id, business_account_id, table_number, guest_name, job_type, printer_target, status, attempt_count, payload, created_at"
       )
       .eq("business_account_id", business.id)
       .in("status", ["pending", "failed"])
@@ -205,22 +216,16 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: true })
       .limit(limit);
 
-    if (error) throw error;
+    if (error) {
+      throw new Error(`Print job lookup failed: ${error.message}`);
+    }
 
     const jobs = ((data || []) as unknown as Record<string, unknown>[]).map(normalizeJob);
 
-    if (jobs.length) {
-      const ids = jobs.map((job) => job.id).filter(isUuid);
-
-      if (ids.length) {
-        await client
-          .from("table_print_jobs")
-          .update({
-            status: "printing",
-            updated_at: new Date().toISOString(),
-          })
-          .in("id", ids)
-          .eq("business_account_id", business.id);
+    // Mark as printing so multiple bridge apps do not grab the same jobs.
+    for (const job of jobs) {
+      if (isUuid(job.id)) {
+        await safeUpdateJobStatus(client, business.id, job.id, "printing");
       }
     }
 
@@ -230,7 +235,8 @@ export async function GET(request: NextRequest) {
         business: {
           id: business.id,
           username: business.username,
-          name: business.business_name || business.restaurant_name || business.username || "Restaurant",
+          name: business.restaurant_name || business.username || "Restaurant",
+          branch: business.branch_name || "",
         },
         jobs,
       },
@@ -241,7 +247,11 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (error) {
-    return jsonError(error instanceof Error ? error.message : "Could not load print bridge jobs", 500);
+    return jsonError(
+      "Could not load print bridge jobs",
+      500,
+      error instanceof Error ? error.message : String(error)
+    );
   }
 }
 
@@ -268,26 +278,20 @@ export async function POST(request: NextRequest) {
       .eq("business_account_id", business.id)
       .maybeSingle();
 
-    if (jobError) throw jobError;
+    if (jobError) {
+      throw new Error(`Print job verification failed: ${jobError.message}`);
+    }
+
     if (!job) {
       return jsonError("Print job was not found for this bridge token", 404);
     }
 
     if (status === "printed" || status === "done" || status === "success") {
-      await markPrinted(client, jobId);
+      await safeUpdateJobStatus(client, business.id, jobId, "printed", message);
     } else if (status === "failed" || status === "error") {
-      await markFailed(client, jobId, message || "Printer bridge failed");
+      await safeUpdateJobStatus(client, business.id, jobId, "failed", message || "Printer bridge failed");
     } else if (status === "printing") {
-      const { error } = await client
-        .from("table_print_jobs")
-        .update({
-          status: "printing",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", jobId)
-        .eq("business_account_id", business.id);
-
-      if (error) throw error;
+      await safeUpdateJobStatus(client, business.id, jobId, "printing", message);
     } else {
       return jsonError("Invalid print job status", 400);
     }
@@ -305,6 +309,10 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error) {
-    return jsonError(error instanceof Error ? error.message : "Could not update print bridge job", 500);
+    return jsonError(
+      "Could not update print bridge job",
+      500,
+      error instanceof Error ? error.message : String(error)
+    );
   }
 }
