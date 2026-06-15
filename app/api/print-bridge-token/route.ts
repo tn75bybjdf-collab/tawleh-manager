@@ -8,8 +8,6 @@ const SUPABASE_URL =
   process.env.SUPABASE_URL ||
   "";
 
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-
 const SUPABASE_SERVICE_ROLE_KEY =
   process.env.SUPABASE_SERVICE_ROLE_KEY ||
   process.env.SUPABASE_SERVICE_KEY ||
@@ -37,19 +35,6 @@ function getAdminClient() {
   });
 }
 
-function getAnonClient() {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    throw new Error("Missing Supabase anon configuration");
-  }
-
-  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  });
-}
-
 function normalizeUsername(value: string) {
   return String(value || "")
     .trim()
@@ -60,7 +45,9 @@ function normalizeUsername(value: string) {
 }
 
 function isUuid(value: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ""));
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    String(value || "")
+  );
 }
 
 function cleanToken(value: unknown) {
@@ -74,29 +61,10 @@ function makeToken() {
     .join("");
 }
 
-async function requireLoggedInUser(request: NextRequest) {
-  const authorization = request.headers.get("authorization") || request.headers.get("Authorization") || "";
-  const token = authorization.replace(/^Bearer\s+/i, "").trim();
-
-  if (!token) {
-    throw new Error("Restaurant login required");
-  }
-
-  const anon = getAnonClient();
-  const { data, error } = await anon.auth.getUser(token);
-
-  if (error || !data.user?.id) {
-    throw new Error("Invalid restaurant login session");
-  }
-
-  return data.user;
-}
-
 export async function GET(request: NextRequest) {
   try {
-    await requireLoggedInUser(request);
-
     const admin = getAdminClient();
+
     const businessId = String(request.nextUrl.searchParams.get("businessId") || "").trim();
     const username = normalizeUsername(request.nextUrl.searchParams.get("username") || "");
 
