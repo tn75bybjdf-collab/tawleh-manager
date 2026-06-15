@@ -12331,6 +12331,30 @@ export default function Page() {
     setPlatformAdminMessage("Admin logged out");
   }
 
+  async function restaurantLogout() {
+    const ok = window.confirm("Log out of this restaurant dashboard on this device? This will not delete the restaurant account, menu, QR codes, or saved data in Supabase.");
+    if (!ok) return;
+
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+
+    window.localStorage.removeItem(STORAGE_KEY);
+    clearManagerAuthSession();
+    setState(defaultState);
+    setSignupProfile(defaultState.profile);
+    setLoginUsername("");
+    setLoginPassword("");
+    setSignupPassword("");
+    setSignupConfirmPassword("");
+    setQrInput(String(DEMO_TABLE));
+    setManagerTab("kitchen");
+    setPhoneTab("menu");
+    setAuthTab("login");
+    document.documentElement.style.setProperty("--brand", defaultState.profile.brandColor);
+    show("Restaurant dashboard logged out");
+  }
+
   function resetAll() {
     const ok = window.confirm("Reset Tawleh Manager and clear restaurant setup, logo, orders, requests, and QR tokens?");
     if (!ok) return;
@@ -15299,6 +15323,7 @@ export default function Page() {
                   <span className="manager-live-pill"><span className="dot" />Live</span>
                   <button className="btn ghost small" onClick={openMenuBuilder}>Edit menu</button>
                   <button className="btn secondary small" onClick={loadDemoTable}>Demo table</button>
+                  <button className="btn ghost small" type="button" onClick={restaurantLogout}>Logout</button>
                   <button className="btn danger small" onClick={resetAll}>Reset</button>
                 </div>
               </div>
