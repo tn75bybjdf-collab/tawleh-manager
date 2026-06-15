@@ -9769,29 +9769,6 @@ async function fetchTableSessionsFromSupabase(
   return rows.map((row) => rowToTableSession(row));
 }
 
-async function updateTableSessionStatusInSupabase(
-  businessId: string,
-  username: string,
-  sessionId: string,
-  status: "active" | "closed" | "blocked"
-) {
-  const headers = await getManagerAuthHeaders();
-
-  const response = await fetch("/api/table-sessions", {
-    method: "PATCH",
-    headers,
-    body: JSON.stringify({
-      businessId,
-      username,
-      sessionId,
-      status,
-    }),
-  });
-
-  const result = await readApiJson(response);
-  return rowToTableSession((result.session || {}) as TableSessionRow);
-}
-
 async function fetchTableOrdersFromSupabase(
   businessId: string,
   authUserId: string,
@@ -10415,7 +10392,6 @@ export default function Page() {
   });
   const [tableSession, setTableSession] = useState<TableSession | null>(null);
   const [tableSessions, setTableSessions] = useState<TableSession[]>([]);
-  const [tableSessionBusy, setTableSessionBusy] = useState(false);
   const [tableSessionMessage, setTableSessionMessage] = useState("");
   const tableSessionLoadedKeyRef = useRef("");
   const [activeTable, setActiveTable] = useState(DEMO_TABLE);
@@ -10734,11 +10710,11 @@ export default function Page() {
         setTableSession(session);
 
         if (session.status === "pending") {
-          setTableSessionMessage("This table is waiting for waiter approval before orders can go to the kitchen.");
+          setTableSessionMessage("");
         } else if (session.status === "active") {
           setTableSessionMessage("");
         } else {
-          setTableSessionMessage("This table session expired. Please ask the waiter to reset or approve the table again.");
+          setTableSessionMessage("This table session expired. Please scan the table QR again or ask the waiter to reset the table.");
         }
       } catch (error) {
         if (cancelled) return;
@@ -12295,36 +12271,12 @@ export default function Page() {
     }
 
     if (requireActive && session?.status !== "active") {
-      const message = session?.status === "pending"
-        ? "A waiter must approve this table before orders go to the kitchen."
-        : "This table session is no longer active. Please scan the table QR again or ask the waiter to reset the table.";
+      const message = "This table session is no longer active. Please scan the table QR again or ask the waiter to reset the table.";
       setTableSessionMessage(message);
       throw new Error(message);
     }
 
     return session;
-  }
-
-  async function approveTableSession(sessionId: string) {
-    if (!state.profile.businessId || !sessionId || tableSessionBusy) return;
-
-    setTableSessionBusy(true);
-
-    try {
-      const session = await updateTableSessionStatusInSupabase(
-        state.profile.businessId,
-        state.profile.username,
-        sessionId,
-        "active"
-      );
-
-      setTableSessions((current) => current.map((item) => (item.id === session.id ? session : item)));
-      show(`Table ${session.tableNumber} approved for ordering`);
-    } catch (error) {
-      show(`Could not approve table: ${getErrorMessage(error)}`);
-    } finally {
-      setTableSessionBusy(false);
-    }
   }
 
   async function joinGuest(name: string) {
@@ -13600,7 +13552,7 @@ export default function Page() {
 
         if (publicCustomerMode && cleanTableNumber === activeTable) {
           setTableSession(null);
-          setTableSessionMessage("This table was reset. Please ask the waiter to approve a new table session.");
+          setTableSessionMessage("This table was reset. Please scan the table QR again to start a new ordering session.");
         }
 
         writeCachedTableGuests(state.profile.businessId, cleanTableNumber, []);
@@ -15510,19 +15462,8 @@ export default function Page() {
                                       : "Available"}
                                   </p>
                                 </div>
-                                <span className={`status ${pendingSession ? "waiting" : needsHelp ? "waiting" : active ? "ready" : "served"}`}>{pendingSession ? "Needs approval" : needsHelp ? "Needs waiter" : liveSession ? "Session active" : active ? "Active" : "Empty"}</span>
+                                <span className={`status ${needsHelp ? "waiting" : active ? "ready" : "served"}`}>{needsHelp ? "Needs waiter" : (liveSession || pendingSession) ? "Session active" : active ? "Active" : "Empty"}</span>
                               </button>
-
-                              {pendingSession ? (
-                                <button
-                                  className="table-reset-button"
-                                  type="button"
-                                  onClick={() => approveTableSession(pendingSession.id)}
-                                  disabled={tableSessionBusy}
-                                >
-                                  {tableSessionBusy ? "Approving..." : "Approve ordering"}
-                                </button>
-                              ) : null}
 
                               <button
                                 className="table-reset-button"
@@ -15541,16 +15482,7 @@ export default function Page() {
                     <div className="manager-card">
                       <h3>Table {activeTable} Bill</h3>
                       <p className="sub">This is the selected table only. Reset after guests leave to clear the next QR session.</p>
-                      {selectedPendingSession ? (
-                        <div className="inline-error" style={{ marginBottom: 12 }}>
-                          Customer is waiting for approval on Table {activeTable}. Old saved QR/history pages cannot send kitchen orders unless you approve this session.
-                          <div style={{ marginTop: 10 }}>
-                            <button className="btn secondary small" type="button" onClick={() => approveTableSession(selectedPendingSession.id)} disabled={tableSessionBusy}>
-                              {tableSessionBusy ? "Approving..." : "Approve ordering for this table"}
-                            </button>
-                          </div>
-                        </div>
-                      ) : selectedLiveSession ? (
+                      {(selectedLiveSession || selectedPendingSession) ? (
                         <div className="success-box" style={{ marginBottom: 12 }}>Live QR session active. Reset table when guests leave to kill this session.</div>
                       ) : null}
                       <GuestBillRows billByGuest={selectedTableBillByGuest} />
@@ -16324,13 +16256,22 @@ export default function Page() {
                           <h3>Printer Settings</h3>
                           <p className="sub">Enter the IP address from the printer self-test printout. Most network POS printers use port 9100.</p>
                         </div>
-                        <button className="btn ghost small" type="button" onClick={() => refreshPrinterSettingsNow()} disabled={printerBusy}>
-                          {printerBusy ? "Loading..." : "Refresh"}
-                        </button>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                          <a
+                            className="btn secondary small"
+                            href="/downloads/tawleh-printer-bridge-windows.exe"
+                            download
+                          >
+                            Download Printer App
+                          </a>
+                          <button className="btn ghost small" type="button" onClick={() => refreshPrinterSettingsNow()} disabled={printerBusy}>
+                            {printerBusy ? "Loading..." : "Refresh"}
+                          </button>
+                        </div>
                       </div>
 
                       <div className="printer-ready-note">
-                        Step 1: save the kitchen/cashier printer details here. Step 2 later: install the Tawleh local print bridge on the restaurant tablet or Windows PC so it can print to the local IP.
+                        Step 1: download and install the Tawleh Printer App on the restaurant Windows computer. Step 2: save the kitchen/cashier printer details here. The computer must be on the same network as the POS printer.
                       </div>
 
                       <div className="printer-form-grid">
