@@ -12635,7 +12635,7 @@ export default function Page() {
   function requireCustomerName() {
     setNamePromptError(true);
 
-    if (publicCustomerMode) {
+    if (publicCustomerMode && !orderReviewOpen) {
       setPhoneTab("menu");
       setActiveMenuCategory("__home");
     }
@@ -12740,6 +12740,62 @@ export default function Page() {
     show(`${clean} joined Table ${activeTable}`);
   }
 
+  async function saveGuestNameForOrder(name: string) {
+    const clean = name.trim().replace(/\s+/g, " ");
+
+    if (!clean) {
+      setOrderSendError("Enter your name before sending to kitchen.");
+      requireCustomerName();
+      return;
+    }
+
+    setNamePromptError(false);
+    setOrderSendError("");
+
+    const immediateGuests = uniqueGuestNames([...state.guests, clean]);
+
+    updateState((current) => ({
+      ...current,
+      currentGuest: clean,
+      guests: uniqueGuestNames([...current.guests, clean]),
+    }));
+
+    if (state.profile.businessId) {
+      writeCachedTableGuests(state.profile.businessId, activeTable, immediateGuests);
+    }
+
+    setGuestName("");
+
+    if (publicCustomerMode && state.profile.businessId) {
+      try {
+        const session = await ensurePublicTableSession(false);
+
+        const savedGuests = await joinTableGuestInSupabase(
+          state.profile.businessId,
+          state.profile.authUserId,
+          activeTable,
+          clean,
+          state.profile.username,
+          session?.token || ""
+        );
+
+        const mergedGuests = mergeGuestLists(savedGuests, readCachedTableGuests(state.profile.businessId, activeTable), [clean]);
+        writeCachedTableGuests(state.profile.businessId, activeTable, mergedGuests);
+
+        updateState((current) => ({
+          ...current,
+          currentGuest: clean,
+          guests: mergedGuests.length ? mergedGuests : uniqueGuestNames([...current.guests, clean]),
+        }));
+      } catch (error) {
+        console.error("Table guest save failed", error);
+        show(`Name saved on this phone. Server save failed: ${getErrorMessage(error)}`);
+      }
+    }
+
+    show(`${clean} added to the order`);
+  }
+
   function chooseSeatedGuest(name: string) {
     const clean = name.trim();
 
@@ -12778,11 +12834,6 @@ export default function Page() {
   }
 
   function toggleCartOptionChoice(item: MenuItem, group: MenuOptionGroup, choice: MenuOptionChoice) {
-    if (!state.currentGuest) {
-      requireCustomerName();
-      return;
-    }
-
     setOrderCustomizations((current) => {
       const customization = normalizeCartCustomization(current[item.id]);
       const selectedChoices = cleanSelectedChoices(customization.selectedChoices);
@@ -12877,11 +12928,6 @@ export default function Page() {
   }
 
   function addCartItem(menuId: string) {
-    if (!state.currentGuest) {
-      requireCustomerName();
-      return;
-    }
-
     const item = state.menu.find((menuItem) => menuItem.id === menuId);
 
     if (!item || !isMenuItemCurrentlyAvailable(item)) {
@@ -12910,11 +12956,6 @@ export default function Page() {
   }
 
   function beginOrderReview() {
-    if (!state.currentGuest) {
-      requireCustomerName();
-      return;
-    }
-
     if (!orderCartLines.length) {
       show("Add at least one item first");
       return;
@@ -12928,6 +12969,7 @@ export default function Page() {
 
   async function confirmOrderToKitchen() {
     if (!state.currentGuest) {
+      setOrderSendError("Enter your name before sending this order to the kitchen.");
       requireCustomerName();
       return;
     }
@@ -15052,7 +15094,7 @@ export default function Page() {
                     )}
 
                     <div className="phone-content">
-                      {(!state.currentGuest || (publicCustomerMode && phoneTab === "menu" && activeMenuCategory === "__home")) ? (
+                      {((!state.currentGuest && !publicCustomerMode) || (publicCustomerMode && phoneTab === "menu" && activeMenuCategory === "__home")) ? (
                         publicCustomerMode ? (
                           <>
                           <div className="option-one-seat-card">
@@ -15181,11 +15223,6 @@ export default function Page() {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  if (!state.currentGuest) {
-                                    requireCustomerName();
-                                    return;
-                                  }
-
                                   setActiveMenuCategory("all");
                                   setPhoneTab("menu");
                                 }}
@@ -15209,11 +15246,6 @@ export default function Page() {
                                       className="option-one-category-card"
                                       type="button"
                                       onClick={() => {
-                                        if (!state.currentGuest) {
-                                          requireCustomerName();
-                                          return;
-                                        }
-
                                         setActiveMenuCategory(category.id);
                                         setPhoneTab("menu");
                                       }}
@@ -15235,11 +15267,6 @@ export default function Page() {
                                   className="option-one-category-card"
                                   type="button"
                                   onClick={() => {
-                                    if (!state.currentGuest) {
-                                      requireCustomerName();
-                                      return;
-                                    }
-
                                     setActiveMenuCategory("all");
                                     setPhoneTab("menu");
                                   }}
@@ -15257,11 +15284,6 @@ export default function Page() {
                                   className="option-one-category-card"
                                   type="button"
                                   onClick={() => {
-                                    if (!state.currentGuest) {
-                                      requireCustomerName();
-                                      return;
-                                    }
-
                                     setActiveMenuCategory("uncategorized");
                                     setPhoneTab("menu");
                                   }}
@@ -15366,7 +15388,7 @@ export default function Page() {
                                 <div className="checkout-title-copy">
                                   <p>Ready to send</p>
                                   <h4>Checkout</h4>
-                                  <span>{state.currentGuest} • Pay at restaurant</span>
+                                  <span>{state.currentGuest ? `${state.currentGuest} • Pay at restaurant` : "Name required before sending • Pay at restaurant"}</span>
                                 </div>
                               </div>
 
@@ -15470,6 +15492,32 @@ export default function Page() {
 
                               <p className="checkout-kitchen-note">This sends the order directly to the kitchen screen.</p>
 
+                              {!state.currentGuest ? (
+                                <div className={`option-one-name-entry ${namePromptError ? "name-entry-error" : ""}`} style={{ marginTop: 12 }}>
+                                  <span className="option-one-input-icon">♙</span>
+                                  <input
+                                    ref={nameInputRef}
+                                    value={guestName}
+                                    onChange={(e) => {
+                                      setGuestName(e.target.value);
+                                      if (namePromptError) setNamePromptError(false);
+                                      if (orderSendError) setOrderSendError("");
+                                    }}
+                                    onKeyDown={(e) => e.key === "Enter" && saveGuestNameForOrder(guestName)}
+                                    placeholder={namePromptError ? "Enter your name to send" : "Enter your name before sending"}
+                                    maxLength={24}
+                                  />
+                                  <button
+                                    className="option-one-arrow-button"
+                                    type="button"
+                                    onClick={() => saveGuestNameForOrder(guestName)}
+                                    aria-label="Save name for order"
+                                  >
+                                    →
+                                  </button>
+                                </div>
+                              ) : null}
+
                               {orderSendError ? (
                                 <div className="order-send-error checkout-error">
                                   {orderSendError}
@@ -15483,21 +15531,23 @@ export default function Page() {
                           </div>
                         ) : (
                         <>
-                          <div className="mini-card">
-                            <p>You are seated as</p>
-                            <h4>{state.currentGuest}</h4>
-                            <div className="guest-chips">
-                              {state.guests.map((guest) => (
-                                <button
-                                  key={guest}
-                                  className={`guest-chip ${guest === state.currentGuest ? "active" : ""}`}
-                                  onClick={() => updateState((current) => ({ ...current, currentGuest: guest }))}
-                                >
-                                  {guest}
-                                </button>
-                              ))}
+                          {state.currentGuest ? (
+                            <div className="mini-card">
+                              <p>You are seated as</p>
+                              <h4>{state.currentGuest}</h4>
+                              <div className="guest-chips">
+                                {state.guests.map((guest) => (
+                                  <button
+                                    key={guest}
+                                    className={`guest-chip ${guest === state.currentGuest ? "active" : ""}`}
+                                    onClick={() => updateState((current) => ({ ...current, currentGuest: guest }))}
+                                  >
+                                    {guest}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
-                          </div>
+                          ) : null}
 
                           <div className="phone-tabs">
                             <button className={`phone-tab ${phoneTab === "menu" ? "active" : ""}`} onClick={() => setPhoneTab("menu")}>Menu</button>
@@ -17400,7 +17450,7 @@ export default function Page() {
         </>
       )}
 
-      {publicCustomerMode && state.currentGuest && !orderReviewOpen && orderCartItemCount > 0 ? (
+      {publicCustomerMode && !orderReviewOpen && orderCartItemCount > 0 ? (
         <div className="fixed-send-order-bar">
           <div className="fixed-send-order-summary">
             <strong>{orderCartItemCount} item{orderCartItemCount === 1 ? "" : "s"}</strong>
