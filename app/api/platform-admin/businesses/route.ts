@@ -158,8 +158,11 @@ async function insertManualPayment(args: {
 }) {
   const { admin, business, paidAmountJod, monthsPaid, monthlyFeeJod, dueDate, userId } = args;
 
+  const authUserId = cleanText(business.auth_user_id) || cleanText(userId);
+
   const insertPayload = {
     business_account_id: String(business.id || ""),
+    auth_user_id: authUserId,
     months: monthsPaid,
     monthly_fee_jod: monthlyFeeJod,
     amount_jod: paidAmountJod,
