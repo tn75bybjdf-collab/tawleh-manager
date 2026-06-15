@@ -161,14 +161,14 @@ export async function GET(request: NextRequest) {
       throw new Error(salespeopleResult.error.message);
     }
 
-    const businesses = ((businessResult.data || []) as unknown as Record<string, unknown>[]).map((business) => {
+    const businesses: Array<Record<string, unknown>> = ((businessResult.data || []) as unknown as Record<string, unknown>[]).map((business) => {
       const monthlyFee = monthlyTableFee(business.table_count, business.service_monthly_fee_jod);
 
       return {
         ...business,
         service_monthly_fee_jod: monthlyFee,
         service_balance_due_jod: Math.max(numberFrom(business.service_balance_due_jod), monthlyFee),
-      };
+      } as Record<string, unknown>;
     });
 
     const businessById = new Map(businesses.map((business) => [cleanText(business.id), business]));

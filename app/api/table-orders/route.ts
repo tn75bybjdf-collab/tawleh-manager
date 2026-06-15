@@ -410,6 +410,7 @@ async function createKitchenPrintJob(
     orderTicketId: string;
     ticketNumber: number;
     tableNumber: number;
+    tableLabel: string;
     guestName: string;
     items: KitchenPrintPayloadItem[];
   }
