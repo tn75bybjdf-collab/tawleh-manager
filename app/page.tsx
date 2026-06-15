@@ -15018,7 +15018,7 @@ export default function Page() {
                         <div className="option-one-logo-center option-one-logo-proud">
                           <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} large customer />
                           <div className="option-one-wordmark">{businessName}</div>
-                          <div className="option-one-submark">Lebanese Cuisine</div>
+                          <div className="option-one-submark">{state.profile.businessType || "Restaurant"}</div>
                         </div>
 
                         <div className="option-one-welcome-copy">
