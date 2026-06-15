@@ -100,6 +100,8 @@ function normalizePayload(job: Record<string, unknown>) {
     businessName: cleanText(payload.businessName || payload.restaurantName || "Tawleh"),
     restaurantName: cleanText(payload.restaurantName || payload.businessName || "Tawleh"),
     tableNumber: Number(payload.tableNumber || job.table_number || job.tableNumber || 0),
+    tableLabel: cleanText(payload.tableLabel || payload.table_label || job.table_label || job.tableLabel || ""),
+    tableDisplayName: cleanText(payload.tableDisplayName || payload.locationName || payload.tableLabel || payload.table_label || job.table_label || job.tableLabel || ""),
     guestName: cleanText(payload.guestName || job.guest_name || job.guestName || "Guest"),
     ticketNumber: Number(payload.ticketNumber || job.ticket_number || job.ticketNumber || 0),
     totalJod: Number(payload.totalJod || payload.total_jod || payload.subtotalJod || 0),
@@ -115,6 +117,8 @@ function normalizeJob(job: Record<string, unknown>) {
     id: cleanText(job.id),
     businessAccountId: cleanText(job.business_account_id || job.businessAccountId),
     tableNumber: Number(job.table_number || job.tableNumber || payload.tableNumber || 0),
+    tableLabel: cleanText(job.table_label || job.tableLabel || payload.tableLabel || payload.table_label || ""),
+    tableDisplayName: cleanText(payload.tableDisplayName || payload.locationName || job.table_label || job.tableLabel || payload.tableLabel || payload.table_label || ""),
     guestName: cleanText(job.guest_name || job.guestName || payload.guestName || "Guest"),
     jobType: cleanText(job.job_type || job.jobType || "kitchen_ticket"),
     type: printerRole,
@@ -208,7 +212,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await client
       .from("table_print_jobs")
       .select(
-        "id, business_account_id, table_number, guest_name, job_type, printer_target, status, attempt_count, payload, created_at"
+        "id, business_account_id, table_number, table_label, guest_name, job_type, printer_target, status, attempt_count, payload, created_at"
       )
       .eq("business_account_id", business.id)
       .in("status", ["pending", "failed"])
