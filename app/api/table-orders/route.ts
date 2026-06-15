@@ -42,6 +42,8 @@ type TableOrderInsertRow = {
   business_account_id: string;
   auth_user_id: string;
   table_session_id: string | null;
+  order_ticket_id: string;
+  ticket_number: number;
   table_number: number;
   guest_name: string;
   item_id: string;
@@ -66,6 +68,16 @@ type TableSessionRow = {
   expires_at: string | null;
   idle_expires_at: string | null;
   last_order_at: string | null;
+};
+
+type KitchenPrintPayloadItem = {
+  itemId: string;
+  itemName: string;
+  quantity: number;
+  priceJod: number;
+  lineTotalJod: number;
+  specialInstructions: string;
+  modifiers: OrderModifierPayload[];
 };
 
 function isTableOrderInsertRow(row: TableOrderInsertRow | null): row is TableOrderInsertRow {
@@ -185,7 +197,7 @@ function jsonError(message: string, status = 500) {
 }
 
 function orderSelect() {
-  return "id, business_account_id, auth_user_id, table_session_id, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, special_instructions, modifiers, modifiers_total_jod, base_price_jod, unit_total_jod, status, created_at";
+  return "id, business_account_id, auth_user_id, table_session_id, order_ticket_id, ticket_number, table_number, guest_name, item_id, item_name, quantity, price_jod, line_total_jod, special_instructions, modifiers, modifiers_total_jod, base_price_jod, unit_total_jod, status, created_at";
 }
 
 async function findBusiness(db: SupabaseClient, businessId: string, username = "", fallbackAuthUserId = "") {
@@ -312,6 +324,104 @@ async function fetchOrders(db: SupabaseClient, businessId: string, tableNumber?:
   return data || [];
 }
 
+async function nextTicketNumber(db: SupabaseClient) {
+  const { data, error } = await db.rpc("next_table_order_ticket_number");
+
+  if (error) {
+    // Fallback keeps the order flowing if the RPC was not created.
+    return Math.floor(Date.now() / 1000);
+  }
+
+  const number = Number(data || 0);
+  return Number.isFinite(number) && number > 0 ? Math.floor(number) : Math.floor(Date.now() / 1000);
+}
+
+function buildKitchenPayload(args: {
+  business: BusinessRow;
+  orderTicketId: string;
+  ticketNumber: number;
+  tableNumber: number;
+  guestName: string;
+  items: KitchenPrintPayloadItem[];
+}) {
+  const subtotal = Math.round(args.items.reduce((sum, item) => sum + item.lineTotalJod, 0) * 1000) / 1000;
+
+  const receiptLines = [
+    (args.business.username || "TAWLEH").toUpperCase(),
+    "KITCHEN TICKET",
+    `Ticket #${args.ticketNumber}`,
+    `Table ${args.tableNumber}`,
+    `Guest: ${args.guestName}`,
+    "------------------------------",
+    ...args.items.flatMap((item) => {
+      const lines = [`${item.quantity}x ${item.itemName}`];
+
+      const modifierLines = (item.modifiers || [])
+        .map((modifier) => cleanText(modifier.choiceName))
+        .filter(Boolean)
+        .map((choice) => `  + ${choice}`);
+
+      if (modifierLines.length) lines.push(...modifierLines);
+      if (item.specialInstructions) lines.push(`  NOTE: ${item.specialInstructions}`);
+
+      return lines;
+    }),
+    "------------------------------",
+  ];
+
+  return {
+    kind: "kitchen_ticket",
+    version: 1,
+    restaurantUsername: args.business.username || "restaurant",
+    businessAccountId: args.business.id,
+    authUserId: args.business.auth_user_id,
+    orderTicketId: args.orderTicketId,
+    ticketNumber: args.ticketNumber,
+    tableNumber: args.tableNumber,
+    guestName: args.guestName,
+    subtotalJod: subtotal,
+    currency: "JOD",
+    createdAt: new Date().toISOString(),
+    items: args.items,
+    receiptText: receiptLines.join("\n"),
+  };
+}
+
+async function createKitchenPrintJob(
+  db: SupabaseClient,
+  args: {
+    business: BusinessRow;
+    orderTicketId: string;
+    ticketNumber: number;
+    tableNumber: number;
+    guestName: string;
+    items: KitchenPrintPayloadItem[];
+  }
+) {
+  const payload = buildKitchenPayload(args);
+
+  const { data, error } = await db
+    .from("table_print_jobs")
+    .insert({
+      business_account_id: args.business.id,
+      auth_user_id: args.business.auth_user_id,
+      order_ticket_id: args.orderTicketId,
+      ticket_number: args.ticketNumber,
+      table_number: args.tableNumber,
+      guest_name: args.guestName,
+      job_type: "kitchen_ticket",
+      printer_target: "kitchen",
+      status: "pending",
+      payload,
+    })
+    .select("id, business_account_id, order_ticket_id, ticket_number, table_number, guest_name, job_type, printer_target, status, payload, created_at")
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const db = serverClient();
@@ -356,6 +466,10 @@ export async function POST(request: NextRequest) {
     if (!business.auth_user_id) return jsonError("Missing auth_user_id for restaurant. Refresh the QR page.", 400);
 
     const session = await requireActiveTableSession(db, business.id, tableNumber, sessionToken);
+    const orderTicketId = crypto.randomUUID();
+    const ticketNumber = await nextTicketNumber(db);
+
+    const kitchenItems: KitchenPrintPayloadItem[] = [];
 
     const rows: TableOrderInsertRow[] = items
       .map((item): TableOrderInsertRow | null => {
@@ -367,21 +481,35 @@ export async function POST(request: NextRequest) {
         const modifiersTotal = item.addonsTotal === undefined ? modifierTotal(modifiers) : cleanPrice(item.addonsTotal);
         const price = cleanPrice(item.price || basePrice + modifiersTotal);
         const unitTotal = Math.round(price * 1000) / 1000;
+        const lineTotal = Math.round(unitTotal * quantity * 1000) / 1000;
+        const specialInstructions = cleanSpecialInstructions(item.specialInstructions);
 
         if (!itemName || unitTotal <= 0) return null;
+
+        kitchenItems.push({
+          itemId,
+          itemName,
+          quantity,
+          priceJod: unitTotal,
+          lineTotalJod: lineTotal,
+          specialInstructions: specialInstructions || "",
+          modifiers,
+        });
 
         return {
           business_account_id: business.id,
           auth_user_id: business.auth_user_id,
           table_session_id: session.id,
+          order_ticket_id: orderTicketId,
+          ticket_number: ticketNumber,
           table_number: tableNumber,
           guest_name: guestName,
           item_id: itemId,
           item_name: itemName,
           quantity,
           price_jod: unitTotal,
-          line_total_jod: Math.round(unitTotal * quantity * 1000) / 1000,
-          special_instructions: cleanSpecialInstructions(item.specialInstructions),
+          line_total_jod: lineTotal,
+          special_instructions: specialInstructions,
           modifiers,
           modifiers_total_jod: Math.max(0, modifiersTotal),
           base_price_jod: basePrice,
@@ -400,6 +528,46 @@ export async function POST(request: NextRequest) {
 
     if (error) return jsonError(`Supabase insert failed: ${error.message}`, 500);
 
+    let kitchenPrintJob: unknown = null;
+
+    try {
+      kitchenPrintJob = await createKitchenPrintJob(db, {
+        business,
+        orderTicketId,
+        ticketNumber,
+        tableNumber,
+        guestName,
+        items: kitchenItems,
+      });
+
+      const printJobId =
+        kitchenPrintJob && typeof kitchenPrintJob === "object" && "id" in kitchenPrintJob
+          ? String((kitchenPrintJob as { id?: unknown }).id || "")
+          : "";
+
+      if (printJobId && isUuid(printJobId)) {
+        await db
+          .from("table_orders")
+          .update({ kitchen_print_job_id: printJobId })
+          .eq("business_account_id", business.id)
+          .eq("order_ticket_id", orderTicketId);
+      }
+    } catch (printError) {
+      // Do not fail the customer order if printing metadata fails.
+      // Return the order and expose the print error for dashboard/debugging.
+      return NextResponse.json(
+        {
+          ok: true,
+          mode: usingServiceRole() ? "service_role" : "anon_fallback",
+          orders: orders || [],
+          table: tableNumber,
+          printJob: null,
+          printWarning: printError instanceof Error ? printError.message : "Could not create kitchen print job",
+        },
+        { headers: { "Cache-Control": "no-store, max-age=0" } }
+      );
+    }
+
     await db
       .from("table_sessions")
       .update({
@@ -411,7 +579,13 @@ export async function POST(request: NextRequest) {
       .eq("id", session.id);
 
     return NextResponse.json(
-      { ok: true, mode: usingServiceRole() ? "service_role" : "anon_fallback", orders: orders || [], table: tableNumber },
+      {
+        ok: true,
+        mode: usingServiceRole() ? "service_role" : "anon_fallback",
+        orders: orders || [],
+        table: tableNumber,
+        printJob: kitchenPrintJob,
+      },
       { headers: { "Cache-Control": "no-store, max-age=0" } }
     );
   } catch (error) {
