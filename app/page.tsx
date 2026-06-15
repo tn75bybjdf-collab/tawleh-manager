@@ -7270,7 +7270,7 @@ main.customer-only-shell .service-suspended-card {
 
 /* =========================================================
    TABLE-BASED PRICING PREVIEW
-   Pricing is 1 JOD per table per month, minimum 25 QR codes/month, set during signup.
+   Pricing is 1 JOD per table per month, minimum 25 QR codes/month. New businesses submit an application first, then admin approves.
    ========================================================= */
 
 .price-preview-helper {
@@ -8436,6 +8436,30 @@ type PlatformAdminBusiness = {
   serviceAdminNote: string;
 };
 
+type BusinessApplication = {
+  id: string;
+  signupSource: string;
+  salespersonUsername: string;
+  restaurantName: string;
+  branchName: string;
+  businessType: string;
+  businessEmail: string;
+  businessPhone: string;
+  username: string;
+  tableCount: number;
+  locationCount: number;
+  locations: string[];
+  serviceMonthlyFeeJod: number;
+  welcomeMessage: string;
+  brandColor: string;
+  logoDataUrl: string;
+  status: string;
+  adminNote: string;
+  createdAt: string;
+  approvedAt: string;
+  rejectedAt: string;
+};
+
 type CliqPaymentRequest = {
   id: string;
   businessId: string;
@@ -8624,6 +8648,8 @@ function money(value: number) {
 function monthlyTableFee(tableCount: number) {
   return Math.max(25, Math.min(999, Number(tableCount || 25)));
 }
+
+const TRIAL_DAYS_AFTER_APPROVAL = 7;
 
 function currentYearMonth() {
   return new Date().toISOString().slice(0, 7);
@@ -10168,6 +10194,34 @@ function rowToPlatformBusiness(row: Record<string, unknown>): PlatformAdminBusin
   };
 }
 
+function rowToBusinessApplication(row: Record<string, unknown>): BusinessApplication {
+  const tableCount = Number(row.table_count || 25);
+
+  return {
+    id: String(row.id || ""),
+    signupSource: String(row.signup_source || "self"),
+    salespersonUsername: String(row.salesperson_username || ""),
+    restaurantName: String(row.restaurant_name || "Restaurant"),
+    branchName: String(row.branch_name || "Main Branch"),
+    businessType: String(row.business_type || ""),
+    businessEmail: String(row.business_email || row.email || ""),
+    businessPhone: String(row.business_phone || ""),
+    username: String(row.username || ""),
+    tableCount,
+    locationCount: Number(row.location_count || 1),
+    locations: Array.isArray(row.locations) ? (row.locations as unknown[]).map((item) => String(item || "")) : [],
+    serviceMonthlyFeeJod: Number(row.service_monthly_fee_jod || monthlyTableFee(tableCount)),
+    welcomeMessage: String(row.welcome_message || ""),
+    brandColor: String(row.brand_color || "#6b7a3d"),
+    logoDataUrl: String(row.logo_data_url || ""),
+    status: String(row.status || "pending"),
+    adminNote: String(row.admin_note || ""),
+    createdAt: String(row.created_at || ""),
+    approvedAt: String(row.approved_at || ""),
+    rejectedAt: String(row.rejected_at || ""),
+  };
+}
+
 function rowToCliqPaymentRequest(row: Record<string, unknown>): CliqPaymentRequest {
   return {
     id: String(row.id || ""),
@@ -10277,6 +10331,41 @@ async function fetchPlatformBusinessesFromServer() {
 
   const result = await readApiJson(response);
   return ((result.businesses || []) as Record<string, unknown>[]).map((row) => rowToPlatformBusiness(row));
+}
+
+async function fetchBusinessApplicationsForAdmin() {
+  const headers = await getPlatformAdminHeaders();
+
+  const response = await fetch("/api/platform-admin/business-applications", {
+    method: "GET",
+    headers,
+    cache: "no-store",
+  });
+
+  const result = await readApiJson(response);
+  return ((result.applications || []) as Record<string, unknown>[]).map((row) => rowToBusinessApplication(row));
+}
+
+async function reviewBusinessApplicationInServer(payload: {
+  applicationId: string;
+  action: "approve" | "reject";
+  adminNote?: string;
+}) {
+  const headers = await getPlatformAdminHeaders();
+
+  const response = await fetch("/api/platform-admin/business-applications", {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  const result = await readApiJson(response);
+
+  return {
+    application: result.application ? rowToBusinessApplication(result.application as Record<string, unknown>) : null,
+    business: result.business ? rowToPlatformBusiness(result.business as Record<string, unknown>) : null,
+    temporaryPassword: String(result.temporaryPassword || ""),
+  };
 }
 
 async function fetchCliqPaymentsForAdmin() {
@@ -10448,6 +10537,7 @@ export default function Page() {
   const [platformAdminPasswordBusy, setPlatformAdminPasswordBusy] = useState(false);
   const [platformAdminLoggedIn, setPlatformAdminLoggedIn] = useState(false);
   const [platformAdminBusinesses, setPlatformAdminBusinesses] = useState<PlatformAdminBusiness[]>([]);
+  const [businessApplications, setBusinessApplications] = useState<BusinessApplication[]>([]);
   const [platformAdminPayments, setPlatformAdminPayments] = useState<CliqPaymentRequest[]>([]);
   const [platformSalespeople, setPlatformSalespeople] = useState<PlatformSalesperson[]>([]);
   const [platformReports, setPlatformReports] = useState<PlatformReports | null>(null);
@@ -11845,16 +11935,6 @@ export default function Page() {
       return;
     }
 
-    if (signupPassword.length < 8) {
-      show("Password must be at least 8 characters");
-      return;
-    }
-
-    if (signupPassword !== signupConfirmPassword) {
-      show("Passwords do not match");
-      return;
-    }
-
     if (cleanLocations.some((location) => !location)) {
       show("Every location tab must be filled");
       return;
@@ -11867,14 +11947,13 @@ export default function Page() {
     setAuthBusy(true);
 
     try {
-      const response = await fetch("/api/signup", {
+      const response = await fetch("/api/business-applications", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: cleanEmail,
-          password: signupPassword,
           username: cleanUsername,
           signupSource,
           salespersonUsername: signupSource === "salesperson" ? normalizeUsername(signupSalespersonUsername) : "",
@@ -11895,57 +11974,20 @@ export default function Page() {
       const result = await response.json();
 
       if (!response.ok) {
-        show(result.error || "Signup failed");
+        show(result.error || "Application failed");
         return;
       }
 
-      if (result.business?.email && supabase) {
-        const { data: signupSessionData } = await supabase.auth.signInWithPassword({
-          email: cleanEmail,
-          password: signupPassword,
-        });
+      setSignupProfile(defaultState.profile);
+      setSignupSource("");
+      setSignupSalespersonUsername("");
+      setSignupPassword("");
+      setSignupConfirmPassword("");
+      setActiveLocationTab(0);
 
-        if (signupSessionData.session?.access_token && signupSessionData.session?.refresh_token) {
-          saveManagerAuthSession(
-            signupSessionData.session.access_token,
-            signupSessionData.session.refresh_token
-          );
-        }
-      }
-
-      const nextProfile: Profile = {
-        ...signupProfile,
-        businessId: result.business?.id || "",
-        authUserId: result.business?.auth_user_id || "",
-        restaurantName: cleanName,
-        branchName: cleanBranch,
-        businessEmail: cleanEmail,
-        username: cleanUsername,
-        businessPhone: cleanPhone,
-        location: cleanLocation,
-        locations: cleanLocations,
-        locationCount: cleanLocationCount,
-        signupIp: result.signupIp || "",
-        tableCount: cleanTableCount,
-        serviceStatus: result.business?.service_status || "trial",
-        serviceExpiresAt: String(result.business?.service_expires_at || "").slice(0, 10),
-        servicePaymentDueDate: String(result.business?.service_payment_due_date || "").slice(0, 10),
-        serviceBalanceDueJod: Number(result.business?.service_balance_due_jod || 0),
-        serviceMonthlyFeeJod: Number(result.business?.service_monthly_fee_jod || monthlyTableFee(cleanTableCount)),
-        serviceSuspendedReason: result.business?.service_suspended_reason || "",
-        welcomeMessage: signupProfile.welcomeMessage.trim() || defaultState.profile.welcomeMessage,
-      };
-
-      updateState((current) => ({
-        ...current,
-        profileComplete: true,
-        profile: nextProfile,
-      }));
-
-      setManagerTab("kitchen");
-      show("Real Supabase account created");
+      show("Application submitted. Tawleh will call you before activation.");
     } catch {
-      show("Signup failed. Check Supabase setup.");
+      show("Application failed. Check Supabase setup.");
     } finally {
       setAuthBusy(false);
     }
@@ -12062,18 +12104,20 @@ export default function Page() {
     setPlatformAdminMessage("");
 
     try {
-      const [businesses, payments, salespeople, reports] = await Promise.all([
+      const [businesses, applications, payments, salespeople, reports] = await Promise.all([
         fetchPlatformBusinessesFromServer(),
+        fetchBusinessApplicationsForAdmin(),
         fetchCliqPaymentsForAdmin(),
         fetchPlatformSalespeopleForAdmin(),
         fetchPlatformReportsForAdmin(reportMonth),
       ]);
       setPlatformAdminBusinesses(businesses);
+      setBusinessApplications(applications);
       setPlatformAdminPayments(payments);
       setPlatformSalespeople(salespeople);
       setPlatformReports(reports);
       setPlatformAdminLoggedIn(true);
-      setPlatformAdminMessage(`${businesses.length} companies loaded • ${payments.length} CliQ payment notification${payments.length === 1 ? "" : "s"} • ${salespeople.length} salesperson${salespeople.length === 1 ? "" : "s"}`);
+      setPlatformAdminMessage(`${businesses.length} companies loaded • ${applications.filter((application) => application.status === "pending").length} pending application${applications.filter((application) => application.status === "pending").length === 1 ? "" : "s"} • ${payments.length} CliQ payment notification${payments.length === 1 ? "" : "s"} • ${salespeople.length} salesperson${salespeople.length === 1 ? "" : "s"}`);
     } catch (error) {
       setPlatformAdminMessage(getErrorMessage(error));
       show(`Admin load failed: ${getErrorMessage(error)}`);
@@ -12106,22 +12150,72 @@ export default function Page() {
 
       if (error) throw error;
 
-      const [businesses, payments, salespeople, reports] = await Promise.all([
+      const [businesses, applications, payments, salespeople, reports] = await Promise.all([
         fetchPlatformBusinessesFromServer(),
+        fetchBusinessApplicationsForAdmin(),
         fetchCliqPaymentsForAdmin(),
         fetchPlatformSalespeopleForAdmin(),
         fetchPlatformReportsForAdmin(reportMonth),
       ]);
       setPlatformAdminBusinesses(businesses);
+      setBusinessApplications(applications);
       setPlatformAdminPayments(payments);
       setPlatformSalespeople(salespeople);
       setPlatformReports(reports);
       setPlatformAdminLoggedIn(true);
-      setPlatformAdminMessage(`${businesses.length} companies loaded • ${payments.length} CliQ payment notification${payments.length === 1 ? "" : "s"} • ${salespeople.length} salesperson${salespeople.length === 1 ? "" : "s"}`);
+      setPlatformAdminMessage(`${businesses.length} companies loaded • ${applications.filter((application) => application.status === "pending").length} pending application${applications.filter((application) => application.status === "pending").length === 1 ? "" : "s"} • ${payments.length} CliQ payment notification${payments.length === 1 ? "" : "s"} • ${salespeople.length} salesperson${salespeople.length === 1 ? "" : "s"}`);
       show("Platform admin logged in");
     } catch (error) {
       setPlatformAdminLoggedIn(false);
       setPlatformAdminMessage(getErrorMessage(error));
+    } finally {
+      setPlatformAdminBusy(false);
+    }
+  }
+
+  async function reviewBusinessApplication(applicationId: string, action: "approve" | "reject") {
+    const application = businessApplications.find((item) => item.id === applicationId);
+    if (!application) return;
+
+    const adminNote =
+      action === "reject"
+        ? window.prompt("Rejection note / reason?", application.adminNote || "") || ""
+        : window.prompt("Approval note / onboarding time note?", application.adminNote || "") || "";
+
+    setPlatformAdminBusy(true);
+    setPlatformAdminMessage("");
+
+    try {
+      const result = await reviewBusinessApplicationInServer({
+        applicationId,
+        action,
+        adminNote,
+      });
+
+      if (result.application) {
+        setBusinessApplications((current) =>
+          current.map((item) => (item.id === applicationId ? result.application as BusinessApplication : item))
+        );
+      }
+
+      if (result.business) {
+        setPlatformAdminBusinesses((current) => {
+          const exists = current.some((item) => item.id === result.business?.id);
+          return exists
+            ? current.map((item) => (item.id === result.business?.id ? result.business as PlatformAdminBusiness : item))
+            : [result.business as PlatformAdminBusiness, ...current];
+        });
+      }
+
+      setPlatformAdminMessage(
+        action === "approve"
+          ? `${application.restaurantName} approved. 7-day trial started.${result.temporaryPassword ? ` Temporary password: ${result.temporaryPassword}` : ""}`
+          : `${application.restaurantName} rejected.`
+      );
+      show(action === "approve" ? "Application approved" : "Application rejected");
+    } catch (error) {
+      setPlatformAdminMessage(getErrorMessage(error));
+      show(`Application review failed: ${getErrorMessage(error)}`);
     } finally {
       setPlatformAdminBusy(false);
     }
@@ -14156,7 +14250,7 @@ export default function Page() {
               <div className="price-card">
                 <div className="price-icon">OK</div>
                 <div>
-                  <strong>30-day free trial</strong>
+                  <strong>7-day free trial after approval</strong>
                   <span>Minimum 25 QR codes/month. 1 JOD per QR/table. 50 tables = 50 JOD/month.</span>
                 </div>
               </div>
@@ -14277,7 +14371,7 @@ export default function Page() {
                             <div>
                               <span>Sales team</span>
                               <h3>Salespeople</h3>
-                              <p>Create usernames for salespeople. A restaurant can only signup as a salesperson if this username exists.</p>
+                              <p>Create usernames for salespeople. Salesperson applications still require admin approval before the business becomes active.</p>
                             </div>
                             <button className="btn small" type="button" onClick={() => { setSalespersonDraftUsername(""); setSalespersonDraftName(""); setSalespersonDraftPhone(""); setSalespersonModalOpen(true); }}>Add salesperson</button>
                           </div>
@@ -14369,6 +14463,56 @@ export default function Page() {
                         </form>
 
                         {platformAdminMessage ? <div className="admin-message">{platformAdminMessage}</div> : null}
+
+                        <div className="cliq-admin-notification-card">
+                          <div className="cliq-admin-notification-head">
+                            <div>
+                              <span>Business applications</span>
+                              <h3>{businessApplications.filter((application) => application.status === "pending").length} pending approval</h3>
+                              <p>Self-signups and salesperson signups stay here until you call them, schedule onboarding, and approve the profile.</p>
+                            </div>
+                            <button className="btn ghost small" type="button" onClick={loadPlatformAdminBusinesses} disabled={platformAdminBusy}>
+                              Refresh applications
+                            </button>
+                          </div>
+
+                          <div className="cliq-admin-payment-list">
+                            {businessApplications.length ? (
+                              businessApplications.map((application) => (
+                                <div className={`cliq-admin-payment-row ${application.status}`} key={application.id}>
+                                  <div>
+                                    <strong>{application.restaurantName}</strong>
+                                    <span>
+                                      @{application.username || "no_username"} • {application.branchName} • {application.businessEmail} • {application.businessPhone}
+                                    </span>
+                                    <em>
+                                      Source: {application.signupSource === "salesperson" ? `salesperson @${application.salespersonUsername || "missing"}` : "business self-application"} • {application.tableCount} QR/table locations • {money(application.serviceMonthlyFeeJod)} / month • Applied: {application.createdAt ? new Date(application.createdAt).toLocaleString() : "not set"}
+                                    </em>
+                                    {application.locations.length ? (
+                                      <em>Locations: {application.locations.join(" | ")}</em>
+                                    ) : null}
+                                    {application.adminNote ? <em>Note: {application.adminNote}</em> : null}
+                                  </div>
+                                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                                    <b>{application.status}</b>
+                                    {application.status === "pending" ? (
+                                      <>
+                                        <button className="btn dark small" type="button" onClick={() => reviewBusinessApplication(application.id, "approve")} disabled={platformAdminBusy}>
+                                          Approve
+                                        </button>
+                                        <button className="btn danger small" type="button" onClick={() => reviewBusinessApplication(application.id, "reject")} disabled={platformAdminBusy}>
+                                          Reject
+                                        </button>
+                                      </>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <Empty text="No business applications yet." />
+                            )}
+                          </div>
+                        </div>
 
                         <div className="cliq-admin-notification-card">
                           <div className="cliq-admin-notification-head">
@@ -14582,13 +14726,13 @@ export default function Page() {
                           <button className="signup-source-option" type="button" onClick={() => setSignupSource("self")}>
                             <span>Business Owner</span>
                             <strong>I am a business wanting to signup myself</strong>
-                            <em>Use this if the restaurant owner or manager is creating their own Tawleh account.</em>
+                            <em>Use this if the restaurant owner or manager is applying directly. Admin approval is required.</em>
                           </button>
 
                           <button className="signup-source-option" type="button" onClick={() => setSignupSource("salesperson")}>
                             <span>Sales Person</span>
                             <strong>I am a sales person</strong>
-                            <em>Use this if Tawleh gave you a salesperson username.</em>
+                            <em>Use this if Tawleh gave you a salesperson username. Admin still approves the restaurant before activation.</em>
                           </button>
                         </div>
                       </div>
@@ -14598,7 +14742,7 @@ export default function Page() {
                           <div>
                             <span>Signup type</span>
                             <strong>{signupSource === "salesperson" ? "Sales person" : "Business self signup"}</strong>
-                            <em>{signupSource === "salesperson" ? "Enter your Tawleh salesperson username before submitting." : "Restaurant is creating its own account."}</em>
+                            <em>{signupSource === "salesperson" ? "Enter your Tawleh salesperson username before submitting." : "Restaurant is submitting an application for Tawleh approval."}</em>
                           </div>
                           <button className="btn ghost small" type="button" onClick={() => setSignupSource("")}>Change</button>
                         </div>
@@ -14616,7 +14760,7 @@ export default function Page() {
 
                     <div className="auth-heading">
                       <h2>Create your account</h2>
-                      <p>Start your 30-day free trial. Minimum billing is 25 QR codes per month.</p>
+                      <p>Submit your application. Tawleh will call you, approve the profile, train your team, then start your 7-day free trial.</p>
                     </div>
 
                     <div className="signup-grid">
@@ -14662,24 +14806,6 @@ export default function Page() {
                           value={signupProfile.businessPhone}
                           onChange={(e) => setSignupProfile({ ...signupProfile, businessPhone: e.target.value })}
                           placeholder="+962 7X XXX XXXX"
-                        />
-                      </Field>
-
-                      <Field label="Password">
-                        <input
-                          value={signupPassword}
-                          onChange={(e) => setSignupPassword(e.target.value)}
-                          placeholder="At least 8 characters"
-                          type="password"
-                        />
-                      </Field>
-
-                      <Field label="Confirm password">
-                        <input
-                          value={signupConfirmPassword}
-                          onChange={(e) => setSignupConfirmPassword(e.target.value)}
-                          placeholder="Confirm password"
-                          type="password"
                         />
                       </Field>
 
@@ -14742,7 +14868,7 @@ export default function Page() {
                         />
 
                         <div className="ip-lock-note good">
-                          <strong>IP lock:</strong> Supabase will block another free trial from the same IP address.
+                          <strong>Application review:</strong> Tawleh will call you before activating your restaurant dashboard.
                         </div>
                       </Field>
 
@@ -14778,16 +14904,16 @@ export default function Page() {
 
                     <div className="password-rules">
                       <span>Username must be unique</span>
-                      <span>Real Supabase account</span>
-                      <span>IP locked on backend</span>
+                      <span>Admin approval required</span>
+                      <span>7-day trial starts after approval</span>
                     </div>
 
                     <button className="btn full" type="submit" disabled={authBusy}>
-                      {authBusy ? "Creating account..." : "Create Tawleh Manager Account"}
+                      {authBusy ? "Submitting application..." : "Submit Application for Approval"}
                     </button>
 
                     <p className="terms">
-                      By creating an account, you agree to Tawleh Manager's terms and restaurant self-setup policy.
+                      By submitting, you agree Tawleh may contact you to review the restaurant, schedule onboarding, and activate your dashboard after approval.
                     </p>
                       </>
                     )}
@@ -16820,7 +16946,7 @@ export default function Page() {
                         <div className="bill-row"><span>Expiration date</span><strong>{displayDate(state.profile.serviceExpiresAt)}</strong></div>
                         <div className="bill-row"><span>Balance due</span><strong>{money(autoBalanceDueJod)}</strong></div>
                         <div className="bill-row"><span>Pricing</span><strong>{money(state.profile.serviceMonthlyFeeJod || monthlyTableFee(state.profile.tableCount))}/month minimum</strong></div>
-                        <div className="bill-row"><span>Trial</span><strong>30 days free</strong></div>
+                        <div className="bill-row"><span>Trial</span><strong>7 days free after approval</strong></div>
                       </div>
 
                       <form className="platform-admin-password-card" onSubmit={changeRestaurantPassword} style={{ marginTop: 18 }}>
