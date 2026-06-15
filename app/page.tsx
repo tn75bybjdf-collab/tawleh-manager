@@ -10306,6 +10306,32 @@ async function updatePlatformBusinessInServer(business: PlatformAdminBusiness) {
   return rowToPlatformBusiness(result.business as Record<string, unknown>);
 }
 
+async function markPlatformBusinessPaidInServer(payload: {
+  businessId: string;
+  paidAmountJod: number;
+}) {
+  const headers = await getPlatformAdminHeaders();
+
+  const response = await fetch("/api/platform-admin/businesses", {
+    method: "PATCH",
+    headers,
+    body: JSON.stringify({
+      action: "markPaid",
+      businessId: payload.businessId,
+      paidAmountJod: payload.paidAmountJod,
+    }),
+  });
+
+  const result = await readApiJson(response);
+
+  return {
+    business: rowToPlatformBusiness(result.business as Record<string, unknown>),
+    payment: result.payment ? rowToCliqPaymentRequest(result.payment as Record<string, unknown>) : null,
+    monthsPaid: Number(result.monthsPaid || 1),
+    expiresAt: String(result.expiresAt || ""),
+  };
+}
+
 export default function Page() {
   const [state, setState] = useState<AppState>(defaultState);
   const [loaded, setLoaded] = useState(false);
@@ -12025,6 +12051,59 @@ export default function Page() {
     } catch (error) {
       setPlatformAdminMessage(getErrorMessage(error));
       show(`Admin save failed: ${getErrorMessage(error)}`);
+    } finally {
+      setPlatformAdminBusy(false);
+    }
+  }
+
+  async function markPlatformBusinessPaid(businessId: string) {
+    const business = platformAdminBusinesses.find((item) => item.id === businessId);
+    if (!business) return;
+
+    const monthlyFee = Number(business.serviceMonthlyFeeJod || monthlyTableFee(business.tableCount));
+    const defaultAmount = Math.max(Number(business.serviceBalanceDueJod || 0), monthlyFee);
+    const rawAmount = window.prompt(
+      `How much did ${business.restaurantName} pay today?\n\nMonthly fee: ${money(monthlyFee)}\nCurrent due: ${money(defaultAmount)}\n\nExample: if due is 25 and they paid 50, enter 50 and Tawleh will set the account 60 days out.`,
+      String(defaultAmount)
+    );
+
+    if (rawAmount === null) return;
+
+    const paidAmountJod = Number(String(rawAmount).replace(/[^\d.]/g, ""));
+
+    if (!Number.isFinite(paidAmountJod) || paidAmountJod <= 0) {
+      setPlatformAdminMessage("Enter a valid paid amount.");
+      show("Enter a valid paid amount");
+      return;
+    }
+
+    setPlatformAdminBusy(true);
+    setPlatformAdminMessage("");
+
+    try {
+      const result = await markPlatformBusinessPaidInServer({
+        businessId,
+        paidAmountJod,
+      });
+
+      setPlatformAdminBusinesses((current) =>
+        current.map((item) => (item.id === result.business.id ? result.business : item))
+      );
+
+      if (result.payment) {
+        setPlatformAdminPayments((current) => [result.payment!, ...current.filter((item) => item.id !== result.payment!.id)]);
+      }
+
+      await loadPlatformReports();
+
+      const expiresText = result.expiresAt ? new Date(result.expiresAt).toLocaleDateString() : result.business.serviceExpiresAt;
+      setPlatformAdminMessage(
+        `${result.business.restaurantName} marked paid: ${money(paidAmountJod)} • ${result.monthsPaid} month${result.monthsPaid === 1 ? "" : "s"} • expires ${expiresText}`
+      );
+      show(`${result.business.restaurantName} marked paid`);
+    } catch (error) {
+      setPlatformAdminMessage(getErrorMessage(error));
+      show(`Mark paid failed: ${getErrorMessage(error)}`);
     } finally {
       setPlatformAdminBusy(false);
     }
@@ -13759,7 +13838,7 @@ export default function Page() {
                           <div>
                             <span>Tawleh owner dashboard</span>
                             <h2>Companies</h2>
-                            <p>Set expiration dates and payment amounts. Suspended businesses show customers a payment notice.</p>
+                            <p>Mark paid, enter the amount collected, and Tawleh automatically extends expiration by the paid months. Reports count the full payment in the month you mark it paid.</p>
                           </div>
 
                           <div className="platform-admin-actions">
@@ -14016,9 +14095,14 @@ export default function Page() {
                                 <span>
                                   Example: {business.restaurantName} owes {money(Math.max(Number(business.serviceBalanceDueJod || 0), Number(business.serviceMonthlyFeeJod || monthlyTableFee(business.tableCount))))} by {business.servicePaymentDueDate || business.serviceExpiresAt || "date not set"}
                                 </span>
-                                <button className="btn small" type="button" onClick={() => savePlatformBusiness(business.id)} disabled={platformAdminBusy}>
-                                  Save billing
-                                </button>
+                                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
+                                  <button className="btn small" type="button" onClick={() => savePlatformBusiness(business.id)} disabled={platformAdminBusy}>
+                                    Save billing
+                                  </button>
+                                  <button className="btn dark small" type="button" onClick={() => markPlatformBusinessPaid(business.id)} disabled={platformAdminBusy}>
+                                    Mark Paid
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           ))}
