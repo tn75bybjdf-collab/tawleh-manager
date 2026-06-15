@@ -322,6 +322,22 @@ async function requireActiveTableSession(
   return session;
 }
 
+async function autoCloseTableAfterPrintJob(db: SupabaseClient, businessId: string, tableNumber: number, sessionId: string) {
+  const now = new Date().toISOString();
+
+  await db
+    .from("table_sessions")
+    .update({ status: "closed", closed_at: now, updated_at: now, last_seen_at: now })
+    .eq("id", sessionId)
+    .eq("business_account_id", businessId);
+
+  await db
+    .from("table_guests")
+    .update({ active: false, last_seen_at: now })
+    .eq("business_account_id", businessId)
+    .eq("table_number", tableNumber);
+}
+
 async function fetchOrders(db: SupabaseClient, businessId: string, tableNumber?: number | null) {
   let query = db
     .from("table_orders")
@@ -475,6 +491,7 @@ export async function POST(request: NextRequest) {
     const tableLabel = cleanTableLabel(body.tableLabel);
     const guestName = cleanGuestName(body.guestName);
     const sessionToken = cleanToken(body.sessionToken);
+    const autoModePrintOnly = body.autoModePrintOnly === true || body.autoMode === true || cleanText(body.autoModePrintOnly) === "1" || cleanText(body.autoMode) === "1";
     const items = Array.isArray(body.items) ? (body.items as OrderItemPayload[]) : [];
 
     if (!businessId || !isUuid(businessId)) return jsonError("Missing or invalid businessId. Create a fresh QR code.", 400);
@@ -540,6 +557,38 @@ export async function POST(request: NextRequest) {
       .filter(isTableOrderInsertRow);
 
     if (!rows.length) return jsonError("No valid items to send", 400);
+
+    if (autoModePrintOnly) {
+      let kitchenPrintJob: unknown = null;
+
+      try {
+        kitchenPrintJob = await createKitchenPrintJob(db, {
+          business,
+          orderTicketId,
+          ticketNumber,
+          tableNumber,
+          tableLabel,
+          guestName,
+          items: kitchenItems,
+        });
+      } catch (printError) {
+        return jsonError(printError instanceof Error ? `Could not create print job: ${printError.message}` : "Could not create print job", 500);
+      }
+
+      await autoCloseTableAfterPrintJob(db, business.id, tableNumber, session.id);
+
+      return NextResponse.json(
+        {
+          ok: true,
+          mode: usingServiceRole() ? "service_role" : "anon_fallback",
+          autoModePrintOnly: true,
+          orders: [],
+          table: tableNumber,
+          printJob: kitchenPrintJob,
+        },
+        { headers: { "Cache-Control": "no-store, max-age=0" } }
+      );
+    }
 
     const { data: orders, error } = await db
       .from("table_orders")

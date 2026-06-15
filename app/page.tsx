@@ -8513,6 +8513,7 @@ type AppState = {
   serviceItems: ServiceItem[];
   qrTokens: Record<string, string>;
   tableLabels: Record<string, string>;
+  tableAutoModes: Record<string, boolean>;
   lastQrTable: number;
 };
 
@@ -8611,6 +8612,7 @@ const defaultState: AppState = {
   serviceItems: defaultServiceItems,
   qrTokens: {},
   tableLabels: {},
+  tableAutoModes: {},
   lastQrTable: DEMO_TABLE,
 };
 
@@ -8989,6 +8991,7 @@ function safeSaveStateToLocalStorage(nextState: AppState) {
         serviceItems: cleanServiceItems(nextState.serviceItems).map(serviceItemForStorage),
         qrTokens: nextState.qrTokens,
         tableLabels: nextState.tableLabels,
+        tableAutoModes: nextState.tableAutoModes,
         lastQrTable: nextState.lastQrTable,
       };
 
@@ -9035,6 +9038,7 @@ function safeLoadState(): AppState {
       })),
       qrTokens: parsed.qrTokens || {},
       tableLabels: parsed.tableLabels || {},
+      tableAutoModes: parsed.tableAutoModes || {},
     };
   } catch {
     return defaultState;
@@ -9823,7 +9827,8 @@ async function sendCartOrderToSupabase(
   guestName: string,
   cartLines: CartLine[],
   username = "",
-  sessionToken = ""
+  sessionToken = "",
+  autoModePrintOnly = false
 ) {
   const response = await fetch("/api/table-orders", {
     method: "POST",
@@ -9838,6 +9843,7 @@ async function sendCartOrderToSupabase(
       tableLabel: cleanTableLabel(tableLabel),
       guestName,
       sessionToken,
+      autoModePrintOnly,
       items: cartLines.map((line) => ({
         itemId: line.item.id,
         itemName: line.item.name,
@@ -10406,6 +10412,7 @@ export default function Page() {
   const [cliqPayMessage, setCliqPayMessage] = useState("");
   const [qrInput, setQrInput] = useState(String(DEMO_TABLE));
   const [qrLabelInput, setQrLabelInput] = useState("");
+  const [qrAutoModeInput, setQrAutoModeInput] = useState(false);
   const [menuDraft, setMenuDraft] = useState<MenuDraft>(emptyMenuDraft);
   const menuBuilderFormRef = useRef<HTMLDivElement | null>(null);
   const [editingMenuItemId, setEditingMenuItemId] = useState("");
@@ -10467,6 +10474,7 @@ export default function Page() {
       const restaurantSlug = params.get("restaurant") || "";
       const tableNumber = Math.max(1, Math.min(999, Number(params.get("table") || DEMO_TABLE)));
       const tableLabel = cleanTableLabel(params.get("tableLabel") || params.get("label") || "");
+      const autoModeFromQr = params.get("autoMode") === "1" || params.get("auto") === "1";
       const token = params.get("token") || "";
 
       if (qrMode) {
@@ -10546,6 +10554,7 @@ export default function Page() {
             orders: orderRows.map((row) => rowToOrder(row)),
             qrTokens: token ? { [String(tableNumber)]: token } : {},
             tableLabels: tableLabel ? { [String(tableNumber)]: tableLabel } : {},
+            tableAutoModes: autoModeFromQr ? { [String(tableNumber)]: true } : {},
             lastQrTable: tableNumber,
           });
           writeCachedTableGuests(
@@ -11173,6 +11182,8 @@ export default function Page() {
 
   const selectedQrTable = Math.max(1, Math.min(999, Number(state.lastQrTable || DEMO_TABLE)));
   const selectedQrTableLabel = cleanTableLabel(state.tableLabels[String(selectedQrTable)] || "");
+  const selectedQrAutoMode = state.tableAutoModes[String(selectedQrTable)] === true;
+  const activeTableAutoMode = state.tableAutoModes[String(activeTable)] === true;
   const activeTableLabel = cleanTableLabel(state.tableLabels[String(activeTable)] || "");
   const tableDisplayName = (tableNumber: number, label = "") => cleanTableLabel(label || state.tableLabels[String(tableNumber)] || "") || `Table ${tableNumber}`;
   const selectedQrToken = state.qrTokens[String(selectedQrTable)] || "preview-token-create-qr-first";
@@ -11601,6 +11612,10 @@ export default function Page() {
 
     const tableLabel = cleanTableLabel(state.tableLabels[String(tableNumber)] || "");
     if (tableLabel) params.set("tableLabel", tableLabel);
+
+    if (state.tableAutoModes[String(tableNumber)] === true) {
+      params.set("autoMode", "1");
+    }
 
     return `${PUBLIC_CUSTOMER_SITE_URL}/?${params.toString()}`;
   }
@@ -12678,11 +12693,30 @@ export default function Page() {
         state.currentGuest,
         orderCartLines,
         state.profile.username,
-        session?.token || ""
+        session?.token || "",
+        activeTableAutoMode
       );
 
-      if (!savedOrders.length) {
+      if (!activeTableAutoMode && !savedOrders.length) {
         throw new Error("Kitchen API returned zero orders");
+      }
+
+      if (activeTableAutoMode) {
+        updateState((current) => ({
+          ...current,
+          currentGuest: "",
+          guests: [],
+          orders: current.orders.filter((order) => Number(order.table || activeTable) !== activeTable),
+          requests: current.requests.filter((request) => Number(request.table || activeTable) !== activeTable),
+        }));
+        writeCachedTableGuests(state.profile.businessId, activeTable, []);
+        setGuestName("");
+        setOrderCart({});
+        setOrderCustomizations({});
+        setOrderReviewOpen(false);
+        setPhoneTab("menu");
+        show("Order sent successfully");
+        return;
       }
 
       const latestOrders = await fetchTableOrdersFromSupabase(
@@ -12698,7 +12732,7 @@ export default function Page() {
       }));
 
       setOrderCart({});
-    setOrderCustomizations({});
+      setOrderCustomizations({});
       setOrderReviewOpen(false);
       setPhoneTab("bill");
       show("Order sent to kitchen");
@@ -13728,6 +13762,7 @@ export default function Page() {
 
     const tableNumber = Math.max(1, Math.min(999, Number(qrInput || DEMO_TABLE)));
     const tableLabel = cleanTableLabel(qrLabelInput);
+    const autoMode = qrAutoModeInput === true;
     const token = makeQrToken(businessName, branchName, tableNumber);
 
     updateState((current) => ({
@@ -13740,6 +13775,10 @@ export default function Page() {
       tableLabels: {
         ...current.tableLabels,
         [String(tableNumber)]: tableLabel,
+      },
+      tableAutoModes: {
+        ...current.tableAutoModes,
+        [String(tableNumber)]: autoMode,
       },
     }));
 
@@ -16259,8 +16298,10 @@ export default function Page() {
                             value={qrInput}
                             onChange={(e) => {
                               const nextTable = e.target.value;
+                              const normalizedTable = String(Math.max(1, Math.min(999, Number(nextTable || DEMO_TABLE))));
                               setQrInput(nextTable);
-                              setQrLabelInput(cleanTableLabel(state.tableLabels[String(Math.max(1, Math.min(999, Number(nextTable || DEMO_TABLE))))] || ""));
+                              setQrLabelInput(cleanTableLabel(state.tableLabels[normalizedTable] || ""));
+                              setQrAutoModeInput(state.tableAutoModes[normalizedTable] === true);
                             }}
                             onKeyDown={(e) => e.key === "Enter" && createQr()}
                           />
@@ -16273,6 +16314,14 @@ export default function Page() {
                             onKeyDown={(e) => e.key === "Enter" && createQr()}
                           />
                         </Field>
+                        <label className="check-row field">
+                          <input
+                            type="checkbox"
+                            checked={qrAutoModeInput}
+                            onChange={(e) => setQrAutoModeInput(e.target.checked)}
+                          />
+                          Auto mode: print order only, then reset this QR automatically
+                        </label>
                         <button className="btn" onClick={createQr}>Create QR</button>
                       </div>
 
@@ -16293,6 +16342,7 @@ export default function Page() {
                           <div className="bill-row"><span>Branch</span><strong>{branchName}</strong></div>
                           <div className="bill-row"><span>Location</span><strong>{tableDisplayName(selectedQrTable, selectedQrTableLabel)}</strong></div>
                           <div className="bill-row"><span>Internal number</span><strong>{selectedQrTable}</strong></div>
+                          <div className="bill-row"><span>Mode</span><strong>{selectedQrAutoMode ? "Auto print + reset" : "Normal table bill"}</strong></div>
                         </div>
 
                         <div className="qr-url-box">{selectedQrUrl}</div>
@@ -16312,6 +16362,7 @@ export default function Page() {
                         <div className="bill-row"><span>Branch</span><strong>Locked</strong></div>
                         <div className="bill-row"><span>Table/location</span><strong>Locked</strong></div>
                         <div className="bill-row"><span>Customer name required</span><strong>Yes</strong></div>
+                        <div className="bill-row"><span>Auto mode option</span><strong>Print only, then reset</strong></div>
                         <div className="bill-row"><span>Kitchen receives</span><strong>Location + name</strong></div>
                       </div>
                       <Empty alignLeft text={"Example:\nCustomer scans Table QR -> enters their name -> orders an item.\n\nKitchen sees: table number, customer name, and item name."} />
