@@ -16259,7 +16259,7 @@ export default function Page() {
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
                           <a
                             className="btn secondary small"
-                            href="/downloads/tawleh-printer-bridge-windows.exe"
+                            href="/downloads/tawleh-printer-bridge-windows.zip"
                             download
                           >
                             Download Printer App
