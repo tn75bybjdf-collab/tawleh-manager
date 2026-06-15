@@ -275,14 +275,17 @@ export async function PATCH(request: NextRequest) {
       });
     }
 
-    const tableCount = Number(existingBusiness.table_count || 25);
-    const monthlyFeeJod = cleanMoney(body.serviceMonthlyFeeJod || monthlyTableFee(tableCount, existingBusiness.service_monthly_fee_jod));
+    const incomingTableCount = body.tableCount ?? body.table_count ?? existingBusiness.table_count ?? 25;
+    const tableCount = Math.max(1, Math.min(999, Math.floor(Number(incomingTableCount || 25))));
+    const monthlyFeeJod = monthlyTableFee(tableCount);
+    const balanceDueJod = monthlyFeeJod;
 
     const updatePayload = {
+      table_count: tableCount,
       service_status: cleanText(body.serviceStatus || existingBusiness.service_status || "active"),
       service_expires_at: body.serviceExpiresAt || null,
       service_payment_due_date: body.servicePaymentDueDate || null,
-      service_balance_due_jod: Math.max(cleanMoney(body.serviceBalanceDueJod), monthlyFeeJod),
+      service_balance_due_jod: balanceDueJod,
       service_monthly_fee_jod: monthlyFeeJod,
       service_suspended_reason: cleanText(body.serviceSuspendedReason),
       service_admin_note: cleanText(body.serviceAdminNote).slice(0, 2000),

@@ -10320,6 +10320,7 @@ async function updatePlatformBusinessInServer(business: PlatformAdminBusiness) {
       serviceStatus: business.serviceStatus,
       serviceExpiresAt: business.serviceExpiresAt || null,
       servicePaymentDueDate: business.servicePaymentDueDate || null,
+      tableCount: Number(business.tableCount || 25),
       serviceBalanceDueJod: Math.max(Number(business.serviceBalanceDueJod || 0), Number(business.serviceMonthlyFeeJod || monthlyTableFee(business.tableCount))),
       serviceMonthlyFeeJod: Number(business.serviceMonthlyFeeJod || monthlyTableFee(business.tableCount)),
       serviceSuspendedReason: business.serviceSuspendedReason,
@@ -12086,6 +12087,8 @@ export default function Page() {
     try {
       const saved = await updatePlatformBusinessInServer({
         ...business,
+        tableCount: Math.max(1, Math.min(999, Math.floor(Number(business.tableCount || 25)))),
+        serviceMonthlyFeeJod: Number(business.serviceMonthlyFeeJod || monthlyTableFee(business.tableCount)),
         serviceBalanceDueJod: Math.max(
           Number(business.serviceBalanceDueJod || 0),
           Number(business.serviceMonthlyFeeJod || monthlyTableFee(business.tableCount))
@@ -14218,7 +14221,7 @@ export default function Page() {
                                 <div>
                                   <span>@{business.username || "no_username"}</span>
                                   <h3>{business.restaurantName}</h3>
-                                  <p>{business.branchName} • {business.tableCount} tables • {business.email}</p>
+                                  <p>{business.branchName} • {business.tableCount} QR/table locations • {business.email}</p>
                                 </div>
                                 <b>{business.serviceStatus === "suspended" ? "Suspended" : business.serviceStatus === "trial" ? "Trial" : "Active"}</b>
                               </div>
@@ -14251,23 +14254,42 @@ export default function Page() {
                                   />
                                 </Field>
 
-                                <Field label="Auto balance due JOD">
+                                <Field label="Table / QR location count">
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    max={999}
+                                    step={1}
+                                    value={business.tableCount}
+                                    onChange={(event) => {
+                                      const nextTableCount = Math.max(1, Math.min(999, Math.floor(Number(event.target.value || 1))));
+                                      const nextMonthlyFee = monthlyTableFee(nextTableCount);
+                                      updatePlatformBusinessLocal(business.id, {
+                                        tableCount: nextTableCount,
+                                        serviceMonthlyFeeJod: nextMonthlyFee,
+                                        serviceBalanceDueJod: nextMonthlyFee,
+                                      });
+                                    }}
+                                  />
+                                  <div className="helper">Changing this updates the monthly fee and amount due automatically.</div>
+                                </Field>
+
+                                <Field label="Auto amount due JOD">
                                   <input
                                     type="number"
                                     readOnly
                                     value={Math.max(Number(business.serviceBalanceDueJod || 0), Number(business.serviceMonthlyFeeJod || monthlyTableFee(business.tableCount)))}
                                   />
-                                  <div className="helper">Auto calculated from monthly QR fee. You only set the due dates.</div>
+                                  <div className="helper">Auto calculated from table / QR count. Minimum is 25 JOD.</div>
                                 </Field>
 
                                 <Field label="Monthly fee JOD">
                                   <input
                                     type="number"
-                                    min={0}
-                                    step="0.001"
-                                    value={business.serviceMonthlyFeeJod}
-                                    onChange={(event) => updatePlatformBusinessLocal(business.id, { serviceMonthlyFeeJod: Number(event.target.value || 0) })}
+                                    readOnly
+                                    value={Number(business.serviceMonthlyFeeJod || monthlyTableFee(business.tableCount))}
                                   />
+                                  <div className="helper">This updates automatically when table count changes.</div>
                                 </Field>
 
                                 <Field label="Suspension message">
