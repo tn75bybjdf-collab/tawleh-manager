@@ -10383,6 +10383,11 @@ export default function Page() {
   const [signupConfirmPassword, setSignupConfirmPassword] = useState("");
   const [loginUsername, setLoginUsername] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [restaurantCurrentPassword, setRestaurantCurrentPassword] = useState("");
+  const [restaurantNewPassword, setRestaurantNewPassword] = useState("");
+  const [restaurantConfirmPassword, setRestaurantConfirmPassword] = useState("");
+  const [restaurantPasswordBusy, setRestaurantPasswordBusy] = useState(false);
+  const [restaurantPasswordMessage, setRestaurantPasswordMessage] = useState("");
   const [platformAdminEmail, setPlatformAdminEmail] = useState("");
   const [platformAdminPassword, setPlatformAdminPassword] = useState("");
   const [platformAdminNewPassword, setPlatformAdminNewPassword] = useState("");
@@ -12345,6 +12350,10 @@ export default function Page() {
     setSignupProfile(defaultState.profile);
     setLoginUsername("");
     setLoginPassword("");
+    setRestaurantCurrentPassword("");
+    setRestaurantNewPassword("");
+    setRestaurantConfirmPassword("");
+    setRestaurantPasswordMessage("");
     setSignupPassword("");
     setSignupConfirmPassword("");
     setQrInput(String(DEMO_TABLE));
@@ -12353,6 +12362,94 @@ export default function Page() {
     setAuthTab("login");
     document.documentElement.style.setProperty("--brand", defaultState.profile.brandColor);
     show("Restaurant dashboard logged out");
+  }
+
+  async function changeRestaurantPassword(event: FormEvent) {
+    event.preventDefault();
+
+    if (!supabase) {
+      setRestaurantPasswordMessage("Supabase is not configured");
+      return;
+    }
+
+    const email = String(state.profile.businessEmail || "").trim().toLowerCase();
+
+    if (!email || !email.includes("@")) {
+      setRestaurantPasswordMessage("This account is missing a valid business email");
+      return;
+    }
+
+    if (!restaurantCurrentPassword) {
+      setRestaurantPasswordMessage("Enter your current password");
+      return;
+    }
+
+    if (restaurantNewPassword.length < 8) {
+      setRestaurantPasswordMessage("New password must be at least 8 characters");
+      return;
+    }
+
+    if (restaurantNewPassword !== restaurantConfirmPassword) {
+      setRestaurantPasswordMessage("New passwords do not match");
+      return;
+    }
+
+    if (restaurantCurrentPassword === restaurantNewPassword) {
+      setRestaurantPasswordMessage("New password must be different from current password");
+      return;
+    }
+
+    setRestaurantPasswordBusy(true);
+    setRestaurantPasswordMessage("");
+
+    try {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: restaurantCurrentPassword,
+      });
+
+      if (signInError) {
+        setRestaurantPasswordMessage("Current password is incorrect");
+        show("Current password is incorrect");
+        return;
+      }
+
+      const { data: sessionData } = await supabase.auth.getSession();
+
+      if (sessionData.session?.access_token && sessionData.session?.refresh_token) {
+        saveManagerAuthSession(
+          sessionData.session.access_token,
+          sessionData.session.refresh_token
+        );
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: restaurantNewPassword,
+      });
+
+      if (updateError) throw updateError;
+
+      const { data: refreshedSessionData } = await supabase.auth.getSession();
+
+      if (refreshedSessionData.session?.access_token && refreshedSessionData.session?.refresh_token) {
+        saveManagerAuthSession(
+          refreshedSessionData.session.access_token,
+          refreshedSessionData.session.refresh_token
+        );
+      }
+
+      setRestaurantCurrentPassword("");
+      setRestaurantNewPassword("");
+      setRestaurantConfirmPassword("");
+      setRestaurantPasswordMessage("Password changed successfully");
+      show("Restaurant password changed");
+    } catch (error) {
+      const message = getErrorMessage(error);
+      setRestaurantPasswordMessage(message);
+      show(`Password change failed: ${message}`);
+    } finally {
+      setRestaurantPasswordBusy(false);
+    }
   }
 
   function resetAll() {
@@ -16485,6 +16582,52 @@ export default function Page() {
                         <div className="bill-row"><span>Pricing</span><strong>{money(state.profile.serviceMonthlyFeeJod || monthlyTableFee(state.profile.tableCount))}/month minimum</strong></div>
                         <div className="bill-row"><span>Trial</span><strong>30 days free</strong></div>
                       </div>
+
+                      <form className="platform-admin-password-card" onSubmit={changeRestaurantPassword} style={{ marginTop: 18 }}>
+                        <div>
+                          <span>Account security</span>
+                          <h3>Change password</h3>
+                          <p>Update the password for username @{state.profile.username}. You must enter the current password first.</p>
+                        </div>
+
+                        <div className="platform-admin-password-fields">
+                          <Field label="Current password">
+                            <input
+                              type="password"
+                              value={restaurantCurrentPassword}
+                              onChange={(event) => setRestaurantCurrentPassword(event.target.value)}
+                              placeholder="Enter current password"
+                              autoComplete="current-password"
+                            />
+                          </Field>
+
+                          <Field label="New password">
+                            <input
+                              type="password"
+                              value={restaurantNewPassword}
+                              onChange={(event) => setRestaurantNewPassword(event.target.value)}
+                              placeholder="At least 8 characters"
+                              autoComplete="new-password"
+                            />
+                          </Field>
+
+                          <Field label="Confirm new password">
+                            <input
+                              type="password"
+                              value={restaurantConfirmPassword}
+                              onChange={(event) => setRestaurantConfirmPassword(event.target.value)}
+                              placeholder="Enter new password again"
+                              autoComplete="new-password"
+                            />
+                          </Field>
+
+                          <button className="btn dark" type="submit" disabled={restaurantPasswordBusy}>
+                            {restaurantPasswordBusy ? "Changing..." : "Change password"}
+                          </button>
+                        </div>
+
+                        {restaurantPasswordMessage ? <div className="admin-message">{restaurantPasswordMessage}</div> : null}
+                      </form>
                     </div>
 
                     <div className="manager-card">
