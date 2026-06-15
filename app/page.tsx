@@ -15364,7 +15364,7 @@ export default function Page() {
                             return (
                               <div className="kitchen-table-group" key={tableNumber}>
                                 <div className="order-group-header">
-                                  <span>{tableDisplayName(tableNumber)}</span>
+                                  <span>{tableDisplayName(Number(tableNumber))}</span>
                                   <span>{tableOrders.length} active item{tableOrders.length === 1 ? "" : "s"}</span>
                                 </div>
 
@@ -15575,7 +15575,7 @@ export default function Page() {
                                 onClick={() => setActiveTable(tableNumber)}
                               >
                                 <div>
-                                  <h4>{tableDisplayName(tableNumber)}</h4>
+                                  <h4>{tableDisplayName(Number(tableNumber))}</h4>
                                   <p>
                                     {active
                                       ? `${tableGuestCount} seated • ${tableOpenOrders} open • ${money(tableBillTotal)}`
