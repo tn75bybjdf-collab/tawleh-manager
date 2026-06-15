@@ -72,7 +72,10 @@ export async function POST(request: NextRequest) {
     const tableCount = Math.max(25, Math.min(999, Number(body.tableCount || 25)));
     const locationCount = Math.max(1, Math.min(25, Number(body.locationCount || 1)));
     const locations = Array.isArray(body.locations)
-      ? body.locations.map((item) => cleanText(item, 500)).filter(Boolean).slice(0, 25)
+      ? (body.locations as unknown[])
+          .map((item: unknown) => cleanText(item, 500))
+          .filter((item: string) => Boolean(item))
+          .slice(0, 25)
       : [];
 
     if (!restaurantName || !branchName) {
