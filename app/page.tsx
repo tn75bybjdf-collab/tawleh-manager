@@ -8115,6 +8115,7 @@ type MenuCategory = {
   id: string;
   name: string;
   nameAr: string;
+  sortOrder: number;
 };
 
 type MenuOptionChoice = {
@@ -9187,7 +9188,21 @@ function rowToMenuCategory(row: CategoryRow): MenuCategory {
     id: row.id,
     name: row.name || "Category",
     nameAr: row.name_ar || "",
+    sortOrder: Number(row.sort_order || 0),
   };
+}
+
+function sortMenuCategories(categories: MenuCategory[]) {
+  return [...categories].sort((a, b) => {
+    const orderA = Number(a.sortOrder || 0);
+    const orderB = Number(b.sortOrder || 0);
+
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+
+    return a.name.localeCompare(b.name);
+  });
 }
 
 function cleanServiceIcon(value: unknown, fallback: string) {
@@ -9668,7 +9683,7 @@ async function fetchMenuCategoriesFromSupabase(businessId: string) {
   const result = await readApiJson(response);
   const rows = (result.categories || []) as CategoryRow[];
 
-  return rows.map((row) => rowToMenuCategory(row));
+  return sortMenuCategories(rows.map((row) => rowToMenuCategory(row)));
 }
 
 async function insertMenuCategoryIntoSupabase(businessId: string, name: string, nameAr: string) {
@@ -9686,6 +9701,25 @@ async function insertMenuCategoryIntoSupabase(businessId: string, name: string, 
 
   const result = await readApiJson(response);
   return rowToMenuCategory(result.category as CategoryRow);
+}
+
+async function reorderMenuCategoriesInSupabase(businessId: string, categories: MenuCategory[]) {
+  const headers = await getManagerAuthHeaders();
+
+  const response = await fetch("/api/menu-categories/reorder", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      businessId,
+      categories: categories.map((category, index) => ({
+        id: category.id,
+        sortOrder: (index + 1) * 10,
+      })),
+    }),
+  });
+
+  const result = await readApiJson(response);
+  return sortMenuCategories(((result.categories || []) as CategoryRow[]).map((row) => rowToMenuCategory(row)));
 }
 
 async function fetchTableGuestsFromSupabase(
@@ -10551,7 +10585,7 @@ export default function Page() {
             profileComplete: true,
             profile: nextProfile,
             menu: menuRows.map((row) => rowToMenuItem(row)),
-            categories: categoryRows.map((row) => rowToMenuCategory(row)),
+            categories: sortMenuCategories(categoryRows.map((row) => rowToMenuCategory(row))),
             serviceItems: serviceItemRows.length ? serviceItemRows.map((row) => rowToServiceItem(row)) : defaultServiceItems,
             guests: mergeGuestLists(
               uniqueGuestNames(guestRows.map((row) => rowToGuestName(row))),
@@ -13319,13 +13353,17 @@ export default function Page() {
     try {
       const savedCategory = await insertMenuCategoryIntoSupabase(managerProfile.businessId, cleanName, cleanNameAr);
 
-      updateState((current) => ({
-        ...current,
-        categories: [
-          savedCategory,
+      updateState((current) => {
+        const nextCategories = [
           ...current.categories.filter((category) => category.id !== savedCategory.id),
-        ],
-      }));
+          { ...savedCategory, sortOrder: (current.categories.length + 1) * 10 },
+        ];
+
+        return {
+          ...current,
+          categories: sortMenuCategories(nextCategories),
+        };
+      });
 
       setMenuDraft((current) => ({
         ...current,
@@ -13335,6 +13373,71 @@ export default function Page() {
       setCategoryDraft({ name: "", nameAr: "" });
       show(`${cleanName} category added`);
     } catch (error) {
+      show(formatMenuDbError(error));
+    } finally {
+      setMenuBusy(false);
+    }
+  }
+
+  async function moveMenuCategory(categoryId: string, direction: "up" | "down") {
+    if (!categoryId || menuBusy) return;
+
+    let managerProfile = state.profile;
+
+    if (!managerProfile.businessId) {
+      try {
+        managerProfile = await ensureManagerBusinessProfile();
+      } catch {
+        show("Login again, then reorder categories");
+        return;
+      }
+    }
+
+    if (!managerProfile.businessId) {
+      show("Login again, then reorder categories");
+      return;
+    }
+
+    const currentCategories = sortMenuCategories(state.categories);
+    const currentIndex = currentCategories.findIndex((category) => category.id === categoryId);
+    const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+
+    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= currentCategories.length) {
+      return;
+    }
+
+    const reordered = [...currentCategories];
+    const [selectedCategory] = reordered.splice(currentIndex, 1);
+    reordered.splice(targetIndex, 0, selectedCategory);
+
+    const optimisticCategories = reordered.map((category, index) => ({
+      ...category,
+      sortOrder: (index + 1) * 10,
+    }));
+
+    const previousCategories = state.categories;
+
+    updateState((current) => ({
+      ...current,
+      categories: optimisticCategories,
+    }));
+
+    setMenuBusy(true);
+
+    try {
+      const savedCategories = await reorderMenuCategoriesInSupabase(managerProfile.businessId, optimisticCategories);
+
+      updateState((current) => ({
+        ...current,
+        categories: savedCategories,
+      }));
+
+      show("Category display order saved");
+    } catch (error) {
+      updateState((current) => ({
+        ...current,
+        categories: previousCategories,
+      }));
       show(formatMenuDbError(error));
     } finally {
       setMenuBusy(false);
@@ -15903,10 +16006,26 @@ export default function Page() {
                           <button className="btn secondary" type="button" onClick={addMenuCategoryFromBuilder} disabled={menuBusy}>
                             Add category
                           </button>
+                          <button
+                            className="btn secondary"
+                            type="button"
+                            onClick={() => moveMenuCategory(menuDraft.categoryId, "up")}
+                            disabled={menuBusy || !menuDraft.categoryId || sortMenuCategories(state.categories).findIndex((category) => category.id === menuDraft.categoryId) <= 0}
+                          >
+                            Move selected up
+                          </button>
+                          <button
+                            className="btn secondary"
+                            type="button"
+                            onClick={() => moveMenuCategory(menuDraft.categoryId, "down")}
+                            disabled={menuBusy || !menuDraft.categoryId || sortMenuCategories(state.categories).findIndex((category) => category.id === menuDraft.categoryId) < 0 || sortMenuCategories(state.categories).findIndex((category) => category.id === menuDraft.categoryId) >= state.categories.length - 1}
+                          >
+                            Move selected down
+                          </button>
                         </div>
 
                         <div className="manager-category-list premium-category-list">
-                          {state.categories.length ? state.categories.map((category, index) => {
+                          {state.categories.length ? sortMenuCategories(state.categories).map((category, index) => {
                             const categoryItems = state.menu.filter((item) => item.categoryId === category.id);
                             const firstPhotoItem = categoryItems.find((item) => item.imageThumbUrl || item.imageFullUrl);
                             const previewImage = firstPhotoItem?.imageThumbUrl || firstPhotoItem?.imageFullUrl || "";
@@ -15984,7 +16103,7 @@ export default function Page() {
                             onChange={(e) => setMenuDraft({ ...menuDraft, categoryId: e.target.value })}
                           >
                             <option value="">Uncategorized</option>
-                            {state.categories.map((category) => (
+                            {sortMenuCategories(state.categories).map((category) => (
                               <option key={category.id} value={category.id}>
                                 {category.name}{category.nameAr ? ` / ${category.nameAr}` : ""}
                               </option>
