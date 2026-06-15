@@ -7,6 +7,17 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABAS
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_KEY || "";
 
+type ReorderCategoryInput = {
+  id: string;
+  sortOrder?: number | string | null;
+  sort_order?: number | string | null;
+};
+
+type CleanedCategory = {
+  id: string;
+  sort_order: number;
+};
+
 function json(data: Record<string, unknown>, status = 200) {
   return NextResponse.json(data, {
     status,
@@ -95,11 +106,29 @@ async function requireRestaurantManager(request: NextRequest, businessId: string
   return { admin, userId: user.id, business };
 }
 
+function parseCategoryInput(value: unknown, index: number): CleanedCategory | null {
+  if (!value || typeof value !== "object") return null;
+
+  const category = value as ReorderCategoryInput;
+  const id = String(category.id || "").trim();
+
+  if (!isUuid(id)) return null;
+
+  const sortValue = category.sortOrder ?? category.sort_order;
+
+  return {
+    id,
+    sort_order: cleanSortOrder(sortValue, (index + 1) * 10),
+  };
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json().catch(() => ({}));
-    const businessId = String(body.businessId || "").trim();
-    const categories = Array.isArray(body.categories) ? body.categories : [];
+    const body = await request.json().catch(() => ({} as Record<string, unknown>));
+    const bodyRecord = body as Record<string, unknown>;
+    const businessId = String(bodyRecord.businessId || "").trim();
+    const categoriesValue = bodyRecord.categories;
+    const categories: unknown[] = Array.isArray(categoriesValue) ? categoriesValue : [];
 
     if (!businessId) {
       throw new Error("businessId is required");
@@ -111,12 +140,9 @@ export async function POST(request: NextRequest) {
 
     const { admin } = await requireRestaurantManager(request, businessId);
 
-    const cleanedCategories = categories
-      .map((category: Record<string, unknown>, index: number) => ({
-        id: String(category.id || "").trim(),
-        sort_order: cleanSortOrder(category.sortOrder, (index + 1) * 10),
-      }))
-      .filter((category) => isUuid(category.id));
+    const cleanedCategories: CleanedCategory[] = categories
+      .map((category: unknown, index: number) => parseCategoryInput(category, index))
+      .filter((category: CleanedCategory | null): category is CleanedCategory => category !== null);
 
     if (!cleanedCategories.length) {
       throw new Error("No valid categories were sent");
