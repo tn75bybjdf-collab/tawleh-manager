@@ -10462,6 +10462,7 @@ export default function Page() {
   const [expandedMenuCategories, setExpandedMenuCategories] = useState<Record<string, boolean>>({});
   const [imageBusy, setImageBusy] = useState(false);
   const [menuBusy, setMenuBusy] = useState(false);
+  const [categoryOrderDirty, setCategoryOrderDirty] = useState(false);
   const [resettingTable, setResettingTable] = useState<number | null>(null);
   const [serviceItemDraft, setServiceItemDraft] = useState<ServiceItem>(emptyServiceItemDraft);
   const [serviceItemBusy, setServiceItemBusy] = useState(false);
@@ -13379,8 +13380,44 @@ export default function Page() {
     }
   }
 
-  async function moveMenuCategory(categoryId: string, direction: "up" | "down") {
+  function moveMenuCategory(categoryId: string, direction: "up" | "down") {
     if (!categoryId || menuBusy) return;
+
+    let moved = false;
+
+    updateState((current) => {
+      const currentCategories = sortMenuCategories(current.categories);
+      const currentIndex = currentCategories.findIndex((category) => category.id === categoryId);
+      const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
+
+      if (currentIndex < 0 || targetIndex < 0 || targetIndex >= currentCategories.length) {
+        return current;
+      }
+
+      const reordered = [...currentCategories];
+      const [selectedCategory] = reordered.splice(currentIndex, 1);
+      reordered.splice(targetIndex, 0, selectedCategory);
+
+      const optimisticCategories = reordered.map((category, index) => ({
+        ...category,
+        sortOrder: (index + 1) * 10,
+      }));
+
+      moved = true;
+
+      return {
+        ...current,
+        categories: optimisticCategories,
+      };
+    });
+
+    if (moved) {
+      setCategoryOrderDirty(true);
+    }
+  }
+
+  async function saveMenuCategoryOrder() {
+    if (menuBusy) return;
 
     let managerProfile = state.profile;
 
@@ -13388,29 +13425,17 @@ export default function Page() {
       try {
         managerProfile = await ensureManagerBusinessProfile();
       } catch {
-        show("Login again, then reorder categories");
+        show("Login again, then save category order");
         return;
       }
     }
 
     if (!managerProfile.businessId) {
-      show("Login again, then reorder categories");
+      show("Login again, then save category order");
       return;
     }
 
-    const currentCategories = sortMenuCategories(state.categories);
-    const currentIndex = currentCategories.findIndex((category) => category.id === categoryId);
-    const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
-
-    if (currentIndex < 0 || targetIndex < 0 || targetIndex >= currentCategories.length) {
-      return;
-    }
-
-    const reordered = [...currentCategories];
-    const [selectedCategory] = reordered.splice(currentIndex, 1);
-    reordered.splice(targetIndex, 0, selectedCategory);
-
-    const optimisticCategories = reordered.map((category, index) => ({
+    const categoriesToSave = sortMenuCategories(state.categories).map((category, index) => ({
       ...category,
       sortOrder: (index + 1) * 10,
     }));
@@ -13419,25 +13444,27 @@ export default function Page() {
 
     updateState((current) => ({
       ...current,
-      categories: optimisticCategories,
+      categories: categoriesToSave,
     }));
 
     setMenuBusy(true);
 
     try {
-      const savedCategories = await reorderMenuCategoriesInSupabase(managerProfile.businessId, optimisticCategories);
+      const savedCategories = await reorderMenuCategoriesInSupabase(managerProfile.businessId, categoriesToSave);
 
       updateState((current) => ({
         ...current,
         categories: savedCategories,
       }));
 
+      setCategoryOrderDirty(false);
       show("Category display order saved");
     } catch (error) {
       updateState((current) => ({
         ...current,
         categories: previousCategories,
       }));
+      setCategoryOrderDirty(true);
       show(formatMenuDbError(error));
     } finally {
       setMenuBusy(false);
@@ -16022,7 +16049,19 @@ export default function Page() {
                           >
                             Move selected down
                           </button>
+                          <button
+                            className="btn dark"
+                            type="button"
+                            onClick={saveMenuCategoryOrder}
+                            disabled={menuBusy || !categoryOrderDirty}
+                          >
+                            {menuBusy ? "Saving..." : categoryOrderDirty ? "Save category order" : "Order saved"}
+                          </button>
                         </div>
+
+                        {categoryOrderDirty ? (
+                          <p className="sub">Category order changed on this screen. Press Save category order before leaving or refreshing.</p>
+                        ) : null}
 
                         <div className="manager-category-list premium-category-list">
                           {state.categories.length ? sortMenuCategories(state.categories).map((category, index) => {
