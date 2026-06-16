@@ -22,6 +22,10 @@ function json(data: Record<string, unknown>, status = 200) {
   });
 }
 
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value || ""));
+}
+
 function normalizeUsername(value: unknown) {
   return String(value || "")
     .trim()
@@ -51,55 +55,78 @@ function getAdminClient() {
   });
 }
 
+async function getUserFromRequest(request: NextRequest) {
+  const authorization = request.headers.get("authorization") || request.headers.get("Authorization") || "";
+  const token = authorization.replace(/^Bearer\s+/i, "").trim();
+
+  if (!token) {
+    throw new Error("Restaurant login required");
+  }
+
+  const anon = getAnonClient();
+  const { data, error } = await anon.auth.getUser(token);
+
+  if (error || !data.user?.id) {
+    throw new Error("Invalid restaurant session");
+  }
+
+  return data.user;
+}
+
 export async function POST(request: NextRequest) {
   try {
+    const user = await getUserFromRequest(request);
     const body = await request.json().catch(() => ({} as Record<string, unknown>));
+    const businessId = String(body.businessId || "").trim();
     const username = normalizeUsername(body.username);
-    const password = String(body.password || "");
-
-    if (!username || !password) {
-      throw new Error("Username and password are required");
-    }
 
     const admin = getAdminClient();
 
-    const { data: business, error: businessError } = await admin
+    let query = admin
       .from("business_accounts")
-      .select("*")
-      .eq("username", username)
-      .maybeSingle();
+      .select("id, auth_user_id, username")
+      .limit(1);
+
+    if (isUuid(businessId)) {
+      query = query.eq("id", businessId);
+    } else if (username) {
+      query = query.eq("username", username);
+    } else {
+      throw new Error("Business account is required");
+    }
+
+    const { data: business, error: businessError } = await query.maybeSingle();
 
     if (businessError) {
       throw new Error(businessError.message);
     }
 
-    if (!business?.id || !business.email) {
-      throw new Error("Business account was not found");
+    if (!business?.id) {
+      throw new Error("Business not found");
     }
 
-    const anon = getAnonClient();
-
-    const { data: signInData, error: signInError } = await anon.auth.signInWithPassword({
-      email: String(business.email),
-      password,
-    });
-
-    if (signInError || !signInData.session) {
-      throw new Error(signInError?.message || "Login failed");
+    if (String(business.auth_user_id || "") !== user.id) {
+      throw new Error("You are not allowed to update this business");
     }
 
-    return json({
-      ok: true,
-      session: signInData.session,
-      user: signInData.user,
-      business,
-      forcePasswordChange: business.force_password_change === true,
-    });
+    const { error: updateError } = await admin
+      .from("business_accounts")
+      .update({
+        force_password_change: false,
+        password_changed_at: new Date().toISOString(),
+      })
+      .eq("id", String(business.id));
+
+    if (updateError) {
+      throw new Error(updateError.message);
+    }
+
+    return json({ ok: true });
   } catch (error) {
     return json(
       {
         ok: false,
-        error: error instanceof Error ? error.message : "Login failed",
+        error: error instanceof Error ? error.message : "Could not complete password change",
       },
       400
     );

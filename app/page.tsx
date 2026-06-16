@@ -6203,6 +6203,58 @@ main.customer-only-shell .image-modal-card > img {
   -webkit-backdrop-filter: blur(18px) !important;
 }
 
+
+.first-login-password-lock {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100000 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 18px !important;
+  background: rgba(47, 42, 37, 0.62) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+}
+
+.first-login-password-card {
+  width: min(460px, 100%) !important;
+  display: grid !important;
+  gap: 14px !important;
+  padding: 24px !important;
+  border-radius: 30px !important;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(200, 97, 63, 0.13), transparent 36%),
+    rgba(255, 253, 248, 0.96) !important;
+  border: 1px solid rgba(91, 71, 48, 0.15) !important;
+  box-shadow: 0 28px 75px rgba(15, 23, 42, 0.25) !important;
+}
+
+.first-login-password-card span {
+  display: block !important;
+  color: #bd5338 !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+}
+
+.first-login-password-card h2 {
+  margin: 5px 0 6px !important;
+  color: #2f2a25 !important;
+  font-size: 30px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.055em !important;
+  font-weight: 1000 !important;
+}
+
+.first-login-password-card p {
+  margin: 0 !important;
+  color: #74685d !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+  font-weight: 850 !important;
+}
+
 .app-shell:not(.customer-only-shell) .auth-layout {
   width: min(1180px, 100%) !important;
   margin: 0 auto !important;
@@ -8427,6 +8479,7 @@ type Profile = {
   serviceBalanceDueJod: number;
   serviceMonthlyFeeJod: number;
   serviceSuspendedReason: string;
+  forcePasswordChange: boolean;
 };
 
 type SavedBusinessAccount = {
@@ -8957,6 +9010,7 @@ const defaultState: AppState = {
     serviceBalanceDueJod: 0,
     serviceMonthlyFeeJod: 25,
     serviceSuspendedReason: "",
+    forcePasswordChange: false,
   },
   currentGuest: "",
   guests: [],
@@ -9990,6 +10044,7 @@ function businessRowToProfile(row: BusinessProfileRow, fallback: Profile): Profi
     serviceBalanceDueJod: Number(row.service_balance_due_jod ?? fallback.serviceBalanceDueJod ?? 0),
     serviceMonthlyFeeJod: Number(row.service_monthly_fee_jod ?? fallback.serviceMonthlyFeeJod ?? monthlyTableFee(row.table_count || fallback.tableCount || 25)),
     serviceSuspendedReason: row.service_suspended_reason || fallback.serviceSuspendedReason || "",
+    forcePasswordChange: row.force_password_change === true || fallback.forcePasswordChange === true,
   };
 }
 
@@ -10368,6 +10423,21 @@ async function deleteMenuItemFromSupabase(businessId: string, itemId: string) {
       businessId,
       username: safeLoadState().profile.username || "",
       itemId,
+    }),
+  });
+
+  await readApiJson(response);
+}
+
+async function clearFirstLoginPasswordChangeInSupabase(businessId: string, username = "") {
+  const headers = await getManagerAuthHeaders();
+
+  const response = await fetch("/api/restaurant-first-login-password", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({
+      businessId,
+      username: username || safeLoadState().profile.username || "",
     }),
   });
 
@@ -10860,6 +10930,10 @@ export default function Page() {
   const [restaurantConfirmPassword, setRestaurantConfirmPassword] = useState("");
   const [restaurantPasswordBusy, setRestaurantPasswordBusy] = useState(false);
   const [restaurantPasswordMessage, setRestaurantPasswordMessage] = useState("");
+  const [firstLoginPassword, setFirstLoginPassword] = useState("");
+  const [firstLoginConfirmPassword, setFirstLoginConfirmPassword] = useState("");
+  const [firstLoginPasswordBusy, setFirstLoginPasswordBusy] = useState(false);
+  const [firstLoginPasswordMessage, setFirstLoginPasswordMessage] = useState("");
   const [platformAdminEmail, setPlatformAdminEmail] = useState("");
   const [platformAdminPassword, setPlatformAdminPassword] = useState("");
   const [platformAdminNewPassword, setPlatformAdminNewPassword] = useState("");
@@ -11022,6 +11096,7 @@ export default function Page() {
             serviceBalanceDueJod: Number(business.service_balance_due_jod || 0),
             serviceMonthlyFeeJod: Number(business.service_monthly_fee_jod || monthlyTableFee(Number(business.table_count || 25))),
             serviceSuspendedReason: business.service_suspended_reason || "",
+            forcePasswordChange: business.force_password_change === true,
           };
 
           if (!mounted) return;
@@ -12444,6 +12519,7 @@ export default function Page() {
         serviceBalanceDueJod: Number(business.service_balance_due_jod || 0),
         serviceMonthlyFeeJod: Number(business.service_monthly_fee_jod || monthlyTableFee(Number(business.table_count || 25))),
         serviceSuspendedReason: business.service_suspended_reason || "",
+        forcePasswordChange: business.force_password_change === true,
       };
 
       updateState((current) => ({
@@ -12881,6 +12957,70 @@ export default function Page() {
     show("Restaurant dashboard logged out");
   }
 
+  async function completeFirstLoginPasswordChange(event: FormEvent) {
+    event.preventDefault();
+
+    if (!supabase) {
+      setFirstLoginPasswordMessage("Supabase is not configured");
+      return;
+    }
+
+    if (firstLoginPassword.length < 8) {
+      setFirstLoginPasswordMessage("New password must be at least 8 characters");
+      return;
+    }
+
+    if (firstLoginPassword !== firstLoginConfirmPassword) {
+      setFirstLoginPasswordMessage("Passwords do not match");
+      return;
+    }
+
+    setFirstLoginPasswordBusy(true);
+    setFirstLoginPasswordMessage("");
+
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: firstLoginPassword,
+      });
+
+      if (updateError) throw updateError;
+
+      await clearFirstLoginPasswordChangeInSupabase(
+        state.profile.businessId,
+        state.profile.username
+      );
+
+      const { data: refreshedSessionData } = await supabase.auth.getSession();
+
+      if (refreshedSessionData.session?.access_token && refreshedSessionData.session?.refresh_token) {
+        saveManagerAuthSession(
+          refreshedSessionData.session.access_token,
+          refreshedSessionData.session.refresh_token
+        );
+      }
+
+      setFirstLoginPassword("");
+      setFirstLoginConfirmPassword("");
+      setFirstLoginPasswordMessage("");
+
+      updateState((current) => ({
+        ...current,
+        profile: {
+          ...current.profile,
+          forcePasswordChange: false,
+        },
+      }));
+
+      show("Password changed. Dashboard unlocked.");
+    } catch (error) {
+      const message = getErrorMessage(error);
+      setFirstLoginPasswordMessage(message);
+      show(`Password change failed: ${message}`);
+    } finally {
+      setFirstLoginPasswordBusy(false);
+    }
+  }
+
   async function changeRestaurantPassword(event: FormEvent) {
     event.preventDefault();
 
@@ -12958,6 +13098,25 @@ export default function Page() {
       setRestaurantCurrentPassword("");
       setRestaurantNewPassword("");
       setRestaurantConfirmPassword("");
+      if (state.profile.businessId) {
+        try {
+          await clearFirstLoginPasswordChangeInSupabase(
+            state.profile.businessId,
+            state.profile.username
+          );
+        } catch {
+          // The password still changed; the first-login flag can be cleared from admin/Supabase if needed.
+        }
+      }
+
+      updateState((current) => ({
+        ...current,
+        profile: {
+          ...current.profile,
+          forcePasswordChange: false,
+        },
+      }));
+
       setRestaurantPasswordMessage("Password changed successfully");
       show("Restaurant password changed");
     } catch (error) {
@@ -14637,6 +14796,48 @@ export default function Page() {
       ) : (
         <style dangerouslySetInnerHTML={{ __html: MANAGER_DASHBOARD_OPTION2_CSS }} />
       )}
+      {!publicCustomerMode && state.profileComplete && state.profile.forcePasswordChange ? (
+        <div className="first-login-password-lock">
+          <form className="first-login-password-card" onSubmit={completeFirstLoginPasswordChange}>
+            <div>
+              <span>First login security</span>
+              <h2>Change temporary password</h2>
+              <p>This account was approved with a temporary first sign-in password. You must create a new password before using the dashboard.</p>
+            </div>
+
+            <Field label="New password">
+              <input
+                type="password"
+                value={firstLoginPassword}
+                onChange={(event) => setFirstLoginPassword(event.target.value)}
+                placeholder="At least 8 characters"
+                autoComplete="new-password"
+              />
+            </Field>
+
+            <Field label="Confirm new password">
+              <input
+                type="password"
+                value={firstLoginConfirmPassword}
+                onChange={(event) => setFirstLoginConfirmPassword(event.target.value)}
+                placeholder="Confirm password"
+                autoComplete="new-password"
+              />
+            </Field>
+
+            {firstLoginPasswordMessage ? <div className="admin-message">{firstLoginPasswordMessage}</div> : null}
+
+            <button className="btn dark full" type="submit" disabled={firstLoginPasswordBusy}>
+              {firstLoginPasswordBusy ? "Changing password..." : "Change password and continue"}
+            </button>
+
+            <button className="btn ghost full" type="button" onClick={restaurantLogout}>
+              Logout
+            </button>
+          </form>
+        </div>
+      ) : null}
+
       {!state.profileComplete && !publicTableMode ? (
         <section className="auth-page">
           <div className="auth-logo-wrap">

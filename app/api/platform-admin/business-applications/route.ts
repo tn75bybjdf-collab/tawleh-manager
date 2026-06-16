@@ -271,6 +271,8 @@ export async function PATCH(request: NextRequest) {
         salesperson_username: application.salesperson_username || null,
         print_bridge_token: makeToken(),
         print_bridge_token_created_at: new Date().toISOString(),
+        force_password_change: true,
+        temporary_password_set_at: new Date().toISOString(),
       })
       .select("*")
       .single();
