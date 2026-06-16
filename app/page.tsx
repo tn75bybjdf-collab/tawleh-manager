@@ -12337,6 +12337,8 @@ export default function Page() {
       const logoBlob = dataUrlToBlob(logoDataUrl);
 
       const headers = await getManagerAuthHeaders();
+      delete headers["Content-Type"];
+
       const formData = new FormData();
       formData.append("businessId", state.profile.businessId);
       formData.append("username", state.profile.username || "");
