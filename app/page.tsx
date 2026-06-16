@@ -4685,6 +4685,33 @@ body {
 
 
 
+
+/* Logo full-image safety fix
+   Prevents restaurant logos from being cropped or showing only a small corner. */
+.logo-box {
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+}
+
+.logo-box img,
+.customer-logo img,
+.profile-logo img,
+.print-logo img,
+.qr-logo-mark img,
+.sidebar-restaurant-card .logo-box img,
+.logo-uploader .logo-box img {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  display: block !important;
+  padding: 8px !important;
+  box-sizing: border-box !important;
+}
+
 /* Restaurant logo restore/fix */
 .manager-option2-shell .restaurant-brand-logo-block {
   align-items: center !important;
@@ -9510,6 +9537,38 @@ async function resizeImageDataUrl(dataUrl: string, maxSize: number, quality: num
   return canvas.toDataURL("image/jpeg", quality);
 }
 
+async function normalizeLogoDataUrl(dataUrl: string, canvasSize = 900) {
+  const image = await loadImage(dataUrl);
+  const safeCanvasSize = Math.max(320, Math.min(1200, Math.floor(Number(canvasSize || 900))));
+  const padding = Math.round(safeCanvasSize * 0.10);
+  const maxDrawWidth = safeCanvasSize - padding * 2;
+  const maxDrawHeight = safeCanvasSize - padding * 2;
+  const ratio = Math.min(maxDrawWidth / image.width, maxDrawHeight / image.height, 1);
+  const width = Math.max(1, Math.round(image.width * ratio));
+  const height = Math.max(1, Math.round(image.height * ratio));
+  const x = Math.round((safeCanvasSize - width) / 2);
+  const y = Math.round((safeCanvasSize - height) / 2);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = safeCanvasSize;
+  canvas.height = safeCanvasSize;
+
+  const context = canvas.getContext("2d");
+  if (!context) return dataUrl;
+
+  context.clearRect(0, 0, safeCanvasSize, safeCanvasSize);
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.drawImage(image, x, y, width, height);
+
+  return canvas.toDataURL("image/png");
+}
+
+async function normalizeLogoFile(file: File) {
+  const original = await readFileAsDataUrl(file);
+  return normalizeLogoDataUrl(original, 900);
+}
+
 async function compressMenuImage(file: File) {
   const original = await readFileAsDataUrl(file);
   const imageThumbUrl = await resizeImageDataUrl(original, 280, 0.72);
@@ -12229,8 +12288,10 @@ export default function Page() {
     return `${PUBLIC_CUSTOMER_SITE_URL}/?${params.toString()}`;
   }
 
-  function handleLogoUpload(event: ChangeEvent<HTMLInputElement>) {
+  async function handleLogoUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
+    event.target.value = "";
+
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
@@ -12238,15 +12299,19 @@ export default function Page() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
+    try {
+      show("Preparing restaurant logo...");
+      const logoDataUrl = await normalizeLogoFile(file);
+
       setSignupProfile((current) => ({
         ...current,
-        logoDataUrl: String(reader.result || ""),
+        logoDataUrl,
       }));
+
       show("Restaurant logo loaded");
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      show(error instanceof Error ? error.message : "Could not prepare restaurant logo");
+    }
   }
 
   async function handleRestaurantLogoUpload(event: ChangeEvent<HTMLInputElement>) {
@@ -12268,11 +12333,14 @@ export default function Page() {
     try {
       show("Uploading restaurant logo...");
 
+      const logoDataUrl = await normalizeLogoFile(file);
+      const logoBlob = dataUrlToBlob(logoDataUrl);
+
       const headers = await getManagerAuthHeaders();
       const formData = new FormData();
       formData.append("businessId", state.profile.businessId);
       formData.append("username", state.profile.username || "");
-      formData.append("logo", file);
+      formData.append("logo", logoBlob, "restaurant-logo.png");
 
       const response = await fetch("/api/business-logo", {
         method: "POST",
