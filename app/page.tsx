@@ -14365,7 +14365,14 @@ export default function Page() {
       menu: current.menu.filter((menuItem) => menuItem.id !== itemId),
     }));
 
-    show(`${item.name} removed from saved menu`);
+    if (editingMenuItemId === itemId) {
+      setEditingMenuItemId("");
+      setMenuDraft(emptyMenuDraft);
+      setMobileEditMenuOpen(true);
+      setMobileMenuSearch("");
+    }
+
+    show(`${item.name} deleted`);
   }
 
   async function closeTable(tableNumber = activeTable) {
