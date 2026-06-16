@@ -4362,9 +4362,91 @@ body {
   cursor: pointer !important;
 }
 
-.mobile-save-item-button {
+.mobile-save-item-button,
+.mobile-delete-item-button {
   min-height: 54px !important;
   font-size: 16px !important;
+}
+
+.mobile-edit-menu-panel,
+.mobile-editing-banner {
+  display: grid !important;
+  gap: 12px !important;
+  margin-bottom: 14px !important;
+  padding: 13px !important;
+  border-radius: 22px !important;
+  background: #fff7ef !important;
+  border: 1px solid rgba(200, 97, 63, 0.14) !important;
+}
+
+.mobile-editing-banner {
+  color: #6d5848 !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+}
+
+.mobile-edit-results {
+  display: grid !important;
+  gap: 9px !important;
+  max-height: 360px !important;
+  overflow: auto !important;
+  padding-right: 2px !important;
+}
+
+.mobile-edit-result {
+  width: 100% !important;
+  min-height: 72px !important;
+  display: grid !important;
+  grid-template-columns: 58px 1fr !important;
+  gap: 10px !important;
+  align-items: center !important;
+  text-align: left !important;
+  border: 1px solid rgba(91, 71, 48, 0.12) !important;
+  border-radius: 18px !important;
+  padding: 8px !important;
+  background: #fff !important;
+  color: #2f2a25 !important;
+}
+
+.mobile-edit-result.selected {
+  border-color: rgba(200, 97, 63, 0.45) !important;
+  box-shadow: 0 0 0 3px rgba(200, 97, 63, 0.12) !important;
+}
+
+.mobile-edit-result img,
+.mobile-edit-result > span {
+  width: 58px !important;
+  height: 58px !important;
+  border-radius: 14px !important;
+  object-fit: cover !important;
+  display: grid !important;
+  place-items: center !important;
+  background: #f4e7d8 !important;
+  color: #7a604e !important;
+  font-weight: 900 !important;
+}
+
+.mobile-edit-result strong {
+  display: block !important;
+  font-size: 14px !important;
+  line-height: 1.15 !important;
+}
+
+.mobile-edit-result em,
+.mobile-edit-result small {
+  display: block !important;
+  margin-top: 3px !important;
+  color: #7b6a5d !important;
+  font-size: 12px !important;
+  font-style: normal !important;
+}
+
+.mobile-empty-results {
+  padding: 14px !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  color: #7b6a5d !important;
+  font-weight: 800 !important;
 }
 
 @media (max-width: 430px) {
@@ -10715,6 +10797,8 @@ export default function Page() {
   const [publicTableMode, setPublicTableMode] = useState(false);
   const publicCustomerMode = publicTableMode;
   const [isMobileManager, setIsMobileManager] = useState(false);
+  const [mobileEditMenuOpen, setMobileEditMenuOpen] = useState(false);
+  const [mobileMenuSearch, setMobileMenuSearch] = useState("");
   const [publicTableError, setPublicTableError] = useState("");
   const [publicSuspension, setPublicSuspension] = useState<PublicSuspension>({
     suspended: false,
@@ -11182,6 +11266,19 @@ export default function Page() {
     : activeMenuCategory === "uncategorized"
       ? state.menu.filter((item) => !item.categoryId)
       : state.menu.filter((item) => item.categoryId === activeMenuCategory);
+
+  const mobileMenuSearchText = mobileMenuSearch.trim().toLowerCase();
+  const mobileEditableMenuItems = state.menu
+    .filter((item) => {
+      if (!mobileMenuSearchText) return true;
+
+      return (
+        item.name.toLowerCase().includes(mobileMenuSearchText) ||
+        item.nameAr.toLowerCase().includes(mobileMenuSearchText) ||
+        item.categoryName.toLowerCase().includes(mobileMenuSearchText)
+      );
+    })
+    .slice(0, 40);
 
   const autoBalanceDueJod = automaticBalanceDueJod(state.profile);
   const cliqMonthlyFeeJod = Number(state.profile.serviceMonthlyFeeJod || monthlyTableFee(state.profile.tableCount));
@@ -15911,16 +16008,79 @@ export default function Page() {
                       <h2>Add menu item</h2>
                       <p>{businessName} • @{state.profile.username || "restaurant"}</p>
                     </div>
-                    <button className="btn danger small" type="button" onClick={restaurantLogout}>
-                      Logout
-                    </button>
+                    <div style={{ display: "grid", gap: 8 }}>
+                      <button
+                        className="btn secondary small"
+                        type="button"
+                        onClick={() => {
+                          setMobileEditMenuOpen((current) => !current);
+                          setMobileMenuSearch("");
+                        }}
+                      >
+                        {mobileEditMenuOpen ? "Close edit" : "Edit menu"}
+                      </button>
+                      <button className="btn danger small" type="button" onClick={restaurantLogout}>
+                        Logout
+                      </button>
+                    </div>
                   </div>
 
                   <div className="mobile-manager-note">
-                    Mobile access is limited to adding menu items and uploading/taking item photos.
+                    Mobile access is limited to adding and editing menu items, uploading/taking item photos, changing prices, and deleting items.
                   </div>
 
                   {menuBusy ? <p className="sub">Saving menu item...</p> : null}
+
+                  {mobileEditMenuOpen ? (
+                    <div className="mobile-edit-menu-panel">
+                      <Field label="Search your menu">
+                        <input
+                          value={mobileMenuSearch}
+                          onChange={(e) => setMobileMenuSearch(e.target.value)}
+                          placeholder="Search item name, Arabic name, or category"
+                        />
+                      </Field>
+
+                      <div className="mobile-edit-results">
+                        {mobileEditableMenuItems.length ? (
+                          mobileEditableMenuItems.map((item) => (
+                            <button
+                              key={item.id}
+                              className={`mobile-edit-result ${editingMenuItemId === item.id ? "selected" : ""}`}
+                              type="button"
+                              onClick={() => {
+                                startEditingMenuItem(item);
+                                setMobileEditMenuOpen(false);
+                                setMobileMenuSearch("");
+                              }}
+                            >
+                              {item.imageThumbUrl ? <img src={item.imageThumbUrl} alt={item.name} /> : <span>{item.icon}</span>}
+                              <div>
+                                <strong>{item.name}</strong>
+                                {item.nameAr ? <em dir="rtl">{item.nameAr}</em> : null}
+                                <small>{item.categoryName || "Uncategorized"} • {money(item.price)}</small>
+                              </div>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="mobile-empty-results">No matching menu items.</div>
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {editingMenuItemId ? (
+                    <div className="mobile-editing-banner">
+                      Editing item. Change name, price, category, description, or picture, then press Save changes.
+                      <button
+                        className="btn ghost small"
+                        type="button"
+                        onClick={cancelEditingMenuItem}
+                      >
+                        Cancel edit
+                      </button>
+                    </div>
+                  ) : null}
 
                   <div className="mobile-add-form">
                     <Field label="English item name">
@@ -16012,9 +16172,25 @@ export default function Page() {
                       </div>
                     </Field>
 
-                    <button className="btn dark full mobile-save-item-button" type="button" onClick={addMenuItemFromBuilder} disabled={menuBusy || imageBusy}>
-                      {menuBusy ? "Saving..." : "Save item"}
+                    <button
+                      className="btn dark full mobile-save-item-button"
+                      type="button"
+                      onClick={editingMenuItemId ? saveEditedMenuItemFromBuilder : addMenuItemFromBuilder}
+                      disabled={menuBusy || imageBusy}
+                    >
+                      {menuBusy ? "Saving..." : editingMenuItemId ? "Save changes" : "Save item"}
                     </button>
+
+                    {editingMenuItemId ? (
+                      <button
+                        className="btn danger full mobile-delete-item-button"
+                        type="button"
+                        onClick={() => removeMenuItem(editingMenuItemId)}
+                        disabled={menuBusy || imageBusy}
+                      >
+                        Delete item
+                      </button>
+                    ) : null}
                   </div>
                 </div>
               </section>
