@@ -10018,6 +10018,7 @@ type BusinessProfileRow = {
   service_balance_due_jod?: number | string | null;
   service_monthly_fee_jod?: number | string | null;
   service_suspended_reason?: string | null;
+  force_password_change?: boolean | null;
 };
 
 function businessRowToProfile(row: BusinessProfileRow, fallback: Profile): Profile {
