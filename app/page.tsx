@@ -7002,7 +7002,7 @@ main.customer-only-shell .service-request-btn small {
 
 .platform-admin-stats {
   display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   gap: 10px !important;
 }
 
@@ -7038,6 +7038,128 @@ main.customer-only-shell .service-request-btn small {
   font-size: 13px !important;
   line-height: 1.35 !important;
   font-weight: 950 !important;
+}
+
+
+.business-applications-admin-card {
+  display: grid !important;
+  gap: 14px !important;
+  padding: 16px !important;
+  border-radius: 26px !important;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(200, 97, 63, 0.13), transparent 34%),
+    rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(200, 97, 63, 0.20) !important;
+  box-shadow: 0 18px 42px rgba(80, 52, 27, 0.10) !important;
+}
+
+.business-applications-admin-head {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+}
+
+.business-applications-admin-head span {
+  display: block !important;
+  color: #bd5338 !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.10em !important;
+}
+
+.business-applications-admin-head h3 {
+  margin: 5px 0 4px !important;
+  color: #2f2a25 !important;
+  font-size: 26px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.05em !important;
+  font-weight: 1000 !important;
+}
+
+.business-applications-admin-head p {
+  margin: 0 !important;
+  color: #74685d !important;
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+  font-weight: 850 !important;
+}
+
+.business-applications-admin-list {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.business-application-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  padding: 13px !important;
+  border-radius: 20px !important;
+  background: rgba(255, 253, 248, 0.94) !important;
+  border: 1px solid rgba(91, 71, 48, 0.10) !important;
+}
+
+.business-application-row.pending {
+  border-color: rgba(200, 97, 63, 0.24) !important;
+}
+
+.business-application-main {
+  display: grid !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+}
+
+.business-application-main strong {
+  color: #2f2a25 !important;
+  font-size: 16px !important;
+  font-weight: 1000 !important;
+}
+
+.business-application-main span,
+.business-application-main em {
+  color: #74685d !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-style: normal !important;
+  font-weight: 850 !important;
+}
+
+.business-application-actions {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  min-width: 170px !important;
+}
+
+.business-application-actions b {
+  padding: 7px 10px !important;
+  border-radius: 999px !important;
+  background: rgba(200, 97, 63, 0.11) !important;
+  color: #9b442f !important;
+  font-size: 11px !important;
+  font-weight: 1000 !important;
+  text-transform: uppercase !important;
+}
+
+@media (max-width: 760px) {
+  .platform-admin-stats {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .business-applications-admin-head,
+  .business-application-row {
+    display: grid !important;
+  }
+
+  .business-application-actions {
+    justify-content: flex-start !important;
+    min-width: 0 !important;
+  }
 }
 
 .platform-business-list {
@@ -14641,8 +14763,66 @@ export default function Page() {
                             <strong>{platformAdminBusinesses.filter((business) => business.serviceStatus === "suspended").length}</strong>
                           </div>
                           <div>
+                            <span>Applications</span>
+                            <strong>{businessApplications.filter((application) => application.status === "pending").length}</strong>
+                          </div>
+                          <div>
                             <span>Total due</span>
                             <strong>{money(platformAdminBusinesses.reduce((sum, business) => sum + Number(business.serviceBalanceDueJod || 0), 0))}</strong>
+                          </div>
+                        </div>
+
+                        <div className="business-applications-admin-card">
+                          <div className="business-applications-admin-head">
+                            <div>
+                              <span>New account applications</span>
+                              <h3>{businessApplications.filter((application) => application.status === "pending").length} waiting for approval</h3>
+                              <p>This is where self-signups and salesperson signups arrive before a business gets dashboard access.</p>
+                            </div>
+                            <button className="btn dark small" type="button" onClick={loadPlatformAdminBusinesses} disabled={platformAdminBusy}>
+                              Refresh applications
+                            </button>
+                          </div>
+
+                          <div className="business-applications-admin-list">
+                            {businessApplications.length ? (
+                              businessApplications.map((application) => (
+                                <div className={`business-application-row ${application.status}`} key={application.id}>
+                                  <div className="business-application-main">
+                                    <strong>{application.restaurantName}</strong>
+                                    <span>
+                                      @{application.username || "no_username"} • {application.branchName} • {application.businessEmail} • {application.businessPhone}
+                                    </span>
+                                    <em>
+                                      {application.signupSource === "salesperson"
+                                        ? `Salesperson: @${application.salespersonUsername || "missing"}`
+                                        : "Self-application"} • {application.tableCount} QR/table locations • {money(application.serviceMonthlyFeeJod)} / month
+                                    </em>
+                                    <em>
+                                      Applied: {application.createdAt ? new Date(application.createdAt).toLocaleString() : "not set"}
+                                    </em>
+                                    {application.locations.length ? <em>Locations: {application.locations.join(" | ")}</em> : null}
+                                    {application.adminNote ? <em>Admin note: {application.adminNote}</em> : null}
+                                  </div>
+
+                                  <div className="business-application-actions">
+                                    <b>{application.status}</b>
+                                    {application.status === "pending" ? (
+                                      <>
+                                        <button className="btn dark small" type="button" onClick={() => reviewBusinessApplication(application.id, "approve")} disabled={platformAdminBusy}>
+                                          Approve
+                                        </button>
+                                        <button className="btn danger small" type="button" onClick={() => reviewBusinessApplication(application.id, "reject")} disabled={platformAdminBusy}>
+                                          Reject
+                                        </button>
+                                      </>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <Empty text="No applications received yet. When a restaurant submits the application form, it will show here." />
+                            )}
                           </div>
                         </div>
 
@@ -14754,56 +14934,6 @@ export default function Page() {
                         </form>
 
                         {platformAdminMessage ? <div className="admin-message">{platformAdminMessage}</div> : null}
-
-                        <div className="cliq-admin-notification-card">
-                          <div className="cliq-admin-notification-head">
-                            <div>
-                              <span>Business applications</span>
-                              <h3>{businessApplications.filter((application) => application.status === "pending").length} pending approval</h3>
-                              <p>Self-signups and salesperson signups stay here until you call them, schedule onboarding, and approve the profile.</p>
-                            </div>
-                            <button className="btn ghost small" type="button" onClick={loadPlatformAdminBusinesses} disabled={platformAdminBusy}>
-                              Refresh applications
-                            </button>
-                          </div>
-
-                          <div className="cliq-admin-payment-list">
-                            {businessApplications.length ? (
-                              businessApplications.map((application) => (
-                                <div className={`cliq-admin-payment-row ${application.status}`} key={application.id}>
-                                  <div>
-                                    <strong>{application.restaurantName}</strong>
-                                    <span>
-                                      @{application.username || "no_username"} • {application.branchName} • {application.businessEmail} • {application.businessPhone}
-                                    </span>
-                                    <em>
-                                      Source: {application.signupSource === "salesperson" ? `salesperson @${application.salespersonUsername || "missing"}` : "business self-application"} • {application.tableCount} QR/table locations • {money(application.serviceMonthlyFeeJod)} / month • Applied: {application.createdAt ? new Date(application.createdAt).toLocaleString() : "not set"}
-                                    </em>
-                                    {application.locations.length ? (
-                                      <em>Locations: {application.locations.join(" | ")}</em>
-                                    ) : null}
-                                    {application.adminNote ? <em>Note: {application.adminNote}</em> : null}
-                                  </div>
-                                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                                    <b>{application.status}</b>
-                                    {application.status === "pending" ? (
-                                      <>
-                                        <button className="btn dark small" type="button" onClick={() => reviewBusinessApplication(application.id, "approve")} disabled={platformAdminBusy}>
-                                          Approve
-                                        </button>
-                                        <button className="btn danger small" type="button" onClick={() => reviewBusinessApplication(application.id, "reject")} disabled={platformAdminBusy}>
-                                          Reject
-                                        </button>
-                                      </>
-                                    ) : null}
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <Empty text="No business applications yet." />
-                            )}
-                          </div>
-                        </div>
 
                         <div className="cliq-admin-notification-card">
                           <div className="cliq-admin-notification-head">
