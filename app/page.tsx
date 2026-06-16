@@ -4251,6 +4251,132 @@ body {
 
 
 
+
+/* Mobile restaurant dashboard: add items only */
+.mobile-manager-add-shell {
+  min-height: 100vh !important;
+  width: 100% !important;
+  padding: 14px !important;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(207, 95, 59, 0.12), transparent 36%),
+    linear-gradient(180deg, #fff8ef, #f5eadb) !important;
+}
+
+.mobile-manager-add-card {
+  width: min(520px, 100%) !important;
+  margin: 0 auto !important;
+  padding: 18px !important;
+  border-radius: 28px !important;
+  border: 1px solid rgba(91, 71, 48, 0.13) !important;
+  background: rgba(255, 253, 248, 0.94) !important;
+  box-shadow: 0 20px 55px rgba(74, 45, 19, 0.13) !important;
+}
+
+.mobile-manager-add-head {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  margin-bottom: 14px !important;
+}
+
+.mobile-manager-add-head span {
+  display: block !important;
+  color: #c8613f !important;
+  font-weight: 900 !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+}
+
+.mobile-manager-add-head h2 {
+  margin: 4px 0 2px !important;
+  color: #2f2a25 !important;
+  font-size: 28px !important;
+  letter-spacing: -0.05em !important;
+}
+
+.mobile-manager-add-head p,
+.mobile-manager-note {
+  color: #7b6a5d !important;
+  font-size: 13px !important;
+}
+
+.mobile-manager-note {
+  margin-bottom: 14px !important;
+  padding: 12px !important;
+  border-radius: 18px !important;
+  background: #fff3e8 !important;
+  border: 1px solid rgba(200, 97, 63, 0.14) !important;
+  font-weight: 800 !important;
+}
+
+.mobile-add-form {
+  display: grid !important;
+  gap: 13px !important;
+}
+
+.mobile-add-form input,
+.mobile-add-form select,
+.mobile-add-form textarea {
+  font-size: 16px !important;
+  min-height: 48px !important;
+}
+
+.mobile-add-form textarea {
+  min-height: 98px !important;
+}
+
+.mobile-photo-upload-card {
+  display: grid !important;
+  gap: 12px !important;
+}
+
+.mobile-photo-preview {
+  min-height: 180px !important;
+  border-radius: 22px !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: hidden !important;
+  background: linear-gradient(135deg, rgba(207, 95, 59, 0.12), rgba(104, 112, 68, 0.10)), #f6eadb !important;
+  border: 1px dashed rgba(97, 72, 48, 0.22) !important;
+  color: #846b58 !important;
+  font-weight: 900 !important;
+}
+
+.mobile-photo-preview img {
+  width: 100% !important;
+  height: 220px !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+.mobile-photo-actions {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+}
+
+.mobile-photo-actions label {
+  text-align: center !important;
+  cursor: pointer !important;
+}
+
+.mobile-save-item-button {
+  min-height: 54px !important;
+  font-size: 16px !important;
+}
+
+@media (max-width: 430px) {
+  .mobile-photo-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mobile-manager-add-head {
+    align-items: stretch !important;
+  }
+}
+
 /* Menu Builder category facelift */
 .manager-option2-shell .category-builder-card {
   padding: 22px !important;
@@ -10588,6 +10714,7 @@ export default function Page() {
   const [toast, setToast] = useState("");
   const [publicTableMode, setPublicTableMode] = useState(false);
   const publicCustomerMode = publicTableMode;
+  const [isMobileManager, setIsMobileManager] = useState(false);
   const [publicTableError, setPublicTableError] = useState("");
   const [publicSuspension, setPublicSuspension] = useState<PublicSuspension>({
     suspended: false,
@@ -10789,6 +10916,22 @@ export default function Page() {
     printersLoadedKeyRef.current = key;
     void refreshPrinterSettingsNow(false);
   }, [loaded, publicTableMode, state.profileComplete, state.profile.businessId]);
+
+  useEffect(() => {
+    const updateMobileManager = () => {
+      setIsMobileManager(window.matchMedia("(max-width: 820px)").matches);
+    };
+
+    updateMobileManager();
+
+    window.addEventListener("resize", updateMobileManager);
+    window.addEventListener("orientationchange", updateMobileManager);
+
+    return () => {
+      window.removeEventListener("resize", updateMobileManager);
+      window.removeEventListener("orientationchange", updateMobileManager);
+    };
+  }, []);
 
   useEffect(() => {
     if (!toast) return;
@@ -15758,7 +15901,126 @@ export default function Page() {
             </section>
             )}
 
-            {!publicCustomerMode && (
+
+            {!publicCustomerMode && state.profileComplete && isMobileManager ? (
+              <section className="mobile-manager-add-shell">
+                <div className="mobile-manager-add-card">
+                  <div className="mobile-manager-add-head">
+                    <div>
+                      <span>Mobile Restaurant Dashboard</span>
+                      <h2>Add menu item</h2>
+                      <p>{businessName} • @{state.profile.username || "restaurant"}</p>
+                    </div>
+                    <button className="btn danger small" type="button" onClick={restaurantLogout}>
+                      Logout
+                    </button>
+                  </div>
+
+                  <div className="mobile-manager-note">
+                    Mobile access is limited to adding menu items and uploading/taking item photos.
+                  </div>
+
+                  {menuBusy ? <p className="sub">Saving menu item...</p> : null}
+
+                  <div className="mobile-add-form">
+                    <Field label="English item name">
+                      <input
+                        value={menuDraft.name}
+                        onChange={(e) => setMenuDraft({ ...menuDraft, name: e.target.value })}
+                        placeholder="Example: Chicken Caesar Salad"
+                      />
+                    </Field>
+
+                    <Field label="Arabic item name">
+                      <input
+                        dir="rtl"
+                        value={menuDraft.nameAr}
+                        onChange={(e) => setMenuDraft({ ...menuDraft, nameAr: e.target.value })}
+                        placeholder="مثال: سلطة سيزر دجاج"
+                      />
+                    </Field>
+
+                    <Field label="Category">
+                      <select
+                        value={menuDraft.categoryId}
+                        onChange={(e) => setMenuDraft({ ...menuDraft, categoryId: e.target.value })}
+                      >
+                        <option value="">Uncategorized</option>
+                        {sortMenuCategories(state.categories).map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}{category.nameAr ? ` / ${category.nameAr}` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+
+                    <Field label="Price JOD">
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.05"
+                        value={menuDraft.price}
+                        onChange={(e) => setMenuDraft({ ...menuDraft, price: e.target.value })}
+                        placeholder="4.50"
+                      />
+                    </Field>
+
+                    <Field label="Description">
+                      <textarea
+                        value={menuDraft.desc}
+                        onChange={(e) => setMenuDraft({ ...menuDraft, desc: e.target.value })}
+                        placeholder="Short description shown to the customer"
+                      />
+                    </Field>
+
+                    <Field label="Item photo">
+                      <div className="mobile-photo-upload-card">
+                        <div className="mobile-photo-preview">
+                          {menuDraft.imageThumbUrl ? (
+                            <img src={menuDraft.imageThumbUrl} alt="Item preview" />
+                          ) : (
+                            <span>Photo preview</span>
+                          )}
+                        </div>
+
+                        <div className="mobile-photo-actions">
+                          <label className="btn secondary full">
+                            Choose from library
+                            <input
+                              hidden
+                              accept="image/*"
+                              onChange={handleMenuImageUpload}
+                              type="file"
+                            />
+                          </label>
+
+                          <label className="btn dark full">
+                            Open camera
+                            <input
+                              hidden
+                              accept="image/*"
+                              capture="environment"
+                              onChange={handleMenuImageUpload}
+                              type="file"
+                            />
+                          </label>
+                        </div>
+
+                        <div className="helper">
+                          {imageBusy ? "Compressing and uploading image..." : "Photos are compressed and saved to Supabase Storage."}
+                        </div>
+                      </div>
+                    </Field>
+
+                    <button className="btn dark full mobile-save-item-button" type="button" onClick={addMenuItemFromBuilder} disabled={menuBusy || imageBusy}>
+                      {menuBusy ? "Saving..." : "Save item"}
+                    </button>
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
+            {!publicCustomerMode && !isMobileManager && (
             <section className="panel manager-option2-shell">
               <button
                 type="button"
