@@ -10900,6 +10900,23 @@ async function markPlatformBusinessPaidInServer(payload: {
   };
 }
 
+async function resetPlatformBusinessTempPasswordInServer(businessId: string) {
+  const headers = await getPlatformAdminHeaders();
+
+  const response = await fetch("/api/platform-admin/businesses/reset-temp-password", {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ businessId }),
+  });
+
+  const result = await readApiJson(response);
+
+  return {
+    business: result.business ? rowToPlatformBusiness(result.business as Record<string, unknown>) : null,
+    temporaryPassword: String(result.temporaryPassword || ""),
+  };
+}
+
 export default function Page() {
   const [state, setState] = useState<AppState>(defaultState);
   const [loaded, setLoaded] = useState(false);
@@ -12767,6 +12784,40 @@ export default function Page() {
       show(`Report load failed: ${getErrorMessage(error)}`);
     } finally {
       setPlatformReportBusy(false);
+    }
+  }
+
+  async function resetPlatformBusinessTempPassword(businessId: string) {
+    const business = platformAdminBusinesses.find((item) => item.id === businessId);
+    if (!business) return;
+
+    const ok = window.confirm(
+      `Generate a new temporary password for ${business.restaurantName}?\n\nThis will force the restaurant to change password on next login.`
+    );
+
+    if (!ok) return;
+
+    setPlatformAdminBusy(true);
+    setPlatformAdminMessage("");
+
+    try {
+      const result = await resetPlatformBusinessTempPasswordInServer(businessId);
+
+      if (result.business) {
+        setPlatformAdminBusinesses((current) =>
+          current.map((item) => (item.id === result.business?.id ? result.business : item))
+        );
+      }
+
+      setPlatformAdminMessage(
+        `Temporary password for ${business.restaurantName}: ${result.temporaryPassword}`
+      );
+      show(`Temporary password generated for ${business.restaurantName}`);
+    } catch (error) {
+      setPlatformAdminMessage(getErrorMessage(error));
+      show(`Temp password reset failed: ${getErrorMessage(error)}`);
+    } finally {
+      setPlatformAdminBusy(false);
     }
   }
 
@@ -15276,6 +15327,9 @@ export default function Page() {
                                   </button>
                                   <button className="btn dark small" type="button" onClick={() => markPlatformBusinessPaid(business.id)} disabled={platformAdminBusy}>
                                     Mark Paid
+                                  </button>
+                                  <button className="btn secondary small" type="button" onClick={() => resetPlatformBusinessTempPassword(business.id)} disabled={platformAdminBusy}>
+                                    Reset temp password
                                   </button>
                                 </div>
                               </div>
