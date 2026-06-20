@@ -706,16 +706,29 @@ main.customer-only-shell,
 
 
 
-.tawleh-software-only-note {
+/* Tawleh for Home Chefs pivot */
+.tawleh-software-only-note,
+.home-chef-compliance-note {
   margin: 10px 0 12px !important;
   padding: 10px 12px !important;
   border-radius: 16px !important;
-  background: rgba(255, 253, 248, 0.82) !important;
+  background: rgba(255, 253, 248, 0.88) !important;
   border: 1px solid rgba(157, 117, 82, 0.16) !important;
   color: #7b6354 !important;
   font-size: 11px !important;
   line-height: 1.35 !important;
   font-weight: 850 !important;
+}
+
+.app-shell:not(.customer-only-shell) .auth-info h1::after {
+  content: "Daily menus • meal prep • custom orders • catering" !important;
+  display: block !important;
+  margin-top: 10px !important;
+  color: #bd5338 !important;
+  font-size: 13px !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  font-weight: 1000 !important;
 }
 
 /* Final customer category flow fixes */
@@ -4725,7 +4738,7 @@ body {
   box-sizing: border-box !important;
 }
 
-/* Restaurant logo restore/fix */
+/* Chef / business logo restore/fix */
 .manager-option2-shell .restaurant-brand-logo-block {
   align-items: center !important;
   padding-bottom: 18px !important;
@@ -10993,7 +11006,7 @@ export default function Page() {
   const [state, setState] = useState<AppState>(defaultState);
   const [loaded, setLoaded] = useState(false);
   const [phoneTab, setPhoneTab] = useState<"menu" | "bill" | "service">("menu");
-  const [managerTab, setManagerTab] = useState<"kitchen" | "waiter" | "tables" | "menu" | "menuBuilder" | "qr" | "profile">("kitchen");
+  const [managerTab, setManagerTab] = useState<"kitchen" | "waiter" | "tables" | "menu" | "menuBuilder" | "qr" | "profile">("menuBuilder");
   const [authTab, setAuthTab] = useState<"login" | "signup" | "platformAdmin">("signup");
   const [guestName, setGuestName] = useState("");
   const [namePromptError, setNamePromptError] = useState(false);
@@ -12074,7 +12087,7 @@ export default function Page() {
     const popup = window.open("", "_blank", "width=420,height=700");
 
     if (!popup) {
-      show("Popup blocked. Allow popups, then try Print Ticket again.");
+      show("Popup blocked. Allow popups, then try Print Request again.");
       return false;
     }
 
@@ -12083,7 +12096,7 @@ export default function Page() {
 <html>
 <head>
 <meta charset="utf-8" />
-<title>Kitchen Ticket</title>
+<title>Order Request</title>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; padding: 14px; background: #fff; color: #111; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
@@ -12321,7 +12334,7 @@ export default function Page() {
         logoDataUrl,
       }));
 
-      show("Restaurant logo loaded");
+      show("Chef / business logo loaded");
     } catch (error) {
       show(error instanceof Error ? error.message : "Could not prepare restaurant logo");
     }
@@ -12339,12 +12352,12 @@ export default function Page() {
     }
 
     if (!state.profile.businessId) {
-      show("Login again before uploading a restaurant logo");
+      show("Login again before uploading your logo");
       return;
     }
 
     try {
-      show("Uploading restaurant logo...");
+      show("Uploading logo...");
 
       const logoDataUrl = await normalizeLogoFile(file);
       const logoBlob = dataUrlToBlob(logoDataUrl);
@@ -12397,9 +12410,9 @@ export default function Page() {
         // The upload already succeeded; keep the returned logo URL.
       }
 
-      show("Restaurant logo saved");
+      show("Chef / business logo saved");
     } catch (error) {
-      show(error instanceof Error ? error.message : "Restaurant logo upload failed");
+      show(error instanceof Error ? error.message : "Chef / business logo upload failed");
     }
   }
 
@@ -12456,7 +12469,7 @@ export default function Page() {
     }
 
     if (!cleanName || !cleanBranch) {
-      show("Restaurant name and branch are required");
+      show("Chef / business name and branch are required");
       return;
     }
 
@@ -12631,7 +12644,7 @@ export default function Page() {
         serviceItems: savedServiceItems.length ? savedServiceItems : defaultServiceItems,
       }));
 
-      setManagerTab("kitchen");
+      setManagerTab("menuBuilder");
       show(savedMenu.length ? "Logged in and menu loaded" : "Logged in with username");
     } catch {
       show("Login failed. Check Supabase setup.");
@@ -13085,7 +13098,7 @@ export default function Page() {
     setSignupPassword("");
     setSignupConfirmPassword("");
     setQrInput(String(DEMO_TABLE));
-    setManagerTab("kitchen");
+    setManagerTab("menuBuilder");
     setPhoneTab("menu");
     setAuthTab("login");
     document.documentElement.style.setProperty("--brand", defaultState.profile.brandColor);
@@ -13264,7 +13277,7 @@ export default function Page() {
   }
 
   function resetAll() {
-    const ok = window.confirm("Reset Tawleh Manager and clear restaurant setup, logo, orders, requests, and QR tokens?");
+    const ok = window.confirm("Reset Tawleh Home Chefs and clear restaurant setup, logo, orders, requests, and QR tokens?");
     if (!ok) return;
 
     window.localStorage.removeItem(STORAGE_KEY);
@@ -13272,7 +13285,7 @@ export default function Page() {
     setState(defaultState);
     setSignupProfile(defaultState.profile);
     setQrInput(String(DEMO_TABLE));
-    setManagerTab("kitchen");
+    setManagerTab("menuBuilder");
     setPhoneTab("menu");
     setAuthTab("signup");
     document.documentElement.style.setProperty("--brand", defaultState.profile.brandColor);
@@ -13640,7 +13653,7 @@ export default function Page() {
     if (!validateOrderCustomizations()) return;
 
     if (!state.profile.businessId) {
-      const message = "Missing restaurant account on this QR link. Create a fresh QR code from Table QR.";
+      const message = "Missing restaurant account on this QR link. Create a fresh QR code from Public Link.";
       setOrderSendError(message);
       show(message);
       return;
@@ -14916,7 +14929,7 @@ export default function Page() {
   if (!loaded) {
     return (
       <main className="loading-screen">
-        <div className="loader-card">Loading Tawleh for Home Chefs...</div>
+        <div className="loader-card">Loading Tawleh Home Chefs...</div>
       </main>
     );
   }
@@ -14976,30 +14989,31 @@ export default function Page() {
       {!state.profileComplete && !publicTableMode ? (
         <section className="auth-page">
           <div className="auth-logo-wrap">
-            <img className="main-auth-logo" src={APP_LOGO_SRC} alt="Tawleh logo" />
+            <img className="main-auth-logo" src={APP_LOGO_SRC} alt="Tawleh Home Chefs logo" />
           </div>
 
           <section className="auth-layout">
             <aside className="auth-info">
               <div>
-                <h1>Your home chef menu, orders, and catering requests in one link.</h1>
+                <h1>Tawleh for Home Chefs.</h1>
                 <p>
-                  Tawleh helps home chefs, meal prep sellers, cottage food businesses, and small caterers showcase menus, receive order requests, and organize customer inquiries from one clean dashboard.
+                  One clean storefront for daily menus, meal prep, special orders, and catering requests.
+                  No website. No payment processing. Just a professional link customers can order from.
                 </p>
               </div>
 
               <div className="auth-feature-list">
-                <AuthFeature icon="QR" title="QR ordering" text="Let customers order directly from their table." />
-                <AuthFeature icon="KS" title="Kitchen screen" text="Real-time orders grouped by table and customer name." />
-                <AuthFeature icon="WR" title="Waiter requests" text="Noor from Table 5 wants a waiter. Instant and clear." />
-                <AuthFeature icon="PR" title="Printable table QR codes" text="Restaurants create and print their own table QR codes." />
+                <AuthFeature icon="DM" title="Daily menu" text="Post today’s dishes, prices, photos, cutoff times, and sold-out items." />
+                <AuthFeature icon="MP" title="Meal prep" text="Show weekly packages, pickup days, delivery notes, and order deadlines." />
+                <AuthFeature icon="SR" title="Special requests" text="Let customers request custom plates, dates, quantities, allergies, and notes." />
+                <AuthFeature icon="CT" title="Catering inquiries" text="Collect event date, guest count, budget, cuisine type, and contact info." />
               </div>
 
               <div className="price-card">
                 <div className="price-icon">OK</div>
                 <div>
                   <strong>7-day free trial after approval</strong>
-                  <span>Minimum 25 QR codes/month. 1 JOD per QR/table. 50 tables = 50 JOD/month.</span>
+                  <span>Built for U.S. home chefs, meal prep sellers, cottage food businesses, and small caterers. Tawleh does not process food payments.</span>
                 </div>
               </div>
             </aside>
@@ -15018,7 +15032,7 @@ export default function Page() {
                   onClick={() => setAuthTab("signup")}
                   type="button"
                 >
-                  Create Account
+                  Apply for Tawleh
                 </button>
                 <button
                   className={`auth-tab ${authTab === "platformAdmin" ? "active" : ""}`}
@@ -15131,7 +15145,7 @@ export default function Page() {
                                     <em>
                                       {application.signupSource === "salesperson"
                                         ? `Salesperson: @${application.salespersonUsername || "missing"}`
-                                        : "Self-application"} • {application.tableCount} QR/table locations • {money(application.serviceMonthlyFeeJod)} / month
+                                        : "Self-application"} • {application.tableCount} public menu pages • {money(application.serviceMonthlyFeeJod)} / month
                                     </em>
                                     <em>
                                       Applied: {application.createdAt ? new Date(application.createdAt).toLocaleString() : "not set"}
@@ -15311,7 +15325,7 @@ export default function Page() {
                                 <div>
                                   <span>@{business.username || "no_username"}</span>
                                   <h3>{business.restaurantName}</h3>
-                                  <p>{business.branchName} • {business.tableCount} QR/table locations • {business.email}</p>
+                                  <p>{business.branchName} • {business.tableCount} public menu pages • {business.email}</p>
                                 </div>
                                 <b>{business.serviceStatus === "suspended" ? "Suspended" : business.serviceStatus === "trial" ? "Trial" : "Active"}</b>
                               </div>
@@ -15344,7 +15358,7 @@ export default function Page() {
                                   />
                                 </Field>
 
-                                <Field label="Table / QR location count">
+                                <Field label="Public menu page count">
                                   <input
                                     type="number"
                                     min={1}
@@ -15429,7 +15443,7 @@ export default function Page() {
                   <form className="login-panel" onSubmit={fakeLogin}>
                     <div className="auth-heading">
                       <h2>Welcome back</h2>
-                      <p>Log in with your Tawleh home chef username.</p>
+                      <p>Log in with your Tawleh Home Chefs username.</p>
                     </div>
 
                     <Field label="Username">
@@ -15523,7 +15537,7 @@ export default function Page() {
                     </div>
 
                     <div className="signup-grid">
-                      <Field label="Restaurant name">
+                      <Field label="Chef / business name">
                         <input
                           value={signupProfile.restaurantName}
                           onChange={(e) => setSignupProfile({ ...signupProfile, restaurantName: e.target.value })}
@@ -15531,7 +15545,7 @@ export default function Page() {
                         />
                       </Field>
 
-                      <Field label="Branch name">
+                      <Field label="Location / kitchen name">
                         <input
                           value={signupProfile.branchName}
                           onChange={(e) => setSignupProfile({ ...signupProfile, branchName: e.target.value })}
@@ -15635,12 +15649,12 @@ export default function Page() {
                         </div>
                       </Field>
 
-                      <Field label="Restaurant logo">
+                      <Field label="Chef / business logo">
                         <div className="logo-uploader compact">
                           <LogoBox logoDataUrl={signupProfile.logoDataUrl} fallback="Logo" large />
                           <div>
                             <input type="file" accept="image/*" onChange={handleLogoUpload} />
-                            <div className="helper">This logo appears on your public menu page and customer order-request page.</div>
+                            <div className="helper">This logo appears on your public Tawleh menu page.</div>
                           </div>
                         </div>
                       </Field>
@@ -15656,7 +15670,7 @@ export default function Page() {
                         />
                       </Field>
 
-                      <Field label="Customer welcome message">
+                      <Field label="Public page welcome message">
                         <textarea
                           value={signupProfile.welcomeMessage}
                           onChange={(e) => setSignupProfile({ ...signupProfile, welcomeMessage: e.target.value })}
@@ -15695,9 +15709,9 @@ export default function Page() {
         <>
           <header className="topbar">
             <div className="brand">
-              <img className="topbar-logo-img" src={APP_LOGO_SRC} alt="Tawleh Manager" />
+              <img className="topbar-logo-img" src={APP_LOGO_SRC} alt="Tawleh Home Chefs" />
               <div>
-                <h1>{publicCustomerMode ? businessName : "Tawleh Manager"}</h1>
+                <h1>{publicCustomerMode ? businessName : "Tawleh Home Chefs"}</h1>
                 <p>{publicCustomerMode ? `Table ${activeTable} customer menu` : `@${state.profile.username || "username"}  ${businessName}  ${branchName}`}</p>
               </div>
             </div>
@@ -16411,18 +16425,18 @@ export default function Page() {
                                 >
                                   ← Back
                                 </button>
-                                <strong>My request</strong>
+                                <strong>My bill</strong>
                               </div>
 
                               <div className="seat-card option-one-bill-card">
-                                <h4>My request</h4>
+                                <h4>My bill</h4>
                                 <p>Items or requests sent under your name.</p>
                                 <BillRows orders={state.orders.filter((order) => order.guest === state.currentGuest)} />
                                 <div className="bill-total"><span>My total</span><span>{money(myTotal)}</span></div>
                               </div>
 
                               <div className="seat-card">
-                                <h4>Table bill</h4>
+                                <h4>Estimated total</h4>
                                 <p>Full table total grouped by guest.</p>
                                 <GuestBillRows billByGuest={billByGuest} />
                                 <div className="bill-total"><span>Table total</span><span>{money(tableTotal)}</span></div>
@@ -16716,29 +16730,28 @@ export default function Page() {
                   <LogoBox logoDataUrl={state.profile.logoDataUrl} fallback={logoFallback} customer />
                   <div>
                     <strong>{businessName}</strong>
-                    <span>Restaurant logo for dashboard and QR</span>
+                    <span>Chef / business logo for dashboard and QR</span>
                     <em className="license-active-until">License active until {licenseStatusText(state.profile)}</em>
                   </div>
                 </div>
 
                 <nav className="sidebar-nav">
-                  <button className={`sidebar-nav-item ${managerTab === "kitchen" ? "active" : ""}`} type="button" onClick={() => setManagerTab("kitchen")}>Kitchen</button>
-                  <button className={`sidebar-nav-item ${managerTab === "waiter" ? "active" : ""}`} type="button" onClick={() => setManagerTab("waiter")}>Requests</button>
-                  <button className={`sidebar-nav-item ${managerTab === "tables" ? "active" : ""}`} type="button" onClick={() => setManagerTab("tables")}>Tables</button>
-                  <button className={`sidebar-nav-item ${managerTab === "menu" ? "active" : ""}`} type="button" onClick={() => setManagerTab("menu")}>Menu</button>
-                  <button className={`sidebar-nav-item ${managerTab === "menuBuilder" ? "active" : ""}`} type="button" onClick={() => setManagerTab("menuBuilder")}>Builder</button>
-                  <button className={`sidebar-nav-item ${managerTab === "qr" ? "active" : ""}`} type="button" onClick={() => setManagerTab("qr")}>QR Tables</button>
-                  <button className={`sidebar-nav-item ${managerTab === "profile" ? "active" : ""}`} type="button" onClick={() => setManagerTab("profile")}>Profile / Printers</button>
+                  <button className={`sidebar-nav-item ${managerTab === "menuBuilder" ? "active" : ""}`} type="button" onClick={() => setManagerTab("menuBuilder")}>Daily Menu</button>
+                  <button className={`sidebar-nav-item ${managerTab === "menu" ? "active" : ""}`} type="button" onClick={() => setManagerTab("menu")}>Published Items</button>
+                  <button className={`sidebar-nav-item ${managerTab === "kitchen" ? "active" : ""}`} type="button" onClick={() => setManagerTab("kitchen")}>Order Requests</button>
+                  <button className={`sidebar-nav-item ${managerTab === "waiter" ? "active" : ""}`} type="button" onClick={() => setManagerTab("waiter")}>Special Requests</button>
+                  <button className={`sidebar-nav-item ${managerTab === "qr" ? "active" : ""}`} type="button" onClick={() => setManagerTab("qr")}>Public Link</button>
+                  <button className={`sidebar-nav-item ${managerTab === "profile" ? "active" : ""}`} type="button" onClick={() => setManagerTab("profile")}>Profile</button>
                 </nav>
 
                 <div className="sidebar-summary-card">
                   <span>Today’s Summary</span>
-                  <div><strong>{openOrderCount}</strong><em>open orders</em></div>
-                  <div><strong>{waitingRequests.length}</strong><em>waiter calls</em></div>
-                  <div><strong>{tableTotal.toFixed(2)}</strong><em>table bill</em></div>
+                  <div><strong>{openOrderCount}</strong><em>open requests</em></div>
+                  <div><strong>{waitingRequests.length}</strong><em>special requests</em></div>
+                  <div><strong>{tableTotal.toFixed(2)}</strong><em>estimated total</em></div>
                 </div>
 
-                <button className="sidebar-primary-action" type="button" onClick={() => setManagerTab("qr")}>View QR Tables →</button>
+                <button className="sidebar-primary-action" type="button" onClick={() => setManagerTab("qr")}>View Public Link →</button>
                 <button
                   className="sidebar-primary-action"
                   type="button"
@@ -16758,7 +16771,7 @@ export default function Page() {
                 <div className="manager-option2-greeting">
                   <span>Home Chef Control Center</span>
                   <h2>Welcome, {businessName}</h2>
-                  <p>@{state.profile.username || "username"} • {branchName} • Daily menu and order request dashboard</p>
+                  <p>@{state.profile.username || "username"} • {branchName} • Daily menu, order requests, and catering dashboard</p>
                 </div>
 
                 <div className="manager-option2-actions">
@@ -16772,20 +16785,19 @@ export default function Page() {
 
               <div className="panel-body manager-layout">
                 <div className="stats">
-                  <Stat label="Active tables" value={state.guests.length ? "1" : "0"} />
-                  <Stat label="Open orders" value={String(openOrderCount)} />
-                  <Stat label="Waiter calls" value={String(waitingRequests.length)} />
-                  <Stat label="Table bill" value={tableTotal.toFixed(2)} />
+                  <Stat label="Customers today" value={state.guests.length ? "1" : "0"} />
+                  <Stat label="Open requests" value={String(openOrderCount)} />
+                  <Stat label="Special requests" value={String(waitingRequests.length)} />
+                  <Stat label="Estimated total" value={tableTotal.toFixed(2)} />
                 </div>
 
                 <nav className="manager-tabs">
-                  <Tab label="Orders" active={managerTab === "kitchen"} onClick={() => setManagerTab("kitchen")} />
-                  <Tab label="Requests" active={managerTab === "waiter"} onClick={() => setManagerTab("waiter")} />
-                  <Tab label="Tables" active={managerTab === "tables"} onClick={() => setManagerTab("tables")} />
-                  <Tab label="Menu Manager" active={managerTab === "menu"} onClick={() => setManagerTab("menu")} />
-                  <Tab label="Menu Builder" active={managerTab === "menuBuilder"} onClick={() => setManagerTab("menuBuilder")} />
-                  <Tab label="Table QR" active={managerTab === "qr"} onClick={() => setManagerTab("qr")} />
-                  <Tab label="Profile / Printers" active={managerTab === "profile"} onClick={() => setManagerTab("profile")} />
+                  <Tab label="Daily Menu" active={managerTab === "menuBuilder"} onClick={() => setManagerTab("menuBuilder")} />
+                  <Tab label="Published Items" active={managerTab === "menu"} onClick={() => setManagerTab("menu")} />
+                  <Tab label="Order Requests" active={managerTab === "kitchen"} onClick={() => setManagerTab("kitchen")} />
+                  <Tab label="Special Requests" active={managerTab === "waiter"} onClick={() => setManagerTab("waiter")} />
+                  <Tab label="Public Link" active={managerTab === "qr"} onClick={() => setManagerTab("qr")} />
+                  <Tab label="Profile" active={managerTab === "profile"} onClick={() => setManagerTab("profile")} />
                 </nav>
 
                 {managerTab === "kitchen" && (
@@ -16794,7 +16806,7 @@ export default function Page() {
                       <div className="kitchen-screen-header">
                         <div>
                           <h3>Customer Order Requests</h3>
-                          <p className="sub">Requests sent by customers appear here. Use this inbox to organize incoming orders.</p>
+                          <p className="sub">Customer order requests appear here. Use this inbox to organize orders, pickup/delivery notes, and status.</p>
                         </div>
 
                         <div className="kitchen-bell-actions">
@@ -16803,10 +16815,10 @@ export default function Page() {
                             type="button"
                             onClick={enableKitchenBell}
                           >
-                            {kitchenBellEnabled ? "Bell on" : "Enable deli bell"}
+                            {kitchenBellEnabled ? "Alerts on" : "Enable alerts"}
                           </button>
                           <button className="btn small ghost" type="button" onClick={testKitchenBell}>
-                            Test bell
+                            Test alert
                           </button>
                           <button className="btn small ghost" type="button" onClick={refreshKitchenOrdersNow}>
                             Refresh
@@ -16823,7 +16835,7 @@ export default function Page() {
                               <div className={`kitchen-ticket-card ${ticket.kitchenPrintedAt ? "printed" : "not-printed"}`} key={ticket.key}>
                                 <div className="kitchen-ticket-top">
                                   <div>
-                                    <span className="ticket-eyebrow">Kitchen Ticket {ticketLabel}</span>
+                                    <span className="ticket-eyebrow">Order Request {ticketLabel}</span>
                                     <h4>{tableDisplayName(ticket.table, ticket.tableLabel)} - {ticket.guest}</h4>
                                     <p>{new Date(ticket.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} - {ticket.itemCount} item{ticket.itemCount === 1 ? "" : "s"}</p>
                                   </div>
@@ -16848,7 +16860,7 @@ export default function Page() {
 
                                 <div className="ticket-actions">
                                   <button className="btn small secondary" type="button" onClick={() => printKitchenTicket(ticket, false)}>
-                                    {ticket.kitchenPrintedAt ? "Print again" : "Print Ticket"}
+                                    {ticket.kitchenPrintedAt ? "Print again" : "Print Request"}
                                   </button>
                                   <button className="btn small ghost" type="button" onClick={() => printKitchenTicket(ticket, true)}>
                                     Reprint copy
@@ -16921,7 +16933,7 @@ export default function Page() {
                   <div className="two-col waiter-manager-grid">
                     <div className="manager-card">
                       <h3>Special Requests</h3>
-                      <p className="sub">Customer questions, special requests, and catering inquiries appear here.</p>
+                      <p className="sub">Customer questions, custom orders, and catering-style notes appear here.</p>
 
                       {!waitingRequests.length ? (
                         <Empty text="No waiter requests. Try Special Request from the phone." />
@@ -17044,7 +17056,7 @@ export default function Page() {
 
                       <div className="table-sort-toolbar">
                         <div>
-                          <span>Active tables</span>
+                          <span>Customers today</span>
                           <strong>{activeTableDashboardCount} / {state.profile.tableCount}</strong>
                         </div>
 
@@ -17052,7 +17064,7 @@ export default function Page() {
                           Sort
                           <select value={tableSortMode} onChange={(e) => setTableSortMode(e.target.value as typeof tableSortMode)}>
                             <option value="number">Table number</option>
-                            <option value="active">Active tables first</option>
+                            <option value="active">Customers today first</option>
                             <option value="needsHelp">Needs waiter first</option>
                             <option value="openOrders">Most open orders</option>
                             <option value="billHigh">Highest bill</option>
@@ -17860,7 +17872,7 @@ export default function Page() {
                         <div className="bill-row"><span>Auto mode option</span><strong>Print only, then reset</strong></div>
                         <div className="bill-row"><span>Kitchen receives</span><strong>Location + name</strong></div>
                       </div>
-                      <Empty alignLeft text={"Example:\nCustomer scans Table QR -> enters their name -> orders an item.\n\nKitchen sees: table number, customer name, and item name."} />
+                      <Empty alignLeft text={"Example:\nCustomer scans Public Link -> enters their name -> orders an item.\n\nKitchen sees: table number, customer name, and item name."} />
                     </div>
                   </div>
                 )}
@@ -17891,7 +17903,7 @@ export default function Page() {
 
                       <div className="restaurant-logo-upload-card">
                         <div>
-                          <strong>Restaurant logo</strong>
+                          <strong>Chef / business logo</strong>
                           <span>This logo appears on the dashboard, customer QR page, and printable QR cards.</span>
                         </div>
                         <label className="btn secondary small restaurant-logo-upload-button">
@@ -18365,7 +18377,7 @@ export default function Page() {
 
                 <div className="print-page-footer">
                   <span>No app download required</span>
-                  <em>Powered by Tawleh Manager</em>
+                  <em>Powered by Tawleh Home Chefs</em>
                 </div>
               </div>
             </div>
@@ -18461,7 +18473,7 @@ function LogoBox({
 
   return (
     <div className={className}>
-      {logoDataUrl ? <img src={logoDataUrl} alt="Restaurant logo" /> : <span>{fallback}</span>}
+      {logoDataUrl ? <img src={logoDataUrl} alt="Chef / business logo" /> : <span>{fallback}</span>}
     </div>
   );
 }
